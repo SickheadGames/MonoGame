@@ -39,6 +39,7 @@ purpose and non-infringement.
 #endregion License
 
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -49,8 +50,9 @@ using Microsoft.Xna.Framework.Input;
 using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using XnaKey = Microsoft.Xna.Framework.Input.Keys;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace MonoGame.Framework
+namespace Microsoft.Xna.Framework
 {
     public class WinFormsGameWindow : GameWindow
     {
@@ -87,7 +89,6 @@ namespace MonoGame.Framework
             set
             {
                 _form.FormBorderStyle = value ? FormBorderStyle.Sizable : FormBorderStyle.Fixed3D;
-                _form.MaximizeBox = value;
             }
         }
 
@@ -109,10 +110,6 @@ namespace MonoGame.Framework
 
             _form = new Form();
             _form.Icon = Icon.ExtractAssociatedIcon(Assembly.GetEntryAssembly().Location);
-            _form.MaximizeBox = false;
-            _form.FormBorderStyle = FormBorderStyle.Fixed3D;
-
-            Mouse.SetWindows(_form);
 
             // Capture mouse and keyboard events.
             _form.MouseDown += OnMouseState;
@@ -187,11 +184,6 @@ namespace MonoGame.Framework
             // Game.ApplicationViewChanged event and signal
             // the client size changed event.
             OnClientSizeChanged();
-
-            // If we have a valid client bounds then 
-            // update the graphics device.
-            if (newWidth > 0 && newHeight > 0)
-                manager.ApplyChanges();
         }
 
         protected override void SetTitle(string title)
@@ -210,25 +202,19 @@ namespace MonoGame.Framework
         {
             // While there are no pending messages 
             // to be processed tick the game.
-            NativeMessage msg;
+            Message msg;
             while (!PeekMessage(out msg, IntPtr.Zero, 0, 0, 0))
                 Game.Tick();
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct NativeMessage
+        internal void ChangeClientSize(Size clientBounds)
         {
-            public IntPtr handle;
-            public uint msg;
-            public IntPtr wParam;
-            public IntPtr lParam;
-            public uint time;
-            public System.Drawing.Point p;
+            this._form.ClientSize = clientBounds;
         }
 
         [System.Security.SuppressUnmanagedCodeSecurity] // We won't use this maliciously
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
-        private static extern bool PeekMessage(out NativeMessage msg, IntPtr hWnd, uint messageFilterMin, uint messageFilterMax, uint flags);
+        private static extern bool PeekMessage(out Message msg, IntPtr hWnd, uint messageFilterMin, uint messageFilterMax, uint flags);
 
         #region Public Methods
 

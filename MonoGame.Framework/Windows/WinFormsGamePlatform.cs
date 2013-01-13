@@ -68,11 +68,12 @@ non-infringement.
 
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using Microsoft.Xna.Framework;
 using System.Windows.Forms;
 
 
-namespace MonoGame.Framework
+namespace Microsoft.Xna.Framework
 {
     class WinFormsGamePlatform : GamePlatform
     {
@@ -133,6 +134,11 @@ namespace MonoGame.Framework
 
         public override void ExitFullScreen()
         {
+        }
+
+        public void ResetWindowBounds(bool toggleFullScreen)
+        {
+            _window.ChangeClientSize(new Size(Game.graphicsDeviceManager.PreferredBackBufferWidth, Game.graphicsDeviceManager.PreferredBackBufferHeight));
         }
         
         public override void EndScreenDeviceChange(string screenDeviceName, int clientWidth, int clientHeight)
