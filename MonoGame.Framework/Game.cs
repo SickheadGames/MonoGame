@@ -699,6 +699,8 @@ namespace Microsoft.Xna.Framework
         {
 #if LINUX || (WINDOWS && OPENGL)
             ((OpenTKGamePlatform)Platform).ResetWindowBounds(changed);
+#elif WINDOWS && DIRECTX
+            ((WinFormsGamePlatform)Platform).ResetWindowBounds(changed);
 #endif
         }
 

@@ -52,7 +52,7 @@ using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using XnaKey = Microsoft.Xna.Framework.Input.Keys;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace MonoGame.Framework
+namespace Microsoft.Xna.Framework
 {
     public class WinFormsGameWindow : GameWindow
     {
@@ -184,11 +184,6 @@ namespace MonoGame.Framework
             // Game.ApplicationViewChanged event and signal
             // the client size changed event.
             OnClientSizeChanged();
-
-            // If we have a valid client bounds then 
-            // update the graphics device.
-            if (newWidth > 0 && newHeight > 0)
-                manager.ApplyChanges();
         }
 
         protected override void SetTitle(string title)
@@ -210,6 +205,11 @@ namespace MonoGame.Framework
             Message msg;
             while (!PeekMessage(out msg, IntPtr.Zero, 0, 0, 0))
                 Game.Tick();
+        }
+
+        internal void ChangeClientSize(Size clientBounds)
+        {
+            this._form.ClientSize = clientBounds;
         }
 
         [System.Security.SuppressUnmanagedCodeSecurity] // We won't use this maliciously
