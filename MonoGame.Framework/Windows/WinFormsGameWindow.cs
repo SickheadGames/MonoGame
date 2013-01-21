@@ -47,7 +47,6 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using MonoGame.Framework;
 using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using XnaKey = Microsoft.Xna.Framework.Input.Keys;
