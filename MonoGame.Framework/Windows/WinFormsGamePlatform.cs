@@ -72,8 +72,7 @@ using System.Drawing;
 using Microsoft.Xna.Framework;
 using System.Windows.Forms;
 
-
-namespace Microsoft.Xna.Framework
+namespace MonoGame.Framework
 {
     class WinFormsGamePlatform : GamePlatform
     {

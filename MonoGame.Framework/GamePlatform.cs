@@ -67,6 +67,7 @@ non-infringement.
 #endregion License
 
 using System;
+using MonoGame.Framework;
 
 #if WINRT
 using Windows.UI.ViewManagement;
