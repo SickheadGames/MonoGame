@@ -67,6 +67,7 @@ non-infringement.
 #endregion License
 
 using System;
+using MonoGame.Framework;
 
 #if WINRT
 using Windows.UI.ViewManagement;
@@ -92,12 +93,14 @@ namespace Microsoft.Xna.Framework
             return new iOSGamePlatform(game);
 #elif MONOMAC
             return new MacGamePlatform(game);
-#elif WINDOWS || LINUX
+#elif (WINDOWS && OPENGL) || LINUX
             return new OpenTKGamePlatform(game);
 #elif ANDROID
             return new AndroidGamePlatform(game);
 #elif PSM
 			return new PSSGamePlatform(game);
+#elif WINDOWS && DIRECTX
+            return new WinFormsGamePlatform(game);
 #elif WINDOWS_PHONE
             return new MonoGame.Framework.WindowsPhone.WindowsPhoneGamePlatform(game);
 #elif WINRT
