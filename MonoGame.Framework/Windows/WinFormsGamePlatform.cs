@@ -154,14 +154,6 @@ namespace MonoGame.Framework
             if ( device != null )
                 device.Present();
         }
-
-        protected override void OnIsMouseVisibleChanged() 
-        {
-            if (IsMouseVisible)
-                Cursor.Show();
-            else
-                Cursor.Hide();
-        }
 		
         protected override void Dispose(bool disposing)
         {
