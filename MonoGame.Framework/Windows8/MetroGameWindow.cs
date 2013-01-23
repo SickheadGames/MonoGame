@@ -91,6 +91,15 @@ namespace Microsoft.Xna.Framework
                 // You cannot resize a Metro window!
             }
         }
+        
+        public override bool IsBorderless
+        {
+            get { return false; }
+            set 
+            {
+                // You cannot hide the Metro window border!
+            }
+        }
 
         public override DisplayOrientation CurrentOrientation
         {

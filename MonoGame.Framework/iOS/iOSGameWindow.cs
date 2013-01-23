@@ -88,6 +88,11 @@ namespace Microsoft.Xna.Framework {
 			set { /* Do nothing. */ }
 		}
 
+		public override bool IsBorderless {
+			get { return false; }
+			set { /* Do nothing. */ }
+		}
+
 		public override Rectangle ClientBounds {
 			get {
 				var bounds = _viewController.View.Bounds;

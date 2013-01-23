@@ -75,6 +75,8 @@ namespace Microsoft.Xna.Framework {
 
 		[DefaultValue(false)]
 		public abstract bool AllowUserResizing { get; set; }
+		
+		public abstract bool IsBorderless { get; set; }
 
 		public abstract Rectangle ClientBounds { get; }
 

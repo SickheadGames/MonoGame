@@ -146,6 +146,18 @@ namespace Microsoft.Xna.Framework
 				// Do nothing; Ignore rather than raising and exception
 			}
 		}
+		
+		public override bool IsBorderless
+		{
+			get 
+			{
+				return false;
+			}
+			set 
+			{
+				// Do nothing; Ignore rather than raising and exception
+			}
+		}
 
 		public override Rectangle ClientBounds 
 		{

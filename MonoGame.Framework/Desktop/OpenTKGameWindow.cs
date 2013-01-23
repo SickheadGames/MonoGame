@@ -109,6 +109,15 @@ namespace Microsoft.Xna.Framework
                     window.WindowBorder = WindowBorder.Fixed; // OTK's buggy here, let's wait for 1.1
             }
         }
+        
+        public override bool IsBorderless
+        {
+            get { return false; }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         public override DisplayOrientation CurrentOrientation
         {
