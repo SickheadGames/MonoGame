@@ -59,6 +59,10 @@ namespace MonoGame.Framework
         private List<XnaKey> _keyState = new List<XnaKey>();
 
         private WinFormsGamePlatform _platform;
+        
+        private bool _allowUserResizing;
+        
+        private bool _isBorderless;
 
         #region Internal Properties
 
@@ -83,11 +87,35 @@ namespace MonoGame.Framework
 
         public override bool AllowUserResizing
         {
-            get { return _form.FormBorderStyle == FormBorderStyle.Sizable; }
+            get { return _allowUserResizing; }
             set
             {
-                _form.FormBorderStyle = value ? FormBorderStyle.Sizable : FormBorderStyle.Fixed3D;
+                _allowUserResizing = value;
                 _form.MaximizeBox = value;
+                if (_isBorderless)
+                    return;
+                if (_allowUserResizing)
+                    _form.FormBorderStyle = FormBorderStyle.Sizable;
+                else
+                    _form.FormBorderStyle = FormBorderStyle.FixedSingle;
+            }
+        }
+
+        public override bool IsBorderless
+        {
+            get { return _isBorderless; }
+            set
+            {
+                _isBorderless = value;
+                if (_isBorderless)
+                    _form.FormBorderStyle = FormBorderStyle.None;
+                else
+                {
+                    if (_allowUserResizing)
+                        _form.FormBorderStyle = FormBorderStyle.Sizable;
+                    else
+                        _form.FormBorderStyle = FormBorderStyle.FixedSingle;
+                }
             }
         }
 
