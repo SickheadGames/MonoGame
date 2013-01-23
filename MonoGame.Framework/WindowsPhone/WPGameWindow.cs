@@ -76,6 +76,14 @@ namespace MonoGame.Framework.WindowsPhone
             {
             }
         }
+        
+        public override bool IsBorderless
+        {
+            get { return false; }
+            set 
+            {
+            }
+        }
 
         public override DisplayOrientation CurrentOrientation
         {
