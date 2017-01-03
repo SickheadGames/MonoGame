@@ -45,8 +45,8 @@ namespace Microsoft.Xna.Framework.Content
 
             // If the system does not fully support Power of Two textures,
             // skip any mip maps supplied with any non PoT textures.
-            if (levelCount > 1 && !reader.GraphicsDevice.GraphicsCapabilities.SupportsNonPowerOfTwo &&
-                (!MathHelper.IsPowerOfTwo(width) || !MathHelper.IsPowerOfTwo(height)))
+            if (levelCount > 1 && !device.GraphicsCapabilities.SupportsNonPowerOfTwo &&
+                (!MathHelper.IsPowerOfTwo((int)width) || !MathHelper.IsPowerOfTwo((int)height)))
             {
                 levelCountOutput = 1;
                 System.Diagnostics.Debug.WriteLine(
@@ -58,26 +58,29 @@ namespace Microsoft.Xna.Framework.Content
 			{
 				case SurfaceFormat.Dxt1:
 				case SurfaceFormat.Dxt1a:
-					if (!reader.GraphicsDevice.GraphicsCapabilities.SupportsDxt1)
+                    if (!device.GraphicsCapabilities.SupportsDxt1)
 						convertedFormat = SurfaceFormat.Color;
 					break;
 				case SurfaceFormat.Dxt1SRgb:
-					if (!reader.GraphicsDevice.GraphicsCapabilities.SupportsDxt1)
+                    if (!device.GraphicsCapabilities.SupportsDxt1)
 						convertedFormat = SurfaceFormat.ColorSRgb;
 					break;
 				case SurfaceFormat.Dxt3:
 				case SurfaceFormat.Dxt5:
-					if (!reader.GraphicsDevice.GraphicsCapabilities.SupportsS3tc)
+                    if (!device.GraphicsCapabilities.SupportsS3tc)
 						convertedFormat = SurfaceFormat.Color;
 					break;
 				case SurfaceFormat.Dxt3SRgb:
 				case SurfaceFormat.Dxt5SRgb:
-					if (!reader.GraphicsDevice.GraphicsCapabilities.SupportsS3tc)
+                    if (!device.GraphicsCapabilities.SupportsS3tc)
 						convertedFormat = SurfaceFormat.ColorSRgb;
 					break;
 				case SurfaceFormat.NormalizedByte4:
 					convertedFormat = SurfaceFormat.Color;
 					break;
+
+                // TODO: What about other compressed formats?
+                // Should we make this a platform function of sorts?
 			}
 
             texture = existingInstance ?? new Texture2D(device, (int)width, (int)height, levelCountOutput > 1, convertedFormat);
@@ -106,7 +109,7 @@ namespace Microsoft.Xna.Framework.Content
 					    case SurfaceFormat.Dxt1:
                         case SurfaceFormat.Dxt1SRgb:
                         case SurfaceFormat.Dxt1a:
-				            if (!reader.GraphicsDevice.GraphicsCapabilities.SupportsDxt1 && convertedFormat == SurfaceFormat.Color)
+                            if (!device.GraphicsCapabilities.SupportsDxt1 && convertedFormat == SurfaceFormat.Color)
 				            {
 				                levelData = DxtUtil.DecompressDxt1(levelData, levelWidth, levelHeight);
 				                levelDataSizeInBytes = levelData.Length;
