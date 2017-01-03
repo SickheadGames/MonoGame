@@ -22,10 +22,26 @@ namespace Microsoft.Xna.Framework.Content
 			Texture2D texture = null;
 
             var surfaceFormat = (SurfaceFormat)reader.ReadInt32();
-            int width = reader.ReadInt32();
-            int height = reader.ReadInt32();
+            uint width = reader.ReadUInt32();
+            uint height = reader.ReadUInt32();
             int levelCount = reader.ReadInt32();
             int levelCountOutput = levelCount;
+
+		    var device = reader.GraphicsDevice;
+
+            var originalWidth = width;
+		    if ((width & 0xFFFF0000) != 0)
+		    {
+                originalWidth = (uint)((width & 0xFFFF0000) >> 16);
+                width = width & 0x0000FFFF;
+		    }
+
+            var originalHeight = height;
+		    if ((height & 0xFFFF0000) != 0)
+		    {
+		        originalHeight = (uint)((height & 0xFFFF0000) >> 16);
+                height = height & 0x0000FFFF;
+		    }
 
             // If the system does not fully support Power of Two textures,
             // skip any mip maps supplied with any non PoT textures.
@@ -63,8 +79,12 @@ namespace Microsoft.Xna.Framework.Content
 					convertedFormat = SurfaceFormat.Color;
 					break;
 			}
-			
-            texture = existingInstance ?? new Texture2D(reader.GraphicsDevice, width, height, levelCountOutput > 1, convertedFormat);
+
+            texture = existingInstance ?? new Texture2D(device, (int)width, (int)height, levelCountOutput > 1, convertedFormat);
+
+            texture.OriginalWidth = (int)originalWidth;
+            texture.OriginalHeight = (int)originalHeight;
+
 #if OPENGL
             Threading.BlockOnUIThread(() =>
             {
@@ -74,8 +94,8 @@ namespace Microsoft.Xna.Framework.Content
 				    var levelDataSizeInBytes = reader.ReadInt32();
                     var levelData = reader.ContentManager.GetScratchBuffer(levelDataSizeInBytes);
                     reader.Read(levelData, 0, levelDataSizeInBytes);
-                    int levelWidth = width >> level;
-                    int levelHeight = height >> level;
+                    int levelWidth = (int)width >> level;
+                    int levelHeight = (int)height >> level;
 
                     if (level >= levelCountOutput)
                         continue;

@@ -24,5 +24,9 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
         {
             throw new NotImplementedException();
         }
+
+        public int OriginalWidth { get; set; }
+
+        public int OriginalHeight { get; set; }
     }
 }

@@ -21,8 +21,14 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler
                 throw new Exception("Couldn't get Format for TextureContent.");
 
             output.Write((int)format);
-            output.Write(level0.Width);
-            output.Write(level0.Height);
+
+            // Pack the original size and the actual size together
+            // to avoid breaking the file format.
+            var width = (int)((value.OriginalWidth << 16) + level0.Width);
+            var height = (int)((value.OriginalHeight << 16) + level0.Height);
+            output.Write(width);
+            output.Write(height);
+
             output.Write(mipmaps.Count);    // Number of mipmap levels.
 
             foreach (var level in mipmaps)
