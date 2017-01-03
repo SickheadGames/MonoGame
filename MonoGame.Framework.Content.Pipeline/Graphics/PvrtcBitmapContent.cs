@@ -48,7 +48,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
         {
             var size = GetDataSize();
             if (sourceData.Length != size)
-                throw new ArgumentException("Incorrect data size. Expected " + size + " bytes");
+                throw new ArgumentException("Incorrect data size. Expected " + size + " bytes, but got " + sourceData.Length + " bytes");
             if (_bitmapData == null || _bitmapData.Length != size)
                 _bitmapData = new byte[size];
             Buffer.BlockCopy(sourceData, 0, _bitmapData, 0, size);
