@@ -453,5 +453,55 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             buffer[offset + 14] = (byte)((dxt3Map[a11 >> 2] << 6) | (dxt3Map[a10 >> 2] << 4) | (dxt3Map[a9 >> 2] << 2) | dxt3Map[a8 >> 2]);
             buffer[offset + 15] = (byte)((dxt3Map[a15 >> 2] << 6) | (dxt3Map[a14 >> 2] << 4) | (dxt3Map[a13 >> 2] << 2) | dxt3Map[a12 >> 2]);
         }
+
+        public static PixelBitmapContent<Vector4> ColorAverageFilter(this PixelBitmapContent<Vector4> bitmap, int alphaThreshold = 4, int windowSize = 6)
+        {
+			var result = new PixelBitmapContent<Vector4>(bitmap.Width, bitmap.Height);
+
+            float at = alphaThreshold / 255.0f;
+
+            var colorWeight = ((windowSize + windowSize + 1) * (windowSize + windowSize + 1)) / 2.0f;
+
+            for (var y = 0; y < bitmap.Height; y++)
+            for (var x = 0; x < bitmap.Width; x++)
+            {
+                var p = bitmap.GetPixel(x, y);
+
+                // We only blend on transparent pixels.
+                if (p.W > at)
+                {
+                    result.SetPixel(x, y, p);
+                    continue;
+                }
+
+                var color = Vector4.Zero;
+                var count = 0;
+
+                for (var fy = y - windowSize; fy <= y + windowSize; fy++)
+                {
+                    if (fy < 0 || fy >= bitmap.Height)
+                        continue;
+
+                    for (var fx = x - windowSize; fx <= x + windowSize; fx++ )
+                    {
+                        if (fx < 0 || fx >= bitmap.Width)
+                            continue;
+
+                        p = bitmap.GetPixel(fx, fy);
+                        if (p.W > at)
+                        {
+                            color += p;
+                            ++count;
+                        }
+                    }
+                }
+
+                color /= Math.Max(count, colorWeight);
+                color.W = 0;
+                result.SetPixel(x, y, color);
+            }
+
+            return result;            
+        }
     }
 }
