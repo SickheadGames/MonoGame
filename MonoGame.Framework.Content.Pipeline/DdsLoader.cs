@@ -531,5 +531,143 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
                 writer.Write(bitmapContent.GetPixelData());
             }
         }
+
+        internal static void Write(string filename, TextureContent content)
+        {
+            using (var writer = new BinaryWriter(new FileStream(filename, FileMode.Create, FileAccess.Write)))
+            {
+                // Write signature ("DDS ")
+                writer.Write((byte)0x44);
+                writer.Write((byte)0x44);
+                writer.Write((byte)0x53);
+                writer.Write((byte)0x20);
+
+                var mips = content.Faces[0];
+                var face0 = mips[0];
+
+                SurfaceFormat format;
+                if (!face0.TryGetFormat(out format))
+                    throw new NotSupportedException("Unknown texture format!");
+
+                var header = new DdsHeader();
+                header.dwSize = 124;
+                header.dwFlags = Ddsd.Caps | Ddsd.Width | Ddsd.Height | Ddsd.Pitch | Ddsd.PixelFormat;
+                header.dwWidth = (uint)face0.Width;
+                header.dwHeight = (uint)face0.Height;
+                header.dwDepth = (uint)0;
+                header.dwMipMapCount = (uint)mips.Count;
+
+                switch (format)
+                {
+                    case SurfaceFormat.Color:
+                    case SurfaceFormat.Bgra4444:
+                    case SurfaceFormat.Bgra5551:
+                    case SurfaceFormat.Bgr565:
+                    case SurfaceFormat.Vector4:
+                        header.dwPitchOrLinearSize = (uint)(face0.Width * format.GetSize());
+                        break;
+
+                    case SurfaceFormat.Dxt1:
+                    case SurfaceFormat.Dxt3:
+                    case SurfaceFormat.Dxt5:
+                        header.dwPitchOrLinearSize = (uint)(((face0.Width + 3) / 4) * format.GetSize());
+                        break;
+
+                    default:
+                        throw new NotSupportedException("Unsupported texture format!");
+                }
+
+                writer.Write((uint)header.dwSize);
+                writer.Write((uint)header.dwFlags);
+                writer.Write((uint)header.dwHeight);
+                writer.Write((uint)header.dwWidth);
+                writer.Write((uint)header.dwPitchOrLinearSize);
+                writer.Write((uint)header.dwDepth);
+                writer.Write((uint)header.dwMipMapCount);
+
+                // 11 unsed and reserved DWORDS.
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+
+
+                switch (format)
+                {
+                    case SurfaceFormat.Color:
+                        {
+                            header.ddspf.dwSize = 32;
+                            header.ddspf.dwFlags = Ddpf.AlphaPixels | Ddpf.Rgb;
+                            header.ddspf.dwFourCC = 0;
+                            header.ddspf.dwRgbBitCount = 32;
+                            header.ddspf.dwRBitMask = 0x000000ff;
+                            header.ddspf.dwGBitMask = 0x0000ff00;
+                            header.ddspf.dwBBitMask = 0x00ff0000;
+                            header.ddspf.dwABitMask = 0xff000000;
+                            break;
+                        }
+
+                    case SurfaceFormat.Dxt1:
+                        {
+                            header.ddspf.dwSize = 32;
+                            header.ddspf.dwFlags = Ddpf.FourCC;
+                            header.ddspf.dwFourCC = FourCC.Dxt1;
+                            break;
+                        }
+
+                    case SurfaceFormat.Dxt3:
+                        {
+                            header.ddspf.dwSize = 32;
+                            header.ddspf.dwFlags = Ddpf.FourCC;
+                            header.ddspf.dwFourCC = FourCC.Dxt3;
+                            break;
+                        }
+
+                    case SurfaceFormat.Dxt5:
+                        {
+                            header.ddspf.dwSize = 32;
+                            header.ddspf.dwFlags = Ddpf.FourCC;
+                            header.ddspf.dwFourCC = FourCC.Dxt5;
+                            break;
+                        }
+
+                    default:
+                        throw new NotSupportedException("Unsupported texture format!");
+                }
+
+                // Write the DDS_PIXELFORMAT
+                writer.Write((uint)header.ddspf.dwSize);
+                writer.Write((uint)header.ddspf.dwFlags);
+                writer.Write((uint)header.ddspf.dwFourCC);
+                writer.Write((uint)header.ddspf.dwRgbBitCount);
+                writer.Write((uint)header.ddspf.dwRBitMask);
+                writer.Write((uint)header.ddspf.dwGBitMask);
+                writer.Write((uint)header.ddspf.dwBBitMask);
+                writer.Write((uint)header.ddspf.dwABitMask);
+
+                header.dwCaps = DdsCaps.Texture | (mips.Count > 1 ? DdsCaps.MipMap | DdsCaps.Complex : 0);
+                header.dwCaps2 = 0;
+
+                // Continue reading DDS_HEADER
+                writer.Write((uint)header.dwCaps);
+                writer.Write((uint)header.dwCaps2);
+
+                // More reserved unused DWORDs.
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+                writer.Write((uint)0);
+
+                // Write out the face data.
+                for (var i=0; i < mips.Count; i++)
+                    writer.Write(mips[i].GetPixelData());
+            }
+        }
     }
 }
