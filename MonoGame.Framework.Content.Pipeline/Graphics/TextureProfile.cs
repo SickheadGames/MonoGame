@@ -55,6 +55,26 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             if (format == TextureProcessorOutputFormat.NoChange)
                 return;
 
+            // VITA HACK!
+            var face = content.Faces[0][0];
+            if (face.Width == 1920 && face.Height == 1080)
+            {
+                var widthNew = 960;
+                var heightNew = 540;
+
+                // Store the original size for use at runtime.
+                var content2d = content as Texture2DContent;
+                content2d.OriginalWidth = face.Width;
+                content2d.OriginalHeight = face.Height;
+
+                // Alert the user of the resize we just did.
+                context.Logger.LogWarning(string.Empty, content.Identity, "Texture was resized {0}x{1} to {2}x{3}!", face.Width, face.Height, widthNew, heightNew);
+
+                var newFace = face.Resize(widthNew, heightNew);
+                content.Faces[0].Clear();
+                content.Faces[0].Add(newFace);
+            }
+
             // If this is color just make sure the format is right and return it.
             if (format == TextureProcessorOutputFormat.Color)
             {
