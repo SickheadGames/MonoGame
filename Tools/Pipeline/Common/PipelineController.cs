@@ -399,7 +399,7 @@ namespace MonoGame.Tools.Pipeline
             BuildCommand(commands);
         }
 
-        private IEnumerable<IProjectItem> GetItems(IProjectItem dir)
+        public IEnumerable<IProjectItem> GetItems(IProjectItem dir)
         {
             foreach (var item in _project.ContentItems)
                 if (item.OriginalPath.StartsWith(dir.OriginalPath + "/"))
