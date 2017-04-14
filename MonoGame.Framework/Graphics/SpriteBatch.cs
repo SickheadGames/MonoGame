@@ -303,10 +303,10 @@ namespace Microsoft.Xna.Framework.Graphics
                 var srcRect = sourceRectangle.GetValueOrDefault();
                 w = srcRect.Width * scale.X;
                 h = srcRect.Height * scale.Y;
-                _texCoordTL.X = srcRect.X * texture.TexelWidth;
-                _texCoordTL.Y = srcRect.Y * texture.TexelHeight;
-                _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordTL.X = srcRect.X / (float)texture.OriginalWidth;
+                _texCoordTL.Y = srcRect.Y / (float)texture.OriginalHeight;
+                _texCoordBR.X = (srcRect.X + srcRect.Width) / (float)texture.OriginalWidth;
+                _texCoordBR.Y = (srcRect.Y + srcRect.Height) / (float)texture.OriginalHeight;
             }
             else
             {
@@ -430,10 +430,10 @@ namespace Microsoft.Xna.Framework.Graphics
             if (sourceRectangle.HasValue)
             {
                 var srcRect = sourceRectangle.GetValueOrDefault();
-                _texCoordTL.X = srcRect.X * texture.TexelWidth;
-                _texCoordTL.Y = srcRect.Y * texture.TexelHeight;
-                _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordTL.X = srcRect.X / (float)texture.OriginalWidth;
+                _texCoordTL.Y = srcRect.Y / (float)texture.OriginalHeight;
+                _texCoordBR.X = (srcRect.X + srcRect.Width) / (float)texture.OriginalWidth;
+                _texCoordBR.Y = (srcRect.Y + srcRect.Height) / (float)texture.OriginalHeight;
 
                 if(srcRect.Width != 0)
                     origin.X = origin.X * (float)destinationRectangle.Width / (float)srcRect.Width;
@@ -528,10 +528,10 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 var srcRect = sourceRectangle.GetValueOrDefault();
                 size = new Vector2(srcRect.Width, srcRect.Height);
-                _texCoordTL.X = srcRect.X * texture.TexelWidth;
-                _texCoordTL.Y = srcRect.Y * texture.TexelHeight;
-                _texCoordBR.X = (srcRect.X + srcRect.Width)  * texture.TexelWidth;
-                _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordTL.X = srcRect.X / (float)texture.OriginalWidth;
+                _texCoordTL.Y = srcRect.Y / (float)texture.OriginalHeight;
+                _texCoordBR.X = (srcRect.X + srcRect.Width) / (float)texture.OriginalWidth;
+                _texCoordBR.Y = (srcRect.Y + srcRect.Height) / (float)texture.OriginalHeight;
             }
             else
             {
@@ -572,10 +572,10 @@ namespace Microsoft.Xna.Framework.Graphics
             if (sourceRectangle.HasValue)
             {
                 var srcRect = sourceRectangle.GetValueOrDefault();
-                _texCoordTL.X = srcRect.X * texture.TexelWidth;
-                _texCoordTL.Y = srcRect.Y * texture.TexelHeight;
-                _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordTL.X = srcRect.X / (float)texture.OriginalWidth;
+                _texCoordTL.Y = srcRect.Y / (float)texture.OriginalHeight;
+                _texCoordBR.X = (srcRect.X + srcRect.Width) / (float)texture.OriginalWidth;
+                _texCoordBR.Y = (srcRect.Y + srcRect.Height) / (float)texture.OriginalHeight;
             }
             else
             {
@@ -717,11 +717,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 var item = _batcher.CreateBatchItem();
                 item.Texture = spriteFont.Texture;
                 item.SortKey = sortKey;
-            
-                _texCoordTL.X = currentGlyph.BoundsInTexture.X * spriteFont.Texture.TexelWidth;
-                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
-                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) * spriteFont.Texture.TexelWidth;
-                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) * spriteFont.Texture.TexelHeight;
+
+                _texCoordTL.X = currentGlyph.BoundsInTexture.X / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y / (float)spriteFont.Texture.OriginalHeight;
+                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) / (float)spriteFont.Texture.OriginalHeight;
 
                 item.Set(p.X,
                          p.Y,
@@ -901,11 +901,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 var item = _batcher.CreateBatchItem();               
                 item.Texture = spriteFont.Texture;
                 item.SortKey = sortKey;
-                
-                _texCoordTL.X = currentGlyph.BoundsInTexture.X * spriteFont.Texture.TexelWidth;
-                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
-                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) * spriteFont.Texture.TexelWidth;
-                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) * spriteFont.Texture.TexelHeight;
+
+                _texCoordTL.X = currentGlyph.BoundsInTexture.X / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y / (float)spriteFont.Texture.OriginalHeight;
+                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) / (float)spriteFont.Texture.OriginalHeight;
                             
                 if ((effects & SpriteEffects.FlipVertically) != 0)
                 {
@@ -1020,11 +1020,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 var item = _batcher.CreateBatchItem();
                 item.Texture = spriteFont.Texture;
                 item.SortKey = sortKey;
-            
-                _texCoordTL.X = currentGlyph.BoundsInTexture.X * spriteFont.Texture.TexelWidth;
-                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
-                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) * spriteFont.Texture.TexelWidth;
-                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) * spriteFont.Texture.TexelHeight;
+
+                _texCoordTL.X = currentGlyph.BoundsInTexture.X / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y / (float)spriteFont.Texture.OriginalHeight;
+                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) / (float)spriteFont.Texture.OriginalHeight;
 
                 item.Set(p.X,
                          p.Y,
@@ -1203,11 +1203,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 var item = _batcher.CreateBatchItem();               
                 item.Texture = spriteFont.Texture;
                 item.SortKey = sortKey;
-                
-                _texCoordTL.X = currentGlyph.BoundsInTexture.X * (float)spriteFont.Texture.TexelWidth;
-                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * (float)spriteFont.Texture.TexelHeight;
-                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) * (float)spriteFont.Texture.TexelWidth;
-                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) * (float)spriteFont.Texture.TexelHeight;
+
+                _texCoordTL.X = currentGlyph.BoundsInTexture.X / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordTL.Y = currentGlyph.BoundsInTexture.Y / (float)spriteFont.Texture.OriginalHeight;
+                _texCoordBR.X = (currentGlyph.BoundsInTexture.X + currentGlyph.BoundsInTexture.Width) / (float)spriteFont.Texture.OriginalWidth;
+                _texCoordBR.Y = (currentGlyph.BoundsInTexture.Y + currentGlyph.BoundsInTexture.Height) / (float)spriteFont.Texture.OriginalHeight;
                             
                 if ((effects & SpriteEffects.FlipVertically) != 0)
                 {
