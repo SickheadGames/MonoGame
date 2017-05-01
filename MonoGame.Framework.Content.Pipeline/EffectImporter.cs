@@ -10,7 +10,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
     /// <summary>
     /// Provides methods for reading effect (.fx) files for use in the Content Pipeline.
     /// </summary>
-    [ContentImporter(".fx", DisplayName = "Effect Importer - MonoGame", DefaultProcessor = "EffectProcessor")]
+    [ContentImporter(".fx", ".glfx", DisplayName = "Effect Importer - MonoGame", DefaultProcessor = "EffectProcessor")]
     public class EffectImporter : ContentImporter<EffectContent>
     {
         /// <summary>
