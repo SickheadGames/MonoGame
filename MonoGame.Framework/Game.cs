@@ -175,7 +175,7 @@ namespace Microsoft.Xna.Framework
         public static AndroidGameActivity Activity { get; internal set; }
 #endif
         private static Game _instance = null;
-        internal static Game Instance { get { return Game._instance; } }
+        public static Game Instance { get { return Game._instance; } }
 
         public LaunchParameters LaunchParameters { get; private set; }
 
