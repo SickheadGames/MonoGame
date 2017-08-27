@@ -98,4 +98,4 @@ Test/*.csproj
 
 Installers/MacOS/Scripts/Framework/postinstall
 IDE/MonoDevelop/MonoDevelop.MonoGame/templates/Common/MonoGame.Framework.dll.config
-
+*.opensdf
