@@ -50,13 +50,13 @@ namespace Microsoft.Xna.Framework.Media
 
         #region Internal API
 
-        internal Video(string fileName, float durationMS) :
+        public Video(string fileName, float durationMS) :
             this(fileName)
         {
             Duration = TimeSpan.FromMilliseconds(durationMS);
         }
 
-        internal Video(string fileName)
+        public Video(string fileName)
         {
             FileName = fileName;
 
