@@ -205,13 +205,18 @@ namespace Microsoft.Xna.Framework.Media
                     return;
                 }
             }
-            
-            _currentVideo = video;
+            else
+            {
+                _currentVideo = video;
+                PlatformLoad(_currentVideo.FileName);
+            }
 
             PlatformPlay();
 
             _state = MediaState.Playing;
 
+// jcf: i actually think this block of code should just be entirely removed
+#if !PSVITA
             // XNA doesn't return until the video is playing
             const int retries = 5;
             const int sleepTimeFactor = 50;
@@ -236,6 +241,7 @@ namespace Microsoft.Xna.Framework.Media
                 Stop();
                 throw new InvalidOperationException("cannot start video"); 
             }
+#endif
         }
 
         /// <summary>
