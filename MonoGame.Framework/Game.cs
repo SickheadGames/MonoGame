@@ -448,6 +448,11 @@ namespace Microsoft.Xna.Framework
                 // fluctuation is an acceptable result.
 #if WINRT
                 Task.Delay(sleepTime).Wait();
+#elif PSVITA
+                // sleep is inaccurate on vita, only do it for very very short intervals
+                // ... or not at all
+                //sleepTime = 1;
+                //System.Threading.Thread.Sleep(sleepTime);
 #else
                 System.Threading.Thread.Sleep(sleepTime);
 #endif
