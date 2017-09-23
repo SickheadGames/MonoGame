@@ -56,6 +56,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 return;
 
             // VITA HACK!
+            /*
             var face = content.Faces[0][0];
             if (face.Width == 1920 && face.Height == 1080)
             {
@@ -74,6 +75,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 content.Faces[0].Clear();
                 content.Faces[0].Add(newFace);
             }
+            */
 
             // If this is color just make sure the format is right and return it.
             if (format == TextureProcessorOutputFormat.Color)
