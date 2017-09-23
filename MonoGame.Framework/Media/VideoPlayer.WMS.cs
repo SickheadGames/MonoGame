@@ -62,6 +62,11 @@ namespace Microsoft.Xna.Framework.Media
 
         }
 
+        private void PlatformLoad(string path)
+        {
+
+        }
+
         private Texture2D PlatformGetTexture()
         {
             var sampleGrabber = _currentVideo.SampleGrabber;
