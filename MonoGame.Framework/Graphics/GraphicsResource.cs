@@ -154,10 +154,28 @@ namespace Microsoft.Xna.Framework.Graphics
 				return disposed;
 			}
 		}
-		
-		public string Name { get; set; }
-		
-		public Object Tag { get; set; }
+
+        private string _name;
+
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                _name = value;
+                PlatformSetResourceName(_name);
+            }
+        }
+
+        internal virtual void PlatformSetResourceName(string name)
+        {
+        }
+
+
+        public Object Tag { get; set; }
 
         public override string ToString()
         {
