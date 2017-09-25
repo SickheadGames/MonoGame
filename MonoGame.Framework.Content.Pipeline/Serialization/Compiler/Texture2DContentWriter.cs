@@ -33,6 +33,14 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler
 
             foreach (var level in mipmaps)
             {
+                if (format == SurfaceFormat.P4 || format == SurfaceFormat.P8)
+                {
+                    var pbmp = level as PalettedBitmapContent;
+                    var paletteData = pbmp._colorData;
+                    output.Write(paletteData.Length);
+                    output.Write(paletteData);
+                }
+
                 var pixelData = level.GetPixelData();
                 output.Write(pixelData.Length);
                 output.Write(pixelData);

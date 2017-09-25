@@ -771,7 +771,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 #endif // OPENGL
 
-                    public static int GetSyncInterval(this PresentInterval interval)
+        public static int GetSyncInterval(this PresentInterval interval)
         {
             switch (interval)
             {
@@ -813,6 +813,12 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             switch (surfaceFormat)
             {
+                case SurfaceFormat.P4:
+                    // actually, one texel is 4-bits (half a byte) but i guess we'll just return 1?
+                    return 1;
+                case SurfaceFormat.P8:
+                    // one texel is an 8-bit (one byte) index
+                    return 1;
                 case SurfaceFormat.Dxt1:
                 case SurfaceFormat.Dxt1SRgb:
                 case SurfaceFormat.Dxt1a:

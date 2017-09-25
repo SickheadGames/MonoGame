@@ -159,6 +159,15 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         RgbaAtcInterpolatedAlpha = 81,
 
+        /// <summary>
+        /// Unsigned 4-bit pixel format stores an index into a color palette.
+        /// </summary>
+        P4 = 82,
+        /// <summary>
+        /// Unsigned 8-bit pixel format stores an index into a color palette.
+        /// </summary>
+        P8 = 83,
+
         #endregion
     }
 }

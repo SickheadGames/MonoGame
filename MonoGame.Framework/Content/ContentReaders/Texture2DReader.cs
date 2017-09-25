@@ -94,6 +94,15 @@ namespace Microsoft.Xna.Framework.Content
 #endif
                 for (int level = 0; level < levelCount; level++)
 			    {
+                    if (convertedFormat == SurfaceFormat.P4 || convertedFormat == SurfaceFormat.P8)
+                    {
+                        var paletteDataSizeInBytes = reader.ReadInt32();
+                        var paletteData = reader.ContentManager.GetScratchBuffer(paletteDataSizeInBytes);
+                        reader.Read(paletteData, 0, paletteDataSizeInBytes);
+
+                        texture.SetPaletteData(paletteData, 0, paletteDataSizeInBytes);
+                    }
+
 				    var levelDataSizeInBytes = reader.ReadInt32();
                     var levelData = reader.ContentManager.GetScratchBuffer(levelDataSizeInBytes);
                     reader.Read(levelData, 0, levelDataSizeInBytes);

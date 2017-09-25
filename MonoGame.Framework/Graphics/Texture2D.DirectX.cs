@@ -465,6 +465,11 @@ namespace Microsoft.Xna.Framework.Graphics
             });
 #endif
         }
+
+        internal void SetPaletteData<T>(T[] data, int startIndex, int elementCount) where T : struct
+        {
+            throw new NotSupportedException();
+        }
     }
 }
 
