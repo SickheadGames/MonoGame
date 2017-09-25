@@ -96,9 +96,12 @@
     <Compile Include="Graphics\DefaultTextureProfile.cs" />
     <Compile Include="Graphics\DualTextureMaterialContent.cs" />
     <Compile Include="Graphics\Dxt1BitmapContent.cs" />
-    <Compile Include="Graphics\Dxt3BitmapContent.cs" />
+    <Compile Include="Graphics\Dxt3BitmapContent.cs" />	
     <Compile Include="Graphics\Dxt5BitmapContent.cs" />
     <Compile Include="Graphics\DxtBitmapContent.cs" />
+	<Compile Include="Graphics\P4BitmapContent.cs" />
+    <Compile Include="Graphics\P8BitmapContent.cs" />
+    <Compile Include="Graphics\PalettedBitmapContent.cs" />
     <Compile Include="Graphics\EffectContent.cs" />
     <Compile Include="Graphics\EffectMaterialContent.cs" />
     <Compile Include="Graphics\EnvironmentMapMaterialContent.cs" />
