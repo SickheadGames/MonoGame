@@ -126,6 +126,8 @@ namespace Microsoft.Xna.Framework.Media
             PlatformInitialize();
         }
 
+        partial void PlatformLoad(string path);
+
         /// <summary>
         /// Retrieves a Texture2D containing the current frame of video being played.
         /// </summary>
