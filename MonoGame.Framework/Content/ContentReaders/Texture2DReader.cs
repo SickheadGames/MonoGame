@@ -94,6 +94,7 @@ namespace Microsoft.Xna.Framework.Content
 #endif
                 for (int level = 0; level < levelCount; level++)
 			    {
+#if PSVITA
                     if (convertedFormat == SurfaceFormat.P4 || convertedFormat == SurfaceFormat.P8)
                     {
                         var paletteDataSizeInBytes = reader.ReadInt32();
@@ -102,6 +103,7 @@ namespace Microsoft.Xna.Framework.Content
 
                         texture.SetPaletteData(paletteData, 0, paletteDataSizeInBytes);
                     }
+#endif
 
 				    var levelDataSizeInBytes = reader.ReadInt32();
                     var levelData = reader.ContentManager.GetScratchBuffer(levelDataSizeInBytes);
