@@ -222,7 +222,7 @@ namespace MonoGame.Tools.Pipeline
                 var walk = stack[stack.Count - 1];
                 stack.RemoveAt(stack.Count - 1);
 
-                if (walk is ContentItem)
+                if (walk is ContentItem || walk is PipelineProject)
                 {
                     if (!results.Contains(walk))
                         results.Add(walk);
