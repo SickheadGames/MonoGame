@@ -497,6 +497,8 @@ namespace Microsoft.Xna.Framework
                     _gameTime.IsRunningSlowly = true;
                 }
 
+                _gameTime.UpdateFrameLag = _updateFrameLag;
+
                 //Every time we just do one update and one draw, then we are not running slowly, so decrease the lag
                 if (stepCount == 1 && _updateFrameLag > 0)
                     _updateFrameLag--;

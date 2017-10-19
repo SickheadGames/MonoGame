@@ -14,11 +14,14 @@ namespace Microsoft.Xna.Framework
 
         public bool IsRunningSlowly { get; set; }
 
+        public int UpdateFrameLag { get; set; }
+
         public GameTime()
         {
             TotalGameTime = TimeSpan.Zero;
             ElapsedGameTime = TimeSpan.Zero;
             IsRunningSlowly = false;
+            UpdateFrameLag = 0;
         }
 
         public GameTime(TimeSpan totalGameTime, TimeSpan elapsedGameTime)
@@ -26,13 +29,23 @@ namespace Microsoft.Xna.Framework
             TotalGameTime = totalGameTime;
             ElapsedGameTime = elapsedGameTime;
             IsRunningSlowly = false;
+            UpdateFrameLag = 0;
         }
 
-		public GameTime (TimeSpan totalRealTime, TimeSpan elapsedRealTime, bool isRunningSlowly)
+        public GameTime(TimeSpan totalRealTime, TimeSpan elapsedRealTime, bool isRunningSlowly)
+        {
+            TotalGameTime = totalRealTime;
+            ElapsedGameTime = elapsedRealTime;
+            IsRunningSlowly = isRunningSlowly;
+            UpdateFrameLag = 0;
+        }
+
+		public GameTime (TimeSpan totalRealTime, TimeSpan elapsedRealTime, bool isRunningSlowly, int updateFrameLag)
 		{
             TotalGameTime = totalRealTime;
             ElapsedGameTime = elapsedRealTime;
 		    IsRunningSlowly = isRunningSlowly;
+            UpdateFrameLag = updateFrameLag;
 		}
     }
 }
