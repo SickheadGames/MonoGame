@@ -453,6 +453,10 @@ namespace Microsoft.Xna.Framework
                 // ... or not at all
                 //sleepTime = 1;
                 //System.Threading.Thread.Sleep(sleepTime);
+                if (sleepTime > 5)
+                {
+                    System.Threading.Thread.Sleep(5);
+                }
 #else
                 System.Threading.Thread.Sleep(sleepTime);
 #endif
