@@ -23,5 +23,8 @@ namespace TwoMGFX
 
         [CommandLineParser.Name("Defines", "\t - Semicolon-delimited define assignments")]
         public string Defines;
+
+        [CommandLineParser.Name("LaunchDebugger", "\t - If set, will wait for debugger to attach before continuing.")]
+        public bool LaunchDebugger;
     }
 }

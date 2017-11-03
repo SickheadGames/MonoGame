@@ -24,6 +24,9 @@ namespace TwoMGFX
             if (!parser.ParseCommandLine(args))
                 return 1;
 
+            if (options.LaunchDebugger)
+                System.Diagnostics.Debugger.Launch();
+
             // Validate the input file exits.
             if (!File.Exists(options.SourceFile))
             {
