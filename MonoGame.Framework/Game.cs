@@ -453,6 +453,10 @@ namespace Microsoft.Xna.Framework
                 // ... or not at all
                 //sleepTime = 1;
                 //System.Threading.Thread.Sleep(sleepTime);
+                if (sleepTime > 5)
+                {
+                    System.Threading.Thread.Sleep(5);
+                }
 #else
                 System.Threading.Thread.Sleep(sleepTime);
 #endif
@@ -492,6 +496,8 @@ namespace Microsoft.Xna.Framework
                     //If we lag more than 5 frames, start thinking we are running slowly
                     _gameTime.IsRunningSlowly = true;
                 }
+
+                _gameTime.UpdateFrameLag = _updateFrameLag;
 
                 //Every time we just do one update and one draw, then we are not running slowly, so decrease the lag
                 if (stepCount == 1 && _updateFrameLag > 0)
