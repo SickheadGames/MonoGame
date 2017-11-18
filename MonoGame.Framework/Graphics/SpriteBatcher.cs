@@ -138,10 +138,12 @@ namespace Microsoft.Xna.Framework.Graphics
             _vertexArray = new VertexPositionColorTexture[4 * numBatchItems];
         }
 
+#if PSVITA
         // jcf: hack for mercenary kings
         private float _lastz;
         private float _lastzbias;
-                
+#endif
+      
         /// <summary>
         /// Sorts the batch items and then groups batch drawing into maximal allowed batch sets that do not
         /// overflow the 16 bit array indices for vertices.
@@ -217,6 +219,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         *(vertexArrayPtr+2) = item.vertexBL;
                         *(vertexArrayPtr+3) = item.vertexBR;
 
+#if PSVITA
                         // jcf: zbias hack for mercenary kings
                         //{
                         float z = vertexArrayFixedPtr->Position.Z;
@@ -236,7 +239,8 @@ namespace Microsoft.Xna.Framework.Graphics
                         (vertexArrayPtr + 2)->Position.Z += _lastzbias;
                         (vertexArrayPtr + 3)->Position.Z += _lastzbias;
                         //}
-                        
+#endif
+
                         // Release the texture.
                         item.Texture = null;
                     }
