@@ -17,7 +17,7 @@ using Microsoft.Xna.Framework.Input.Touch;
 
 namespace Microsoft.Xna.Framework
 {
-    public class Game : IDisposable
+    public partial class Game : IDisposable
     {
         private GameComponentCollection _components;
         private GameServiceContainer _services;
@@ -55,7 +55,9 @@ namespace Microsoft.Xna.Framework
 
         private bool _shouldExit;
         private bool _suppressDraw;
-        
+
+        partial void PlatformConstruct();       
+
         public Game()
         {
             _instance = this;
@@ -69,6 +71,12 @@ namespace Microsoft.Xna.Framework
             Platform.Activated += OnActivated;
             Platform.Deactivated += OnDeactivated;
             _services.AddService(typeof(GamePlatform), Platform);
+
+            // Calling Update() for first time initializes some systems
+            FrameworkDispatcher.Update();
+
+            // Allow some optional per-platform construction to occur too.
+            PlatformConstruct();
 
 #if WINDOWS_STOREAPP && !WINDOWS_PHONE81
             Platform.ViewStateChanged += Platform_ApplicationViewChanged;
@@ -93,7 +101,7 @@ namespace Microsoft.Xna.Framework
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-            Raise(Disposed, EventArgs.Empty);
+            EventHelpers.Raise(this, Disposed, EventArgs.Empty);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -350,7 +358,8 @@ namespace Microsoft.Xna.Framework
             if (!Platform.BeforeRun())
                 return;
 
-            if (!_initialized) {
+            if (!_initialized)
+            {
                 DoInitialize ();
                 _gameTimer = Stopwatch.StartNew();
                 _initialized = true;
@@ -394,6 +403,9 @@ namespace Microsoft.Xna.Framework
                 Platform.StartRunLoop();
                 break;
             case GameRunBehavior.Synchronous:
+                // XNA runs one Update even before showing the window
+                DoUpdate(new GameTime());
+
                 Platform.RunLoop();
                 EndRun();
 				DoExiting();
@@ -452,7 +464,7 @@ namespace Microsoft.Xna.Framework
                 var stepCount = 0;
 
                 // Perform as many full fixed length time steps as we can.
-                while (_accumulatedElapsedTime >= TargetElapsedTime)
+                while (_accumulatedElapsedTime >= TargetElapsedTime && !_shouldExit)
                 {
                     _gameTime.TotalGameTime += TargetElapsedTime;
                     _accumulatedElapsedTime -= TargetElapsedTime;
@@ -524,7 +536,7 @@ namespace Microsoft.Xna.Framework
 
         protected virtual void Initialize()
         {
-            // TODO: We shouldn't need to do this here.
+            // TODO: This should be removed once all platforms use the new GraphicsDeviceManager
             applyChanges(graphicsDeviceManager);
 
             // According to the information given on MSDN (see link below), all
@@ -537,9 +549,6 @@ namespace Microsoft.Xna.Framework
             _graphicsDeviceService = (IGraphicsDeviceService)
                 Services.GetService(typeof(IGraphicsDeviceService));
 
-            // FIXME: If this test fails, is LoadContent ever called?  This
-            //        seems like a condition that warrants an exception more
-            //        than a silent failure.
             if (_graphicsDeviceService != null &&
                 _graphicsDeviceService.GraphicsDevice != null)
             {
@@ -566,19 +575,19 @@ namespace Microsoft.Xna.Framework
 
         protected virtual void OnExiting(object sender, EventArgs args)
         {
-            Raise(Exiting, args);
+            EventHelpers.Raise(this, Exiting, args);
         }
 		
 		protected virtual void OnActivated (object sender, EventArgs args)
 		{
 			AssertNotDisposed();
-			Raise(Activated, args);
+            EventHelpers.Raise(this, Activated, args);
 		}
 		
 		protected virtual void OnDeactivated (object sender, EventArgs args)
 		{
 			AssertNotDisposed();
-			Raise(Deactivated, args);
+            EventHelpers.Raise(this, Deactivated, args);
 		}
 
         #endregion Protected Methods
@@ -614,7 +623,7 @@ namespace Microsoft.Xna.Framework
         private void Platform_ApplicationViewChanged(object sender, ViewStateChangedEventArgs e)
         {
             AssertNotDisposed();
-            Raise(ApplicationViewChanged, e);
+            EventHelpers.Raise(this, ApplicationViewChanged, e);
         }
 #endif
 
@@ -650,13 +659,8 @@ namespace Microsoft.Xna.Framework
             AssertNotDisposed();
             if (Platform.BeforeUpdate(gameTime))
             {
-                // Once per frame, we need to check currently 
-                // playing sounds to see if they've stopped,
-                // and return them back to the pool if so.
-                SoundEffectInstancePool.Update();
-
-                DynamicSoundEffectInstanceManager.UpdatePlayingInstances();
-
+                FrameworkDispatcher.Update();
+				
                 Update(gameTime);
 
                 //The TouchPanel needs to know the time for when touches arrive
@@ -680,6 +684,9 @@ namespace Microsoft.Xna.Framework
         internal void DoInitialize()
         {
             AssertNotDisposed();
+            if (GraphicsDevice == null && graphicsDeviceManager != null)
+                _graphicsDeviceManager.CreateDevice();
+
             Platform.BeforeInitialize();
             Initialize();
 
@@ -709,11 +716,14 @@ namespace Microsoft.Xna.Framework
                 {
                     _graphicsDeviceManager = (IGraphicsDeviceManager)
                         Services.GetService(typeof(IGraphicsDeviceManager));
-
-                    if (_graphicsDeviceManager == null)
-                        throw new InvalidOperationException ("No Graphics Device Manager");
                 }
                 return (GraphicsDeviceManager)_graphicsDeviceManager;
+            }
+            set
+            {
+                if (_graphicsDeviceManager != null)
+                    throw new InvalidOperationException("GraphicsDeviceManager already registered for this Game object");
+                _graphicsDeviceManager = value;
             }
         }
 
@@ -759,13 +769,6 @@ namespace Microsoft.Xna.Framework
                 _updateables.Remove((IUpdateable)component);
             if (component is IDrawable)
                 _drawables.Remove((IDrawable)component);
-        }
-
-        private void Raise<TEventArgs>(EventHandler<TEventArgs> handler, TEventArgs e)
-            where TEventArgs : EventArgs
-        {
-            if (handler != null)
-                handler(this, e);
         }
 
         /// <summary>

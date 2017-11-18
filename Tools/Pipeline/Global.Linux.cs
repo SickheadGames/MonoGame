@@ -23,16 +23,12 @@ namespace MonoGame.Tools.Pipeline
         public static extern IntPtr g_file_new_for_path(string path);
 
         [DllImport(gtklibpath, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr gtk_app_chooser_dialog_new(IntPtr parrent, int flags, IntPtr file);
-
-        [DllImport(gtklibpath, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool gtk_application_prefers_app_menu(IntPtr application);
     }
 
     static partial class Global
     {
         private static IconTheme _theme;
-        private static Application _app;
 
         private static void PlatformInit()
         {
@@ -56,27 +52,6 @@ namespace MonoGame.Tools.Pipeline
             _xwtFileMissing = ToXwtImage(fileMissing);
             _xwtFolder = ToXwtImage(folder);
             _xwtFolderMissing = ToXwtImage(folderMissing);
-
-            if (Gtk.Global.MajorVersion >= 3 && Gtk.Global.MinorVersion >= 16)
-            {
-                _app = new Application(null, GLib.ApplicationFlags.None);
-                _app.Register(GLib.Cancellable.Current);
-
-                UseHeaderBar = Gtk3Wrapper.gtk_application_prefers_app_menu(_app.Handle);
-            }
-        }
-
-        private static void PlatformShowOpenWithDialog(string filePath)
-        {
-            var adialoghandle = Gtk3Wrapper.gtk_app_chooser_dialog_new(((Window)MainWindow.Instance.ControlObject).Handle, 
-                                                                       4 + (int)DialogFlags.Modal, 
-                                                                       Gtk3Wrapper.g_file_new_for_path(filePath));
-            var adialog = new AppChooserDialog(adialoghandle);
-
-            if (adialog.Run() == (int)ResponseType.Ok)
-                Process.Start(adialog.AppInfo.Executable, "\"" + filePath + "\"");
-
-            adialog.Destroy();
         }
 
         private static Gdk.Pixbuf PlatformGetFileIcon(string path)

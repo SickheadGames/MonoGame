@@ -77,7 +77,7 @@ namespace Microsoft.Xna.Framework.Audio
                     var details = MasterVoice.VoiceDetails;
                     _reverbVoice = new SubmixVoice(Device, details.InputChannelCount, details.InputSampleRate);
 
-                    var reverb = new SharpDX.XAudio2.Fx.Reverb();
+                    var reverb = new SharpDX.XAudio2.Fx.Reverb(Device);
                     var desc = new EffectDescriptor(reverb);
                     desc.InitialState = true;
                     desc.OutputChannelCount = details.InputChannelCount;
@@ -97,11 +97,9 @@ namespace Microsoft.Xna.Framework.Audio
 
         #region Initialization
 
-        static SoundEffect()
-        {
-            InitializeSoundEffect();
-        }
-
+        /// <summary>
+        /// Initializes XAudio.
+        /// </summary>
         internal static void InitializeSoundEffect()
         {
             try
@@ -133,15 +131,16 @@ namespace Microsoft.Xna.Framework.Audio
                 if (MasterVoice == null)
                 {
                     // Let windows autodetect number of channels and sample rate.
-                    MasterVoice = new MasteringVoice(Device, XAudio2.DefaultChannels, XAudio2.DefaultSampleRate, deviceId);
+                    MasterVoice = new MasteringVoice(Device, XAudio2.DefaultChannels, XAudio2.DefaultSampleRate);
                 }
 
                 // The autodetected value of MasterVoice.ChannelMask corresponds to the speaker layout.
 #if WINRT
                 Speakers = (Speakers)MasterVoice.ChannelMask;
 #else
-                var deviceDetails = Device.GetDeviceDetails(deviceId);
-                Speakers = deviceDetails.OutputFormat.ChannelMask;
+                Speakers = Device.Version == XAudio2Version.Version27 ?
+                    Device.GetDeviceDetails(deviceId).OutputFormat.ChannelMask:
+                    (Speakers) MasterVoice.ChannelMask;
 #endif
             }
             catch
@@ -284,9 +283,12 @@ namespace Microsoft.Xna.Framework.Audio
             }
 
             if (voice == null && Device != null)
+            {
                 voice = new SourceVoice(Device, _format, VoiceFlags.UseFilter, XAudio2.MaximumFrequencyRatio);
+                inst._voice = voice;
+                inst.UpdateOutputMatrix(); // Ensure the output matrix is set for this new voice
+            }
 
-            inst._voice = voice;
             inst._format = _format;
         }
 
