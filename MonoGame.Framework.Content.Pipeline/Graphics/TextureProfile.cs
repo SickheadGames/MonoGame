@@ -146,6 +146,13 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 }
             }
 
+            // If this is color just make sure the format is right and return it.
+            if (format == TextureProcessorOutputFormat.Color)
+            {
+                content.ConvertBitmapType(typeof(PixelBitmapContent<Color>));
+                return;
+            }
+
             // Handle this common compression format.
             if (format == TextureProcessorOutputFormat.Color16Bit)
             {
