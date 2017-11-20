@@ -22,8 +22,8 @@ namespace Microsoft.Xna.Framework.Graphics
 		internal int height;
         internal int ArraySize;
                 
-        internal float TexelWidth { get; private set; }
-        internal float TexelHeight { get; private set; }
+        internal float TexelWidth { get; set; }
+        internal float TexelHeight { get; set; }
 
         /// <summary>
         /// Gets the dimensions of the texture
@@ -168,8 +168,12 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Rectangle checkedRect;
             ValidateParams(level, arraySlice, rect, data, startIndex, elementCount, out checkedRect);
-            PlatformSetData(level, arraySlice, checkedRect, data, startIndex, elementCount);
+            if (rect.HasValue)
+                PlatformSetData(level, arraySlice, checkedRect, data, startIndex, elementCount);
+            else
+                PlatformSetData(level, arraySlice, null, data, startIndex, elementCount);
         }
+
         /// <summary>
         /// Changes the pixels of the texture
         /// </summary>
@@ -183,8 +187,12 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Rectangle checkedRect;
             ValidateParams(level, 0, rect, data, startIndex, elementCount, out checkedRect);
-            PlatformSetData(level, 0, checkedRect, data, startIndex, elementCount);
+            if (rect.HasValue)
+                PlatformSetData(level, 0, checkedRect, data, startIndex, elementCount);
+            else
+                PlatformSetData(level, data, startIndex, elementCount);
         }
+
         /// <summary>
         /// Changes the texture's pixels
         /// </summary>
@@ -198,6 +206,7 @@ namespace Microsoft.Xna.Framework.Graphics
             ValidateParams(0, 0, null, data, startIndex, elementCount, out checkedRect);
             PlatformSetData(0, data, startIndex, elementCount);
         }
+
 		/// <summary>
         /// Changes the texture's pixels
         /// </summary>
@@ -209,6 +218,7 @@ namespace Microsoft.Xna.Framework.Graphics
             ValidateParams(0, 0, null, data, 0, data.Length, out checkedRect);
             PlatformSetData(0, data, 0, data.Length);
         }
+
         /// <summary>
         /// Retrieves the contents of the texture
         /// Throws ArgumentException if data is null, data.length is too short or
@@ -339,6 +349,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             var textureBounds = new Rectangle(0, 0, Math.Max(width >> level, 1), Math.Max(height >> level, 1));
             checkedRect = rect ?? textureBounds;
+
             if (level < 0 || level >= LevelCount)
                 throw new ArgumentException("level must be smaller than the number of levels in this texture.");
             if (arraySlice > 0 && !GraphicsDevice.GraphicsCapabilities.SupportsTextureArrays)
@@ -358,6 +369,8 @@ namespace Microsoft.Xna.Framework.Graphics
             if (data.Length < startIndex + elementCount)
                 throw new ArgumentException("The data array is too small.");
 
+            // TODO: This fails on Vita for compressed formats!
+            /*
             int dataByteSize;
             if (Format.IsCompressedFormat())
             {
@@ -380,10 +393,12 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 dataByteSize = checkedRect.Width * checkedRect.Height * fSize;
             }
+
             if (elementCount * tSize != dataByteSize)
                 throw new ArgumentException(string.Format("elementCount is not the right size, " +
                                             "elementCount * sizeof(T) is {0}, but data size is {1}.",
                                             elementCount * tSize, dataByteSize), "elementCount");
+            */
         }
 	}
 }

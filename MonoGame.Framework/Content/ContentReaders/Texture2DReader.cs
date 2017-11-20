@@ -87,6 +87,8 @@ namespace Microsoft.Xna.Framework.Content
 
             texture.OriginalWidth = (int)originalWidth;
             texture.OriginalHeight = (int)originalHeight;
+            texture.TexelWidth = 1 / (float)originalWidth;
+            texture.TexelHeight = 1 / (float)originalHeight;
 
 #if OPENGL
             Threading.BlockOnUIThread(() =>

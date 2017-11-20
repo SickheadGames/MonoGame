@@ -425,10 +425,10 @@ namespace Microsoft.Xna.Framework.Graphics
             if (sourceRectangle.HasValue)
             {
 				_tempRect = sourceRectangle.Value;
-                _texCoordTL.X = _tempRect.X / (float)texture.OriginalWidth;
-                _texCoordTL.Y = _tempRect.Y / (float)texture.OriginalHeight;
-                _texCoordBR.X = (_tempRect.X + _tempRect.Width) / (float)texture.OriginalWidth;
-                _texCoordBR.Y = (_tempRect.Y + _tempRect.Height) / (float)texture.OriginalHeight;
+                _texCoordTL.X = _tempRect.X * texture.TexelWidth;
+                _texCoordTL.Y = _tempRect.Y * texture.TexelHeight;
+                _texCoordBR.X = (_tempRect.X + _tempRect.Width) * texture.TexelWidth;
+                _texCoordBR.Y = (_tempRect.Y + _tempRect.Height) * texture.TexelHeight;
 
                 if(_tempRect.Width != 0)
                     origin.X = origin.X * (float)destinationRectangle.Width / (float)_tempRect.Width;
