@@ -149,12 +149,20 @@ namespace Microsoft.Xna.Framework.Graphics
                 _lastViewport = vp;
             }
 
+            var projection = _projection;
             if (_matrix.HasValue)
-                _matrixTransform.SetValue(_matrix.GetValueOrDefault() * _projection);
-            else
-                _matrixTransform.SetValue(_projection);
+                projection = _matrix.GetValueOrDefault() * _projection;
+
+            _matrixTransform.SetValue(projection);
 
             _spritePass.Apply();
+
+            if (_effect != null)
+            {
+                var xfm = _effect.Parameters["MatrixTransform"];
+                if (xfm != null)
+                    xfm.SetValue(projection);
+            }
 		}
 		
         void CheckValid(Texture2D texture)
