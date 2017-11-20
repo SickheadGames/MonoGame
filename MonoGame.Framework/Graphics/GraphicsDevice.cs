@@ -489,7 +489,7 @@ namespace Microsoft.Xna.Framework.Graphics
             var options = ClearOptions.Target;
             options |= ClearOptions.DepthBuffer;
             options |= ClearOptions.Stencil;
-            PlatformClear(options, color.ToVector4(), _viewport.MaxDepth, 0);
+            PlatformClear(options, color.ToVector4(), 1.0f, 0);
 
             unchecked
             {
