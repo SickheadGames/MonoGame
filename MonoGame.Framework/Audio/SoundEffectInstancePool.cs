@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.Xna.Framework.Audio
@@ -41,11 +42,27 @@ namespace Microsoft.Xna.Framework.Audio
         {
             if (inst._isPooled)
             {
+#if DEBUG
+                if (_pooledInstances.Contains(inst))
+                {
+                    throw new Exception();
+                }
+#endif
+
                 _pooledInstances.Add(inst);
                 inst._effect = null;
             }
 
+#if DEBUG
+            if (!_playingInstances.Contains(inst))
+            {
+                throw new Exception();
+            }
+#endif
+
             _playingInstances.Remove(inst);
+
+            inst._poolState = SoundEffectInstance.PoolState.Added;
         }
 
         /// <summary>
@@ -54,7 +71,16 @@ namespace Microsoft.Xna.Framework.Audio
         /// <param name="inst">The SoundEffectInstance to add to the playing list.</param>
         internal static void Remove(SoundEffectInstance inst)
         {
+#if DEBUG
+            if (_playingInstances.Contains(inst))
+            {
+                throw new Exception();
+            }
+#endif
+
             _playingInstances.Add(inst);
+
+            inst._poolState = SoundEffectInstance.PoolState.Removed;
         }
 
         /// <summary>
@@ -100,6 +126,7 @@ namespace Microsoft.Xna.Framework.Audio
         internal static void Update()
         {
             SoundEffectInstance inst = null;
+
             // Cleanup instances which have finished playing.                    
             for (var x = 0; x < _playingInstances.Count;)
             {

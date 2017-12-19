@@ -14,6 +14,15 @@ namespace Microsoft.Xna.Framework.Audio
     {
         private bool _isDisposed = false;
         internal bool _isPooled = true;
+
+        internal enum PoolState
+        {
+            None = 0,
+            Added,
+            Removed
+        };
+        internal PoolState _poolState = PoolState.None;
+
         internal bool _isXAct;
         internal bool _isDynamic;
         internal SoundEffect _effect;
@@ -150,10 +159,16 @@ namespace Microsoft.Xna.Framework.Audio
             // if we're resuming from a paused state.
             if (State != SoundState.Paused)
             {
-                if (!SoundEffectInstancePool.SoundsAvailable)
-                    throw new InstancePlayLimitException();
+                // If this instance was just stopped earlier in this update
+                // then it will not be re-added to the pool yet, in which case
+                // we don't want to double remove it.
+                if (_poolState == SoundEffectInstance.PoolState.Added)
+                {
+                    if (!SoundEffectInstancePool.SoundsAvailable)
+                        throw new InstancePlayLimitException();
 
-                SoundEffectInstancePool.Remove(this);
+                    SoundEffectInstancePool.Remove(this);
+                }
             }
             
             // For non-XAct sounds we need to be sure the latest
