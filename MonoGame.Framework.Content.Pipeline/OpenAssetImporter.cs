@@ -352,6 +352,13 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
                     material.Textures.Add("Bump", texture);
                 }
 
+                if (aiMaterial.HasTextureNormal)
+                {
+                    var texture = new ExternalReference<TextureContent>(aiMaterial.TextureNormal.FilePath, _identity);
+                    texture.OpaqueData.Add("TextureCoordinate", string.Format("TextureCoordinate{0}", aiMaterial.TextureNormal.UVIndex));
+                    material.Textures.Add("NormalMap", texture);
+                }
+
                 if (aiMaterial.HasColorDiffuse)
                     material.DiffuseColor = ToXna(aiMaterial.ColorDiffuse);
 
