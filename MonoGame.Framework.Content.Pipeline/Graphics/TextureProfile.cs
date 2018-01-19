@@ -84,6 +84,11 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 {
                     // If this texture's color-space fits within a 4-bit or 8-bit paletted texture
                     // then convert it to that format, since it loses no quality.
+                    // 
+                    // To avoid this conversion, instead of selecting 'Color' as the processors output format,
+                    // choose 'No Change'. (ie, because the game makes use of get/set data at runtime, and 
+                    // expects colors not indices).
+                    //
                     // note: this (and the subsequent conversion to a paletted texture) greatly slows down texture processing 
                     //       do to being written super inefficiently!
                     {

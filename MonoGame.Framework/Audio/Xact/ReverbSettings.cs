@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.Xna.Framework.Audio
 {
@@ -65,5 +66,41 @@ namespace Microsoft.Xna.Framework.Audio
         public float DensityPct { get { return _parameters[19].Value; } }
         public float RoomSizeFeet { get { return _parameters[20].Value; } }
         public float WetDryMixPct { get { return _parameters[21].Value; } }
+    }
+
+    static class ReverbSettingsExtensions
+    {
+        private static string[] _names = new string[22]
+        {
+            "ReflectionsDelayMs",
+            "ReverbDelayMs",
+            "PositionLeft",
+            "PositionRight",
+            "PositionLeftMatrix",
+            "PositionRightMatrix",
+            "EarlyDiffusion",
+            "LateDiffusion",
+            "LowEqGain",
+            "LowEqCutoff",
+            "HighEqGain",
+            "HighEqCutoff",
+            "RearDelayMs",
+            "RoomFilterFrequencyHz",
+            "RoomFilterMainDb",
+            "RoomFilterHighFrequencyDb",
+            "ReflectionsGainDb",
+            "ReverbGainDb",
+            "DecayTimeSec",
+            "DensityPct",
+            "RoomSizeFeet",
+            "WetDryMixPct",
+    };
+
+        public static void Print(this ReverbSettings obj, StringBuilder sb)
+        {
+            sb.AppendLine("ReverbSettings:");
+            for (int i = 0; i < _names.Length; i++)
+                sb.AppendFormat("   {0,-30} : {1}\n", _names[i], obj[i]);
+        }
     }
 }
