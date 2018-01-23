@@ -641,6 +641,15 @@ namespace MonoGame.Framework.Content.Pipeline.Builder
             if (importer == null)
                 throw new PipelineException("Failed to create importer '{0}'", pipelineEvent.Importer);
 
+            // The pipelineEvent.Processor can be null or empty.
+            IContentProcessor processor = null;
+            if (!string.IsNullOrEmpty(pipelineEvent.Processor))
+            {
+                processor = CreateProcessor(pipelineEvent.Processor, pipelineEvent.Parameters);
+                if (processor == null)
+                    throw new PipelineException("Failed to create processor '{0}'", pipelineEvent.Processor);
+            }
+            
             // Try importing the content.
             object importedObject;
             if (RethrowExceptions)
@@ -665,14 +674,9 @@ namespace MonoGame.Framework.Content.Pipeline.Builder
                 importedObject = importer.Import(pipelineEvent.SourceFile, importContext);
             }
 
-            // The pipelineEvent.Processor can be null or empty. In this case the
-            // asset should be imported but not processed.
-            if (string.IsNullOrEmpty(pipelineEvent.Processor))
-                return importedObject;
-
-            var processor = CreateProcessor(pipelineEvent.Processor, pipelineEvent.Parameters);
+            // If there is no processor the asset should be just imported.
             if (processor == null)
-                throw new PipelineException("Failed to create processor '{0}'", pipelineEvent.Processor);
+                return importedObject;
 
             // Make sure the input type is valid.
             if (!processor.InputType.IsAssignableFrom(importedObject.GetType()))
