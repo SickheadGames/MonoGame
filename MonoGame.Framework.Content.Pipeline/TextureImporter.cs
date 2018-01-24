@@ -116,10 +116,34 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
                     face = new PixelBitmapContent<Vector4>(width, height);
                     break;
             }
-            FreeImage.UnloadEx(ref fBitmap);
 
             face.SetPixelData(bytes);
             output.Faces[0].Add(face);
+
+            if (format == FREE_IMAGE_FORMAT.FIF_HDR)
+            {
+                output.OpaqueData.Add("HDR", true);
+
+                /*
+                var ptr = FreeImage.GetInfoHeader(fBitmap);
+                var hdr = (HDRHeader)Marshal.PtrToStructure(ptr, typeof(HDRHeader));
+                //hdr.exposure = 1.2f;
+                var vec4face = (PixelBitmapContent<Vector4>)face;
+
+                for (var y=0; y < face.Height; y++)
+                for (var x=0; x < face.Width; x++)
+                {
+                    var p = vec4face.GetPixel(x, y);
+                    p.X = (float)Math.Pow(p.X, 1 / 2.2);
+                    p.Y = (float)Math.Pow(p.Y, 1 / 2.2);
+                    p.Z = (float)Math.Pow(p.Z, 1 / 2.2);
+                    vec4face.SetPixel(x,y, p);
+                }
+                */
+            }
+
+            FreeImage.UnloadEx(ref fBitmap);
+
             return output;
         }
         /// <summary>
@@ -135,8 +159,14 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
             {
                 // RGBF are switched before adding an alpha channel.
                 case FREE_IMAGE_TYPE.FIT_RGBF:
+
+                    //var pformat = FreeImage.GetPixelFormat(fBitmap);
+                    //var red = FreeImage.GetRedMask(fBitmap);
+                    //var blue = FreeImage.GetBlueMask(fBitmap);
                     // Swap R and B channels to make it BGR, then add an alpha channel
-                    SwitchRedAndBlueChannels(fBitmap);
+                    //if (red < blue)
+                        //SwitchRedAndBlueChannels(fBitmap);
+
                     bgra = FreeImage.ConvertToType(fBitmap, FREE_IMAGE_TYPE.FIT_RGBAF, true);
                     FreeImage.UnloadEx(ref fBitmap);
                     fBitmap = bgra;

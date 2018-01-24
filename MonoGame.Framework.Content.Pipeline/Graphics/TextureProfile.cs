@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework.Content.Pipeline.Processors;
+using Microsoft.Xna.Framework.Graphics.PackedVector;
 
 namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 {
@@ -54,6 +55,13 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             // We do nothing in this case.
             if (format == TextureProcessorOutputFormat.NoChange)
                 return;
+
+            // We don't yet support compressed HDR formats.
+            if (content.OpaqueData.GetValue("HDR", false))
+            {
+                content.ConvertBitmapType(typeof(PixelBitmapContent<HalfVector4>));
+                return;
+            }
 
             // If this is color just make sure the format is right and return it.
             if (format == TextureProcessorOutputFormat.Color)
