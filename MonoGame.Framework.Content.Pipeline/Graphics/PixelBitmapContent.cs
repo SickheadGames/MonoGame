@@ -145,7 +145,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             }
         }
 
-        protected override bool TryCopyFrom(BitmapContent sourceBitmap, Rectangle sourceRegion, Rectangle destinationRegion)
+        protected unsafe override bool TryCopyFrom(BitmapContent sourceBitmap, Rectangle sourceRegion, Rectangle destinationRegion)
         {
             SurfaceFormat sourceFormat;
             if (!sourceBitmap.TryGetFormat(out sourceFormat))
@@ -178,14 +178,15 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             {
                 Parallel.For(0, sourceRegion.Height, (y) =>
                 {
-                    var pixel = default(T);
-                    var p = (IPackedVector)pixel;
-                    var row = src.GetRow(sourceRegion.Top + y);
+                    var pixel = (IPackedVector)default(T);
+
+                    var dst = GetRow(destinationRegion.Top + y);
+
+                    fixed (Vector4* row = src.GetRow(sourceRegion.Top + y))
                     for (int x = 0; x < sourceRegion.Width; ++x)
                     {
-                        p.PackFromVector4(row[sourceRegion.Left + x]);
-                        pixel = (T)p;
-                        SetPixel(destinationRegion.Left + x, destinationRegion.Top + y, pixel);
+                        pixel.PackFromVector4(row[sourceRegion.Left + x]);
+                        dst[destinationRegion.Left + x] = (T)pixel;
                     }
                 });
             }
@@ -198,10 +199,12 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 
                 Parallel.For(0, sourceRegion.Height, (y) =>
                 {
-                    var row = src.GetRow(sourceRegion.Top + y);
+                    var dst = GetRow(destinationRegion.Top + y);
+
+                    fixed (Vector4* row = src.GetRow(sourceRegion.Top + y))
                     for (int x = 0; x < sourceRegion.Width; ++x)
                     {
-                        SetPixel(destinationRegion.Left + x, destinationRegion.Top + y, converter.FromVector4(row[sourceRegion.Left + x]));
+                        dst[destinationRegion.Left + x] = converter.FromVector4(row[sourceRegion.Left + x]);
                     }
                 });
             }
