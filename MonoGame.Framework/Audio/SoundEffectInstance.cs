@@ -162,13 +162,13 @@ namespace Microsoft.Xna.Framework.Audio
                 // If this instance was just stopped earlier in this update
                 // then it will not be re-added to the pool yet, in which case
                 // we don't want to double remove it.
-                if (_poolState == SoundEffectInstance.PoolState.Added)
-                {
+                //if (_poolState == SoundEffectInstance.PoolState.Added)
+                //{
                     if (!SoundEffectInstancePool.SoundsAvailable)
                         throw new InstancePlayLimitException();
 
                     SoundEffectInstancePool.Remove(this);
-                }
+                //}
             }
             
             // For non-XAct sounds we need to be sure the latest

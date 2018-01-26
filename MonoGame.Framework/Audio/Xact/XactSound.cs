@@ -163,7 +163,7 @@ namespace Microsoft.Xna.Framework.Audio
                     _wave = null;
                 }
 
-                    _wave = _soundBank.GetSoundEffectInstance(_waveBankIndex, _trackIndex, out _streaming);
+                _wave = _soundBank.GetSoundEffectInstance(_waveBankIndex, _trackIndex, out _streaming);
 
                 if (_wave == null)
                 {
