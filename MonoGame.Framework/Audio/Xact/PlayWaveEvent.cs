@@ -28,7 +28,7 @@ namespace Microsoft.Xna.Framework.Audio
 
         private readonly int[] _tracks;
         private readonly int[] _waveBanks;
-        
+
         private readonly byte[] _weights;
         private readonly int _totalWeights;
 
@@ -82,7 +82,12 @@ namespace Microsoft.Xna.Framework.Audio
             _newWaveOnLoop = newWaveOnLoop;
         }
 
-        public override void Play() 
+        public override void Play()
+        {
+            Play(true);
+        }
+
+        private void Play(bool pickNewWav)
         {
             if (_wav != null)
             {
@@ -90,16 +95,11 @@ namespace Microsoft.Xna.Framework.Audio
                     _wav.Stop();
                 if (_streaming)
                     _wav.Dispose();
-				else					
-					_wav._isXAct = false;					
+                else
+                    _wav._isXAct = false;
                 _wav = null;
             }
 
-            Play(true);
-        }
-
-        private void Play(bool pickNewWav)
-        {
             var trackCount = _tracks.Length;
 
             // Do we need to pick a new wav to play first?
@@ -187,10 +187,10 @@ namespace Microsoft.Xna.Framework.Audio
                 else
                 {
                     _trackFilterFrequency = _clip.FilterFrequency;
-                    _trackFilterQFactor = _clip.FilterQ;                
+                    _trackFilterQFactor = _clip.FilterQ;
                 }
             }
- 
+
             // This is a shortcut for infinite looping of a single track.
             _wav.IsLooped = _loopCount == 255 && trackCount == 1;
 
@@ -207,13 +207,13 @@ namespace Microsoft.Xna.Framework.Audio
                 if (_streaming)
                     _wav.Dispose();
 				else
-                	_wav._isXAct = false;				
+                	_wav._isXAct = false;
                 _wav = null;
             }
             _loopIndex = 0;
         }
 
-        public override void Pause() 
+        public override void Pause()
         {
             if (_wav != null)
                 _wav.Pause();
@@ -274,14 +274,15 @@ namespace Microsoft.Xna.Framework.Audio
         {
             if (_wav != null && _wav.State == SoundState.Stopped)
             {
-                // If we're not looping or reached our loop 
+                // If we're not looping or reached our loop
                 // limit then we can stop.
                 if (_loopCount == 0 || _loopIndex >= _loopCount)
                 {
                     if (_streaming)
                         _wav.Dispose();
 					else
-	                    _wav._isXAct = false;						
+	                    _wav._isXAct = false;
+
                     _wav = null;
                     _loopIndex = 0;
                 }
