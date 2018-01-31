@@ -216,6 +216,8 @@ namespace Microsoft.Xna.Framework.Audio
                 // the sound with the current master volume.
                 inst.Volume = inst.Volume;
             }
+
+            } // lock (_locker)
         }
 
     }
