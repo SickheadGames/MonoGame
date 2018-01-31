@@ -179,6 +179,11 @@
     <Compile Include="Properties\AssemblyInfo.Web.cs">
         <Platforms>Web</Platforms>
     </Compile>
+	
+	<!-- Dev-feature, for storing last window position and restoring it, when launching from IDE -->
+	<Compile Include="Properties\Settings.Designer.cs">
+        <Platforms>Windows</Platforms>
+    </Compile>
 
     <None Include="..\ThirdParty\GamepadConfig\Tao.Sdl.dll.config">
       <Platforms>MacOS</Platforms>
