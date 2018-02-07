@@ -2,6 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+// jcf: gross, but, i don't see an alternative
+#if PSVITA
+#define DISABLE_CHECK_VALID
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -979,6 +984,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="primitiveCount">The number of primitives to render from the index buffer.</param>
         public void DrawIndexedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount)
         {
+#if !DISABLE_CHECK_VALID
             if (_vertexShader == null)
                 throw new InvalidOperationException("Vertex shader must be set before calling DrawIndexedPrimitives.");
 
@@ -990,7 +996,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (primitiveCount <= 0)
                 throw new ArgumentOutOfRangeException("primitiveCount");
-
+#endif
             PlatformDrawIndexedPrimitives(primitiveType, baseVertex, startIndex, primitiveCount);
 
             unchecked
@@ -1026,6 +1032,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="vertexDeclaration">The layout of the vertices.</param>
         public void DrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
         {
+#if !DISABLE_CHECK_VALID
             if (vertexData == null)
                 throw new ArgumentNullException("vertexData");
 
@@ -1037,15 +1044,15 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (primitiveCount <= 0)
                 throw new ArgumentOutOfRangeException("primitiveCount");
-
+#endif
             var vertexCount = GetElementCountArray(primitiveType, primitiveCount);
-
+#if !DISABLE_CHECK_VALID
             if (vertexOffset + vertexCount > vertexData.Length)
                 throw new ArgumentOutOfRangeException("primitiveCount");
 
             if (vertexDeclaration == null)
                 throw new ArgumentNullException("vertexDeclaration");
-
+#endif
             PlatformDrawUserPrimitives<T>(primitiveType, vertexData, vertexOffset, vertexDeclaration, vertexCount);
 
             unchecked
@@ -1063,6 +1070,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="primitiveCount">The number of primitives to draw.</param>
         public void DrawPrimitives(PrimitiveType primitiveType, int vertexStart, int primitiveCount)
         {
+#if !DISABLE_CHECK_VALID
             if (_vertexShader == null)
                 throw new InvalidOperationException("Vertex shader must be set before calling DrawPrimitives.");
 
@@ -1071,7 +1079,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (primitiveCount <= 0)
                 throw new ArgumentOutOfRangeException("primitiveCount");
-
+#endif
             var vertexCount = GetElementCountArray(primitiveType, primitiveCount);
 
             PlatformDrawPrimitives(primitiveType, vertexStart, vertexCount);
@@ -1123,7 +1131,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             // These parameter checks are a duplicate of the checks in the int[] overload of DrawUserIndexedPrimitives.
             // Inlined here for efficiency.
-
+#if !DISABLE_CHECK_VALID
             if (vertexData == null || vertexData.Length == 0)
                 throw new ArgumentNullException("vertexData");
 
@@ -1153,7 +1161,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (vertexDeclaration.VertexStride < ReflectionHelpers.SizeOf<T>.Get())
                 throw new ArgumentOutOfRangeException("vertexDeclaration", "Vertex stride of vertexDeclaration should be at least as big as the stride of the actual vertices.");
-
+#endif
             PlatformDrawUserIndexedPrimitives<T>(primitiveType, vertexData, vertexOffset, numVertices, indexData, indexOffset, primitiveCount, vertexDeclaration);
 
             unchecked
@@ -1203,7 +1211,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             // These parameter checks are a duplicate of the checks in the short[] overload of DrawUserIndexedPrimitives.
             // Inlined here for efficiency.
-
+#if !DISABLE_CHECK_VALID
             if (vertexData == null || vertexData.Length == 0)
                 throw new ArgumentNullException("vertexData");
 
@@ -1233,7 +1241,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (vertexDeclaration.VertexStride < ReflectionHelpers.SizeOf<T>.Get())
                 throw new ArgumentOutOfRangeException("vertexDeclaration", "Vertex stride of vertexDeclaration should be at least as big as the stride of the actual vertices.");
-
+#endif
             PlatformDrawUserIndexedPrimitives<T>(primitiveType, vertexData, vertexOffset, numVertices, indexData, indexOffset, primitiveCount, vertexDeclaration);
             
             unchecked
@@ -1241,6 +1249,14 @@ namespace Microsoft.Xna.Framework.Graphics
                 _graphicsMetrics._drawCount++;
                 _graphicsMetrics._primitiveCount +=  primitiveCount;
             }
+        }
+
+        public void DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, IndexBuffer indexBuffer, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
+        {
+            Debug.Assert(vertexData != null && vertexData.Length > 0, "The vertexData must not be null or zero length!");
+            Debug.Assert(indexBuffer != null && indexBuffer.IndexCount > 0, "The indexBuffer must not be null or zero length!");
+
+            PlatformDrawUserIndexedPrimitives<T>(primitiveType, vertexData, vertexOffset, numVertices, indexBuffer, indexOffset, primitiveCount, vertexDeclaration);
         }
 
         /// <summary>
@@ -1272,6 +1288,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <remarks>Draw geometry with data from multiple bound vertex streams at different frequencies.</remarks>
         public void DrawInstancedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount, int instanceCount)
         {
+#if !DISABLE_CHECK_VALID
             if (_vertexShader == null)
                 throw new InvalidOperationException("Vertex shader must be set before calling DrawInstancedPrimitives.");
 
@@ -1283,7 +1300,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (primitiveCount <= 0)
                 throw new ArgumentOutOfRangeException("primitiveCount");
-
+#endif
             PlatformDrawInstancedPrimitives(primitiveType, baseVertex, startIndex, primitiveCount, instanceCount);
 
             unchecked

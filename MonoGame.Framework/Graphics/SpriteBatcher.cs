@@ -2,6 +2,8 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+#define USE_INDEX_BUFFERS
+
 using System;
 using System.Collections.Generic;
 
@@ -47,10 +49,14 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         private readonly GraphicsDevice _device;
 
+#if USE_INDEX_BUFFERS
+        private IndexBuffer _indexBuffer;
+#else
         /// <summary>
         /// Vertex index array. The values in this array never change.
         /// </summary>
         private short[] _index;
+#endif
 
         private VertexPositionColorTexture[] _vertexArray;
 
@@ -96,18 +102,28 @@ namespace Microsoft.Xna.Framework.Graphics
         private unsafe void EnsureArrayCapacity(int numBatchItems)
         {
             int neededCapacity = 6 * numBatchItems;
+
+#if USE_INDEX_BUFFERS
+            if (_indexBuffer != null && neededCapacity <= _indexBuffer.IndexCount)
+#else
             if (_index != null && neededCapacity <= _index.Length)
+#endif
             {
                 // Short circuit out of here because we have enough capacity.
                 return;
             }
+
             short[] newIndex = new short[6 * numBatchItems];
             int start = 0;
+
+#if !USE_INDEX_BUFFERS
             if (_index != null)
             {
                 _index.CopyTo(newIndex, 0);
                 start = _index.Length / 6;
             }
+#endif
+
             fixed (short* indexFixedPtr = newIndex)
             {
                 var indexPtr = indexFixedPtr + (start * 6);
@@ -133,17 +149,19 @@ namespace Microsoft.Xna.Framework.Graphics
                     *(indexPtr + 5) = (short)(i * 4 + 2);
                 }
             }
+
+#if USE_INDEX_BUFFERS
+            if (_indexBuffer != null)
+                _indexBuffer.Dispose();
+            _indexBuffer = new IndexBuffer(_device, IndexElementSize.SixteenBits, newIndex.Length, BufferUsage.WriteOnly);
+            _indexBuffer.SetData(newIndex);
+#else
             _index = newIndex;
+#endif
 
             _vertexArray = new VertexPositionColorTexture[4 * numBatchItems];
         }
-
-#if PSVITA
-        // jcf: hack for mercenary kings
-        private float _lastz;
-        private float _lastzbias;
-#endif
-      
+                
         /// <summary>
         /// Sorts the batch items and then groups batch drawing into maximal allowed batch sets that do not
         /// overflow the 16 bit array indices for vertices.
@@ -152,8 +170,8 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="effect">The custom effect to apply to the drawn geometry</param>
         public unsafe void DrawBatch(SpriteSortMode sortMode, Effect effect)
 		{
-            if (effect != null && effect.IsDisposed)
-                throw new ObjectDisposedException("effect");
+            //if (effect != null && effect.IsDisposed)
+                //throw new ObjectDisposedException("effect");
 
 			// nothing to do
             if (_batchItemCount == 0)
@@ -219,28 +237,6 @@ namespace Microsoft.Xna.Framework.Graphics
                         *(vertexArrayPtr+2) = item.vertexBL;
                         *(vertexArrayPtr+3) = item.vertexBR;
 
-#if PSVITA
-                        // jcf: zbias hack for mercenary kings
-                        //{
-                        float z = vertexArrayFixedPtr->Position.Z;
-                        if (z == _lastz)
-                        {
-                            _lastzbias -= 0.0001f;
-                        }
-                        else
-                        {
-                            _lastzbias = 0.0f;
-                        }
-
-                        _lastz = z;
-
-                        (vertexArrayPtr + 0)->Position.Z += _lastzbias;
-                        (vertexArrayPtr + 1)->Position.Z += _lastzbias;
-                        (vertexArrayPtr + 2)->Position.Z += _lastzbias;
-                        (vertexArrayPtr + 3)->Position.Z += _lastzbias;
-                        //}
-#endif
-
                         // Release the texture.
                         item.Texture = null;
                     }
@@ -286,7 +282,11 @@ namespace Microsoft.Xna.Framework.Graphics
                         _vertexArray,
                         0,
                         vertexCount,
+#if USE_INDEX_BUFFERS
+                        _indexBuffer,
+#else
                         _index,
+#endif
                         0,
                         (vertexCount / 4) * 2,
                         VertexPositionColorTexture.VertexDeclaration);
@@ -300,7 +300,11 @@ namespace Microsoft.Xna.Framework.Graphics
                     _vertexArray,
                     0,
                     vertexCount,
+#if USE_INDEX_BUFFERS
+                    _indexBuffer,
+#else
                     _index,
+#endif
                     0,
                     (vertexCount / 4) * 2,
                     VertexPositionColorTexture.VertexDeclaration);
