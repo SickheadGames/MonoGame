@@ -1259,8 +1259,7 @@
     <Compile Include="Utilities\Imaging\TinyJpeg.Generated.cs">
         <Platforms>WindowsGL,Linux</Platforms>
     </Compile>
-	
-
+	<Compile Include="Utilities\Diagnostics.cs"/>
 
     <!-- Android Platform -->
     <Compile Include="Android\AndroidCompatibility.cs">

@@ -2,6 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+// jcf: enable this to collect time spent inside ContentManager.Load per type of content.
+//#define PROFILE_ENABLED
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +16,7 @@ using Microsoft.Xna.Framework.Graphics;
 #if !WINRT
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
+using MonoGame.Utilities;
 #endif
 
 namespace Microsoft.Xna.Framework.Content
@@ -194,42 +198,69 @@ namespace Microsoft.Xna.Framework.Content
 			}
 		}
 
+#if PROFILE_ENABLED
+        private static Profile _profile = new Profile("(default)ContentManager");
+
+        public static Profile Profiling
+        {
+            get
+            {
+                return _profile;
+            }
+            set
+            {
+                if (_profile != null)
+                {
+                    _profile.Dispose();
+                    _profile = null;
+                }
+
+                _profile = value;
+            }
+        }
+#endif
+
 		public virtual T Load<T>(string assetName)
 		{
-            if (string.IsNullOrEmpty(assetName))
+#if PROFILE_ENABLED
+            using (Profiling.Get().Begin(string.Format("Load<{0}>", typeof(T))))
+#endif
             {
-                throw new ArgumentNullException("assetName");
-            }
-            if (disposed)
-            {
-                throw new ObjectDisposedException("ContentManager");
-            }
-
-            T result = default(T);
-            
-            // On some platforms, name and slash direction matter.
-            // We store the asset by a /-seperating key rather than how the
-            // path to the file was passed to us to avoid
-            // loading "content/asset1.xnb" and "content\\ASSET1.xnb" as if they were two 
-            // different files. This matches stock XNA behavior.
-            // The dictionary will ignore case differences
-            var key = assetName.Replace('\\', '/');
-
-            // Check for a previously loaded asset first
-            object asset = null;
-            if (loadedAssets.TryGetValue(key, out asset))
-            {
-                if (asset is T)
+                if (string.IsNullOrEmpty(assetName))
                 {
-                    return (T)asset;
+                    throw new ArgumentNullException("assetName");
                 }
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("ContentManager");
+                }
+
+                T result = default(T);
+            
+                // On some platforms, name and slash direction matter.
+                // We store the asset by a /-seperating key rather than how the
+                // path to the file was passed to us to avoid
+                // loading "content/asset1.xnb" and "content\\ASSET1.xnb" as if they were two 
+                // different files. This matches stock XNA behavior.
+                // The dictionary will ignore case differences
+                var key = assetName.Replace('\\', '/');
+
+                // Check for a previously loaded asset first
+                object asset = null;
+                if (loadedAssets.TryGetValue(key, out asset))
+                {
+                    if (asset is T)
+                    {
+                        return (T)asset;
+                    }
+                }
+
+                // Load the asset.
+                result = ReadAsset<T>(assetName, null);
+
+                loadedAssets[key] = result;
+                return result;
             }
-
-            // Load the asset.
-            result = ReadAsset<T>(assetName, null);
-
-            loadedAssets[key] = result;
-            return result;
 		}
 		
 		protected virtual Stream OpenStream(string assetName)
