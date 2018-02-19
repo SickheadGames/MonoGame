@@ -164,7 +164,13 @@ namespace Microsoft.Xna.Framework.Audio
                 };
             }
 
+            if (_wav != null && _streaming)
+            {
+                _wav.Dispose();
+            }
+
             _wav = _soundBank.GetSoundEffectInstance(_waveBanks[_wavIndex], _tracks[_wavIndex], out _streaming);
+
             if (_wav == null)
             {
                 // We couldn't create a sound effect instance, most likely
