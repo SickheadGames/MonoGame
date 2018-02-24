@@ -4,6 +4,7 @@
 
 #define USE_INDEX_BUFFERS
 
+using MonoGame.Utilities;
 using System;
 using System.Collections.Generic;
 
@@ -43,6 +44,8 @@ namespace Microsoft.Xna.Framework.Graphics
         /// Index pointer to the next available SpriteBatchItem in _batchItemList.
         /// </summary>
         private int _batchItemCount;
+
+        private SpriteBatchItemSorter _sorter;
         
         /// <summary>
         /// The target graphics device.
@@ -71,7 +74,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 _batchItemList[i] = new SpriteBatchItem();
 
             EnsureArrayCapacity(InitialBatchSize);
-		}
+
+            _sorter = new SpriteBatchItemSorter(InitialBatchSize);
+        }
 
         /// <summary>
         /// Reuse a previously allocated SpriteBatchItem from the item pool. 
@@ -180,10 +185,11 @@ namespace Microsoft.Xna.Framework.Graphics
 			// sort the batch items
 			switch ( sortMode )
 			{
-			case SpriteSortMode.Texture :                
-			case SpriteSortMode.FrontToBack :
-			case SpriteSortMode.BackToFront :
-                Array.Sort(_batchItemList, 0, _batchItemCount);
+			    case SpriteSortMode.Texture :                
+			    case SpriteSortMode.FrontToBack :
+			    case SpriteSortMode.BackToFront :
+                        _sorter.Sort(_batchItemList, 0, _batchItemCount);
+                        //Array.Sort(_batchItemList, 0, _batchItemCount);
 				break;
 			}
 

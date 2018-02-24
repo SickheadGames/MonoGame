@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
-    internal class SpriteBatchItem : IComparable<SpriteBatchItem>
+    internal sealed class SpriteBatchItem : IComparable<SpriteBatchItem>
 	{
 		public Texture2D Texture;
         public float SortKey;
