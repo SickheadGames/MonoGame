@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
 
 namespace Microsoft.Xna.Framework.Content.Pipeline.Serialization.Intermediate
@@ -281,10 +282,26 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Serialization.Intermediate
                 return (foundType == null) ? null : foundType.MakeGenericType(genericArguments);
             }
 
-            foundType = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                         from type in assembly.GetTypes()
-                         where type.FullName == typeName || type.Name == typeName
-                         select type).FirstOrDefault();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var asm in assemblies)
+            {
+                try
+                {
+                    var types = asm.GetTypes();
+                    foreach (var t in types)
+                    {
+                        if (t.FullName == typeName || t.Name == typeName)
+                        {
+                            foundType = t;
+                            break;
+                        }
+                    }
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    //Console.WriteLine("Warning: ReflectionTypeLoadException occured; LoaderExceptions={0}", string.Join("\n",e.LoaderExceptions.Select(ee => ee.Message)));
+                }
+            }
 
             if (foundType == null)
                 foundType = Type.GetType(expandedName, false, true);

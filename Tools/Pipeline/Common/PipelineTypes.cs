@@ -443,19 +443,24 @@ namespace MonoGame.Tools.Pipeline
 
             foreach (var path in assemblyPaths)
             {
+#if SHIPPING
                 try
+#endif
                 {                    
                     var a = Assembly.LoadFrom(path);
                     var types = a.GetTypes();
                     ProcessTypes(types);
                 }
+#if SHIPPING
                 catch 
                 {
-                    //Logger.LogWarning(null, null, "Failed to load assembly '{0}': {1}", assemblyPath, e.Message);
+                    Logger.LogWarning(null, null, "Failed to load assembly '{0}': {1}", assemblyPath, e.Message);
+
                     // The assembly failed to load... nothing
                     // we can do but ignore it.
                     continue;
-                }                
+                }
+#endif
             }
         }
 
