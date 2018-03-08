@@ -157,6 +157,7 @@ namespace Microsoft.Xna.Framework.Graphics
             internal virtual void CheckFramebufferStatus()
             {
                 var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+                GraphicsExtensions.CheckGLError();
                 if (status != FramebufferErrorCode.FramebufferComplete)
                 {
                     string message = "Framebuffer Incomplete.";

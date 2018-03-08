@@ -66,6 +66,7 @@ non-infringement.
 */
 #endregion License
 
+using Microsoft.Xna.Framework.Graphics;
 using MonoGame.OpenGL;
 using System;
 
@@ -95,59 +96,71 @@ namespace Microsoft.Xna.Framework {
 
             public FramebufferErrorCode CheckFramebufferStatus (FramebufferTarget target)
 			{
-				return GL.CheckFramebufferStatus (target);
-			}
+				var code = GL.CheckFramebufferStatus (target);
+                GraphicsExtensions.CheckGLError();
+                return code;
+            }
 
 			public void BindFramebuffer (FramebufferTarget target, int framebuffer)
 			{
                 GL.BindFramebuffer(target, framebuffer);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void BindRenderbuffer (RenderbufferTarget target, int renderbuffer)
 			{
 				GL.BindRenderbuffer (target, renderbuffer);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void DeleteFramebuffers (int n, ref int framebuffers)
 			{
 				GL.DeleteFramebuffers (n, ref framebuffers);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void DeleteRenderbuffers (int n, ref int renderbuffers)
 			{
 				GL.DeleteRenderbuffers (n, ref renderbuffers);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void FramebufferRenderbuffer (
 				FramebufferTarget target, FramebufferAttachment attachment, RenderbufferTarget renderbuffertarget, int renderbuffer)
 			{
                 GL.FramebufferRenderbuffer (target, attachment, renderbuffertarget, renderbuffer);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void GenFramebuffers (int n, ref int framebuffers)
 			{
 				GL.GenFramebuffers (n, out framebuffers);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void GenRenderbuffers (int n, ref int renderbuffers)
 			{
 				GL.GenRenderbuffers (n, out renderbuffers);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void GetInteger (GetPName name, ref int value)
 			{
 				GL.GetInteger (name, out value);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void Scissor (int x, int y, int width, int height)
 			{
 				GL.Scissor (x, y, width, height);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 
 			public void Viewport (int x, int y, int width, int height)
 			{
 				GL.Viewport (x, y, width, height);
-			}
+                GraphicsExtensions.CheckGLError();
+            }
 		}
 	}
 }

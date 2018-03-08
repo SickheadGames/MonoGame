@@ -859,6 +859,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
 #if !GLES
             GL.DrawBuffers(this._currentRenderTargetCount, this._drawBuffers);
+            GraphicsExtensions.CheckGLError();
 #endif
 
             // Reset the raster state because we flip vertices

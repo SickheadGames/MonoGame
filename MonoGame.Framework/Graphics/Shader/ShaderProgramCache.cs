@@ -114,7 +114,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 var log = GL.GetProgramInfoLog(program);
                 Console.WriteLine(log);
                 GL.DetachShader(program, vertexShader.GetShaderHandle());
+                GraphicsExtensions.CheckGLError();
                 GL.DetachShader(program, pixelShader.GetShaderHandle());
+                GraphicsExtensions.CheckGLError();
                 _graphicsDevice.DisposeProgram(program);
                 throw new InvalidOperationException("Unable to link effect program");
             }

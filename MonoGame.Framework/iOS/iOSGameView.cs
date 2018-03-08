@@ -227,16 +227,23 @@ namespace Microsoft.Xna.Framework {
                 if (preferredDepthFormat != DepthFormat.None)
                 {
                     GL.GenRenderbuffers(1, out _depthbuffer);
+                    GraphicsExtensions.CheckGLError();
                     GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthbuffer);
+                    GraphicsExtensions.CheckGLError();
                     var internalFormat = RenderbufferStorage.DepthComponent16;
                     if (preferredDepthFormat == DepthFormat.Depth24)
                         internalFormat = RenderbufferStorage.DepthComponent24Oes;
                     else if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
                         internalFormat = RenderbufferStorage.Depth24Stencil8Oes;
                     GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, viewportWidth, viewportHeight);
+                    GraphicsExtensions.CheckGLError();
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
+                    GraphicsExtensions.CheckGLError();
                     if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
+                    {
                         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
+                        GraphicsExtensions.CheckGLError();
+                    }
                 }
             }
 
@@ -254,7 +261,8 @@ namespace Microsoft.Xna.Framework {
             _glapi.FramebufferRenderbuffer (FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, _colorbuffer);
 			
 			var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-			if (status != FramebufferErrorCode.FramebufferComplete)
+            GraphicsExtensions.CheckGLError();
+            if (status != FramebufferErrorCode.FramebufferComplete)
 				throw new InvalidOperationException (
 					"Framebuffer was not created correctly: " + status);
 
@@ -336,7 +344,9 @@ namespace Microsoft.Xna.Framework {
 
             this.MakeCurrent();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, this._colorbuffer);
+            GraphicsExtensions.CheckGLError();
             GL.InvalidateFramebuffer(FramebufferTarget.Framebuffer, 2, attachements);
+            GraphicsExtensions.CheckGLError();
             __renderbuffergraphicsContext.SwapBuffers();
 		}
 
