@@ -228,6 +228,21 @@ namespace Microsoft.Xna.Framework
             if (IsPlayingVideo)
                 return;
 
+            // Stardew hack:  Report first touch point mouse state.
+            {
+                var mstate = TouchPanel.PrimaryWindow.MouseState;
+                var tstate = TouchPanel.GetState();
+                if (tstate.Count == 0)
+                    mstate.LeftButton = ButtonState.Released;
+                else
+                {
+                    mstate.X = (int)tstate[0].Position.X;
+                    mstate.Y = (int)tstate[0].Position.Y;
+                    mstate.LeftButton = ButtonState.Pressed;
+                }
+                TouchPanel.PrimaryWindow.MouseState = mstate;
+            }
+
             // FIXME: Remove this call, and the whole Tick method, once
             //        GraphicsDevice is where platform-specific Present
             //        functionality is actually implemented.  At that
