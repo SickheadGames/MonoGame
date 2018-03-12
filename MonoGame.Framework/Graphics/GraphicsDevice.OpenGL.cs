@@ -572,7 +572,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         }
 
-        private void PlatformApplyDefaultRenderTarget()
+        internal void PlatformApplyDefaultRenderTarget()
         {
             this.framebufferHelper.BindFramebuffer(this.glFramebuffer);
 
