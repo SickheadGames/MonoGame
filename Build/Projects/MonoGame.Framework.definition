@@ -409,7 +409,10 @@
     <Compile Include="Audio\Xact\VolumeEvent.cs" />
     <Compile Include="Audio\Xact\WaveBank.cs" />
     <Compile Include="Audio\Xact\WaveBank.Default.cs">	
-      <Platforms>Android,Angle,iOS,Linux,MacOS,Windows,WindowsGL,WindowsUniversal,Web,tvOS</Platforms>
+      <Platforms>Angle,Linux,MacOS,Windows,WindowsGL,WindowsUniversal,Web</Platforms>
+    </Compile>
+    <Compile Include="Audio\Xact\WaveBank.Stream.cs">	
+      <Platforms>Android,iOS,tvOS</Platforms>
     </Compile>
     <Compile Include="Audio\Xact\XactClip.cs" />
     <Compile Include="Audio\Xact\XactHelpers.cs" />
