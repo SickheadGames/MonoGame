@@ -192,7 +192,8 @@ namespace Microsoft.Xna.Framework.Audio
             }
  
             // This is a shortcut for infinite looping of a single track.
-            _wav.IsLooped = _loopCount == 255 && trackCount == 1;
+            if (!_streaming)
+                _wav.IsLooped = _loopCount == 255 && trackCount == 1;
 
             // Update all the wave states then play.
             UpdateState();
