@@ -58,13 +58,20 @@ namespace Microsoft.Xna.Framework.Audio
 
         internal static Stream OpenStream(string filePath, bool useMemoryStream = false)
         {
-            var stream = TitleContainer.OpenStream(filePath);
-
             // Read the asset into memory in one go. This results in a ~50% reduction
             // in load times on Android due to slow Android asset streams.
 #if ANDROID
-            useMemoryStream = true;
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), Path.GetFileName(filePath));
+            if (!File.Exists(path))
+            {
+                using (var src = TitleContainer.OpenStream(filePath))
+                using (var dest = File.Create(path))
+                    src.CopyTo(dest);
+            }
+            return File.OpenRead(path);
 #endif
+
+            var stream = TitleContainer.OpenStream(filePath);
 
             if (useMemoryStream)
             {
