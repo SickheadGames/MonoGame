@@ -122,7 +122,7 @@ namespace MGCB
         {
             _processor = processor;
 
-            // If you are changing the processor then reset all 
+            // If you are changing the processor then reset all
             // the processor parameters.
             _processorParams.Clear();
         }
@@ -273,6 +273,10 @@ namespace MGCB
             var intermediatePath = ReplaceSymbols(IntermediateDir);
             if (!Path.IsPathRooted(intermediatePath))
                 intermediatePath = PathHelper.Normalize(Path.GetFullPath(Path.Combine(projectDirectory, intermediatePath)));
+
+            // ensure intermediate directory exists
+            // (output directories are created in the process of outputing individual items, since they can have their own subfolders as well)
+            Directory.CreateDirectory(intermediatePath);
 
             _manager = new PipelineManager(projectDirectory, outputPath, intermediatePath);
             _manager.Logger = new ConsoleLogger();
@@ -489,7 +493,7 @@ namespace MGCB
                     newContent.Merge(previousContent);
             }
 
-            // Delete the old file and write the new content 
+            // Delete the old file and write the new content
             // list if we have any to serialize.
             FileHelper.DeleteIfExists(contentFile);
             if (newContent.SourceFiles.Count > 0)
