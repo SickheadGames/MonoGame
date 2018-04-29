@@ -231,11 +231,13 @@ namespace MGCB
             var outputPath = ReplaceSymbols (OutputDir);
             if (!Path.IsPathRooted(outputPath))
                 outputPath = PathHelper.Normalize(Path.GetFullPath(Path.Combine(projectDirectory, outputPath)));
+            Directory.CreateDirectory(outputPath);
 
             var intermediatePath = ReplaceSymbols (IntermediateDir);
             if (!Path.IsPathRooted(intermediatePath))
                 intermediatePath = PathHelper.Normalize(Path.GetFullPath(Path.Combine(projectDirectory, intermediatePath)));
-            
+            Directory.CreateDirectory(intermediatePath);
+
             _manager = new PipelineManager(projectDirectory, outputPath, intermediatePath);
             _manager.Logger = new ConsoleLogger();
             _manager.CompressContent = CompressContent;
