@@ -129,7 +129,16 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
             var justTheName = Path.GetFileName(command);
             foreach (var path in paths.Split(Path.PathSeparator))
             {
-                var fullName = Path.Combine(path, justTheName);
+                string fullName;
+                try
+                {
+                    fullName = Path.Combine(path, justTheName);
+                }
+                catch (Exception ex)
+                {
+                    continue;
+                }
+
                 if (File.Exists(fullName))
                     return fullName;
 
