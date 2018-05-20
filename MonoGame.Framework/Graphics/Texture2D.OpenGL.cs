@@ -198,8 +198,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private void PlatformGetData<T>(int level, int arraySlice, Rectangle rect, T[] data, int startIndex, int elementCount) where T : struct
         {
-            Threading.EnsureUIThread();
-
+            Threading.BlockOnUIThread(() =>
+            {
 #if GLES
             // TODO: check for for non renderable formats (formats that can't be attached to FBO)
 
@@ -256,6 +256,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
             }
 #endif
+            });
         }
 
         private unsafe static Texture2D PlatformFromStream(GraphicsDevice graphicsDevice, Stream stream)
