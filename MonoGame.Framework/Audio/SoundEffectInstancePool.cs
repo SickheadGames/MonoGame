@@ -117,7 +117,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             SoundEffectInstance inst = null;
 
-            // Cleanup instances which have finished playing.                    
+            // Cleanup instances which have finished playing.
             for (var x = 0; x < _playingInstances.Count;)
             {
                 inst = _playingInstances[x];
@@ -161,7 +161,13 @@ namespace Microsoft.Xna.Framework.Audio
                 inst = _playingInstances[x];
                 if (inst._effect == effect)
                 {
-                    inst.Stop(true); // stop immediatly
+                    // jcf: this can occur if a SoundEffectInstance is being controlled directly by the user-code
+                    //      ie. the instance is disposed, then immediately after the soundeffect is disposed, before an interviening call to soundeffectinstancepool.update
+                    if (!(inst.IsDisposed || inst.State == SoundState.Stopped))
+                    {
+                        inst.Stop(true);
+                    }
+
                     Add(inst);
                     continue;
                 }
