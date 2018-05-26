@@ -146,7 +146,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             SoundEffectInstance inst = null;
 
-            // Cleanup instances which have finished playing.                    
+            // Cleanup instances which have finished playing.
             for (var x = 0; x < _playingInstances.Count;)
             {
                 inst = _playingInstances[x];
@@ -190,7 +190,11 @@ namespace Microsoft.Xna.Framework.Audio
                 inst = _playingInstances[x];
                 if (inst._effect == effect)
                 {
-                    inst.Stop(true); // stop immediatly
+                    if (!inst.IsDisposed)
+                    {
+                        inst.Stop(true);
+                    }
+
                     Add(inst);
                     continue;
                 }
