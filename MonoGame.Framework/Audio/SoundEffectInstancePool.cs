@@ -70,7 +70,7 @@ namespace Microsoft.Xna.Framework.Audio
             _playingInstances.Remove(inst);
 
             inst._poolState = SoundEffectInstance.PoolState.Added;
-            
+
             } // lock (_locker)
         }
 
@@ -181,6 +181,8 @@ namespace Microsoft.Xna.Framework.Audio
         /// <param name="effect">The SoundEffect</param>
         internal static void StopPooledInstances(SoundEffect effect)
         {
+            Console.WriteLine("Warning: SoundEffectInstancePool::StopPooledInstances called.");
+
             lock (_locker) {
 
             SoundEffectInstance inst = null;

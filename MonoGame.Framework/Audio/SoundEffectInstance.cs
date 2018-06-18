@@ -33,7 +33,7 @@ namespace Microsoft.Xna.Framework.Audio
         /// <summary>Enables or Disables whether the SoundEffectInstance should repeat after playback.</summary>
         /// <remarks>This value has no effect on an already playing sound.</remarks>
         public virtual bool IsLooped
-        { 
+        {
             get { return PlatformGetIsLooped(); }
             set { PlatformSetIsLooped(value); }
         }
@@ -42,7 +42,7 @@ namespace Microsoft.Xna.Framework.Audio
         /// <value>Pan value ranging from -1.0 (left speaker) to 0.0 (centered), 1.0 (right speaker). Values outside of this range will throw an exception.</value>
         public float Pan
         {
-            get { return _pan; } 
+            get { return _pan; }
             set
             {
                 if (value < -1.0f || value > 1.0f)
@@ -103,7 +103,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
             _pan = 0.0f;
             _volume = 1.0f;
-            _pitch = 0.0f;            
+            _pitch = 0.0f;
         }
 
         internal SoundEffectInstance(byte[] buffer, int sampleRate, int channels)
@@ -118,6 +118,7 @@ namespace Microsoft.Xna.Framework.Audio
         /// </summary>
         ~SoundEffectInstance()
         {
+            Console.WriteLine("Warning: ~SoundEffectInstance called.");
             Dispose(false);
         }
 
@@ -170,7 +171,7 @@ namespace Microsoft.Xna.Framework.Audio
                     SoundEffectInstancePool.Remove(this);
                 //}
             }
-            
+
             // For non-XAct sounds we need to be sure the latest
             // master volume level is applied before playback.
             if (!_isXAct)
