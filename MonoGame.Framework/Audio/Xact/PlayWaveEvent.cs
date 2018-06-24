@@ -93,7 +93,8 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 if (_wav.State != SoundState.Stopped)
                     _wav.Stop();
-                _wav.Dispose();
+                if (_streaming)
+                    _wav.Dispose();
                 _wav._isXAct = false;
                 _wav = null;
             }
@@ -202,7 +203,8 @@ namespace Microsoft.Xna.Framework.Audio
             if (_wav != null)
             {
                 _wav.Stop();
-                _wav.Dispose();
+                if (_streaming)
+                    _wav.Dispose();
                 _wav._isXAct = false;
                 _wav = null;
             }
@@ -274,7 +276,8 @@ namespace Microsoft.Xna.Framework.Audio
                 // limit then we can stop.
                 if (_loopCount == 0 || _loopIndex >= _loopCount)
                 {
-                    _wav.Dispose();
+                    if (_streaming)
+                        _wav.Dispose();
                     _wav._isXAct = false;
                     _wav = null;
 
