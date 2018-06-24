@@ -290,10 +290,10 @@ namespace Microsoft.Xna.Framework.Graphics
                 var srcRect = sourceRectangle.GetValueOrDefault();
                 w = srcRect.Width * scale.X;
                 h = srcRect.Height * scale.Y;
-                _texCoordTL.X = srcRect.X * texture.TexelWidth;
-                _texCoordTL.Y = srcRect.Y * texture.TexelHeight;
-                _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordTL.X = TopLeftX(srcRect.X, texture.TexelWidth, scale.X);
+                _texCoordTL.Y = TopLeftY(srcRect.Y, texture.TexelHeight, scale.Y);
+                _texCoordBR.X = BottomRightX(srcRect.X, srcRect.Width, texture.TexelWidth, scale.X); // (srcRect.X + srcRect.Width) * texture.TexelWidth;
+                _texCoordBR.Y = BottomRightX(srcRect.Y, srcRect.Height, texture.TexelHeight, scale.Y); // (srcRect.Y + srcRect.Height) * texture.TexelHeight;
             }
             else
             {
@@ -417,12 +417,14 @@ namespace Microsoft.Xna.Framework.Graphics
             if (sourceRectangle.HasValue)
             {
                 var srcRect = sourceRectangle.GetValueOrDefault();
-                _texCoordTL.X = srcRect.X * texture.TexelWidth;
-                _texCoordTL.Y = srcRect.Y * texture.TexelHeight;
-                _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordTL.X = TopLeftX(srcRect.X, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
+                _texCoordTL.Y = TopLeftY(srcRect.Y, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
+                // _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
+                // _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordBR.X = BottomRightX(srcRect.X, srcRect.Width, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
+                _texCoordBR.Y = BottomRightX(srcRect.Y, srcRect.Height, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
 
-                if(srcRect.Width != 0)
+                if (srcRect.Width != 0)
                     origin.X = origin.X * (float)destinationRectangle.Width / (float)srcRect.Width;
                 else
                     origin.X = origin.X * (float)destinationRectangle.Width * texture.TexelWidth;
@@ -559,10 +561,12 @@ namespace Microsoft.Xna.Framework.Graphics
             if (sourceRectangle.HasValue)
             {
                 var srcRect = sourceRectangle.GetValueOrDefault();
-                _texCoordTL.X = srcRect.X * texture.TexelWidth;
-                _texCoordTL.Y = srcRect.Y * texture.TexelHeight;
-                _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordTL.X = TopLeftX(srcRect.X, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
+                _texCoordTL.Y = TopLeftY(srcRect.Y, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
+                // _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
+                // _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordBR.X = BottomRightX(srcRect.X, srcRect.Width, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
+                _texCoordBR.Y = BottomRightX(srcRect.Y, srcRect.Height, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
             }
             else
             {
@@ -1202,6 +1206,37 @@ namespace Microsoft.Xna.Framework.Graphics
 			// We need to flush if we're using Immediate sort mode.
 			FlushIfNeeded();
 		}
+
+        private const float MIN_SCALE = 2.0f;
+
+        // Ric - this is a fix for iOS where in some cases it would mis-chop out the tetxure
+        private float TopLeftX(float sourceX, float texelWidth, float scale) {
+            if (scale > MIN_SCALE) {
+                return (sourceX * texelWidth) + ((1 / scale) * texelWidth);
+            }
+            return sourceX * texelWidth; // this is what it used to be
+        }
+
+        private float TopLeftY(float sourceY, float texelHeight, float scale) {
+            if (scale > MIN_SCALE) {
+                return (sourceY * texelHeight) + ((1 / scale) * texelHeight);
+            }
+            return sourceY * texelHeight; // this is what it used to be
+        }
+
+        private float BottomRightX(float startX, float width, float texelWidth, float scale) {
+            if (scale > MIN_SCALE) {
+                return ((startX + width) * texelWidth) - ((1 / scale) * texelWidth);
+            }
+            return (startX + width) * texelWidth;
+        }
+
+        private float bottomRightY(float startY, float height, float texelHeight, float scale) {
+            if (scale > MIN_SCALE) {
+                return ((startY + height) * texelHeight) - ((1 / scale) * texelHeight);
+            }
+            return (startY + height) * texelHeight;
+        }
 
         /// <summary>
         /// Immediately releases the unmanaged resources used by this object.
