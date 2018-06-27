@@ -292,8 +292,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 h = srcRect.Height * scale.Y;
                 _texCoordTL.X = TopLeftX(srcRect.X, texture.TexelWidth, scale.X);
                 _texCoordTL.Y = TopLeftY(srcRect.Y, texture.TexelHeight, scale.Y);
-                _texCoordBR.X = BottomRightX(srcRect.X, srcRect.Width, texture.TexelWidth, scale.X); // (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                _texCoordBR.Y = BottomRightX(srcRect.Y, srcRect.Height, texture.TexelHeight, scale.Y); // (srcRect.Y + srcRect.Height) * texture.TexelHeight;
+                _texCoordBR.X = BottomRightX(srcRect.X, srcRect.Width, texture.TexelWidth, scale.X);
+                _texCoordBR.Y = BottomRightY(srcRect.Y, srcRect.Height, texture.TexelHeight, scale.Y);
             }
             else
             {
@@ -419,10 +419,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 var srcRect = sourceRectangle.GetValueOrDefault();
                 _texCoordTL.X = TopLeftX(srcRect.X, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
                 _texCoordTL.Y = TopLeftY(srcRect.Y, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
-                // _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                // _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
                 _texCoordBR.X = BottomRightX(srcRect.X, srcRect.Width, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
-                _texCoordBR.Y = BottomRightX(srcRect.Y, srcRect.Height, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
+                _texCoordBR.Y = BottomRightY(srcRect.Y, srcRect.Height, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
 
                 if (srcRect.Width != 0)
                     origin.X = origin.X * (float)destinationRectangle.Width / (float)srcRect.Width;
@@ -563,10 +561,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 var srcRect = sourceRectangle.GetValueOrDefault();
                 _texCoordTL.X = TopLeftX(srcRect.X, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
                 _texCoordTL.Y = TopLeftY(srcRect.Y, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
-                // _texCoordBR.X = (srcRect.X + srcRect.Width) * texture.TexelWidth;
-                // _texCoordBR.Y = (srcRect.Y + srcRect.Height) * texture.TexelHeight;
                 _texCoordBR.X = BottomRightX(srcRect.X, srcRect.Width, texture.TexelWidth, destinationRectangle.Width / srcRect.Width);
-                _texCoordBR.Y = BottomRightX(srcRect.Y, srcRect.Height, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
+                _texCoordBR.Y = BottomRightY(srcRect.Y, srcRect.Height, texture.TexelHeight, destinationRectangle.Height / srcRect.Height);
             }
             else
             {
@@ -1231,7 +1227,7 @@ namespace Microsoft.Xna.Framework.Graphics
             return (startX + width) * texelWidth;
         }
 
-        private float bottomRightY(float startY, float height, float texelHeight, float scale) {
+        private float BottomRightY(float startY, float height, float texelHeight, float scale) {
             if (scale > MIN_SCALE) {
                 return ((startY + height) * texelHeight) - ((1 / scale) * texelHeight);
             }
