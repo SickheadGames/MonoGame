@@ -11,6 +11,7 @@ namespace Microsoft.Xna.Framework
     {
         private static Stream PlatformOpenStream(string safeName)
         {
+            safeName = safeName.Replace("//", "/");
             return Android.App.Application.Context.Assets.Open(safeName);
         }
     }
