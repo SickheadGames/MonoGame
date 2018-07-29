@@ -15,6 +15,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		public VertexPositionColorTexture vertexTR;
 		public VertexPositionColorTexture vertexBL;
 		public VertexPositionColorTexture vertexBR;
+
 		public SpriteBatchItem ()
 		{
 			vertexTL = new VertexPositionColorTexture();
@@ -91,7 +92,11 @@ namespace Microsoft.Xna.Framework.Graphics
         #region Implement IComparable
         public int CompareTo(SpriteBatchItem other)
         {
-            return SortKey.CompareTo(other.SortKey);
+            if (SortKey < other.SortKey)
+                return -1;
+            if (SortKey > other.SortKey)
+                return 1;
+            return 0;
         }
         #endregion
     }
