@@ -277,7 +277,9 @@ namespace Microsoft.Xna.Framework.Audio
 
                 _streams = null;
             }
-            
+
+            reader.Dispose();
+
             audioEngine.Wavebanks[_bankName] = this;
 
             IsPrepared = true;
