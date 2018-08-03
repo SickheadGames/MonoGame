@@ -48,6 +48,9 @@ namespace MonoGame.Tests.ContentPipeline
         }
 
         [Test]
+#if DESKTOPGL
+        [Ignore("Disabled until latest NVTT is merged on Mac!")]
+#endif
         public void Dude()
         {
             var context = new TestImporterContext("TestObj", "TestBin");
@@ -150,21 +153,21 @@ namespace MonoGame.Tests.ContentPipeline
             Assert.AreEqual(1.19371974f, materials["character_anim:upBodyM"].SpecularPower, 0.00001f);
             Assert.AreEqual(65.986f, materials["character_anim:eyeBallM"].SpecularPower, 0.00001f);
 
-            Paths.AreEqual(@"Assets\Models\Dude\head.tga", materials["character_anim:headM"].Textures["Texture"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\headS.tga", materials["character_anim:headM"].Textures["Specular"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\headN.tga", materials["character_anim:headM"].Textures["Bump"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\jacket.tga", materials["character_anim:jacketM"].Textures["Texture"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\jacketS.tga", materials["character_anim:jacketM"].Textures["Specular"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\jacketN.tga", materials["character_anim:jacketM"].Textures["Bump"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\pants.tga", materials["character_anim:pantsM"].Textures["Texture"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\pantsS.tga", materials["character_anim:pantsM"].Textures["Specular"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\pantsN.tga", materials["character_anim:pantsM"].Textures["Bump"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\upBodyC.tga", materials["character_anim:upBodyM"].Textures["Texture"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\upBodyS.tga", materials["character_anim:upBodyM"].Textures["Specular"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\upbodyN.tga", materials["character_anim:upBodyM"].Textures["Bump"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\upBodyC.tga", materials["character_anim:eyeBallM"].Textures["Texture"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\upBodyS.tga", materials["character_anim:eyeBallM"].Textures["Specular"].Filename);
-            Paths.AreEqual(@"Assets\Models\Dude\upbodyN.tga", materials["character_anim:eyeBallM"].Textures["Bump"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/head.tga", materials["character_anim:headM"].Textures["Texture"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/headS.tga", materials["character_anim:headM"].Textures["Specular"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/headN.tga", materials["character_anim:headM"].Textures["Bump"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/jacket.tga", materials["character_anim:jacketM"].Textures["Texture"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/jacketS.tga", materials["character_anim:jacketM"].Textures["Specular"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/jacketN.tga", materials["character_anim:jacketM"].Textures["Bump"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/pants.tga", materials["character_anim:pantsM"].Textures["Texture"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/pantsS.tga", materials["character_anim:pantsM"].Textures["Specular"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/pantsN.tga", materials["character_anim:pantsM"].Textures["Bump"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/upBodyC.tga", materials["character_anim:upBodyM"].Textures["Texture"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/upBodyS.tga", materials["character_anim:upBodyM"].Textures["Specular"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/upbodyN.tga", materials["character_anim:upBodyM"].Textures["Bump"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/upBodyC.tga", materials["character_anim:eyeBallM"].Textures["Texture"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/upBodyS.tga", materials["character_anim:eyeBallM"].Textures["Specular"].Filename);
+            Paths.AreEqual(@"Assets/Models/Dude/upbodyN.tga", materials["character_anim:eyeBallM"].Textures["Bump"].Filename);
 
             // BoneContent
             Assert.IsInstanceOf<BoneContent>(nodeContent.Children[1]);
@@ -222,7 +225,22 @@ namespace MonoGame.Tests.ContentPipeline
             foreach (var c in animationContent.Channels.Values)
                 Assert.Greater(c.Count, 0);
 
+            // I think in this case the old XNA FBX importer was bugged and
+            // returned a bigger animation duration that is correct.  Looking
+            // at the content of the FBX ascii i can see the math is:
+            // 
+            //  (57732697500 - 1924423250) / 46186158000 = 1.208 seconds
+            //
+            // Which is the correct result and what our FBX importer returns.
+            // I highly suspect that XNA was wrong.
+            //
+            // https://github.com/assimp/assimp/issues/1720
+            //
+#if XNA
             Assert.AreEqual(12670000, animationContent.Duration.Ticks);
+#else
+            Assert.AreEqual(12080000, animationContent.Duration.Ticks);            
+#endif
 
             // TODO: XNA assigns the identity to null on all NodeContent
             // other than the one returned from the importer.
