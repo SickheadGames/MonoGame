@@ -181,9 +181,8 @@ namespace Microsoft.Xna.Framework.Audio
             if ((wavebankheader.Segments[segidx_entry_name].Offset != 0) &&
                 (wavebankheader.Segments[segidx_entry_name].Length != 0))
             {
-                if (wavebankdata.EntryNameElementSize == -1) wavebankdata.EntryNameElementSize = 0;
-                byte[] entry_name = new byte[wavebankdata.EntryNameElementSize + 1];
-                entry_name[wavebankdata.EntryNameElementSize] = 0;
+                if (wavebankdata.EntryNameElementSize == -1)
+                    wavebankdata.EntryNameElementSize = 0;
             }
 
             _sounds = new SoundEffect[wavebankdata.EntryCount];
