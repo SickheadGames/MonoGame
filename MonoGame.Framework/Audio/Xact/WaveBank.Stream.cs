@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,11 +18,22 @@ namespace Microsoft.Xna.Framework.Audio
             int channels, rate, alignment;
             DecodeFormat(info.Format, out codec, out channels, out rate, out alignment);
 
-            var sound = new DynamicSoundEffectInstance(rate, channels == 2 ? AudioChannels.Stereo : AudioChannels.Mono);
-            sound._isXAct = true;
+            int bufferSize;
+            var msadpcm = codec == MiniFormatTag.Adpcm;
+            if (msadpcm)
+            {
+                alignment = (alignment + 22) * channels;
+                int samplesPerBlock = ((alignment * 2) / channels) - 12;
+                bufferSize = (rate / samplesPerBlock) * alignment;
+            }
+            else
+            {
+                // This is 1 second of audio per buffer.
+                bufferSize = rate * alignment;
+            }
 
-            // This is 1 second of audio per buffer.
-            var bufferSize = rate * alignment;
+            var sound = new DynamicSoundEffectInstance(msadpcm, alignment, rate, channels == 2 ? AudioChannels.Stereo : AudioChannels.Mono);
+            sound._isXAct = true;
 
             var queue = new ConcurrentQueue<byte[]>();
             var signal = new AutoResetEvent(false);
