@@ -73,12 +73,20 @@ namespace Microsoft.Xna.Framework.Audio
                 var length = info.FileLength;
                 stream.Seek(start, SeekOrigin.Begin);
 
+                var bindex = 0;
+                var buffers = new byte[][]
+                {
+                    new byte[bufferSize],
+                    new byte[bufferSize],
+                    new byte[bufferSize],
+                };
+
                 while (!sound.IsDisposed)
                 {
                     while (queue.Count < 3 && length > 0)
                     {
-                        // TODO: Reuse the byte arrays.
-                        var buffer = new byte[bufferSize];
+                        var buffer = buffers[bindex % 3];
+                        ++bindex;
 
                         var read = Math.Min(bufferSize, length);
                         read = stream.Read(buffer, 0, read);
