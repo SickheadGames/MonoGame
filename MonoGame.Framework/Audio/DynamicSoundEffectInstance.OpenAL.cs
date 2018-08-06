@@ -15,7 +15,17 @@ namespace Microsoft.Xna.Framework.Audio
 
         private void PlatformCreate()
         {
-            _format = _channels == AudioChannels.Mono ? ALFormat.Mono16 : ALFormat.Stereo16;
+            if (_msadpcm)
+            {
+                _format = _channels == AudioChannels.Mono ? ALFormat.MonoMSAdpcm : ALFormat.StereoMSAdpcm;
+                _sampleAlignment = AudioLoader.SampleAlignment(_format, _sampleAlignment);
+            }
+            else
+            {
+                _format = _channels == AudioChannels.Mono ? ALFormat.Mono16 : ALFormat.Stereo16;
+                _sampleAlignment = 0;
+            }
+
             InitializeSound();
 
             SourceId = controller.ReserveSource();
@@ -74,18 +84,18 @@ namespace Microsoft.Xna.Framework.Audio
         {
             // Get a buffer
             OALSoundBuffer oalBuffer = new OALSoundBuffer();
-
+            
             // Bind the data
             if (offset == 0)
             {
-                oalBuffer.BindDataBuffer(buffer, _format, count, _sampleRate);
+                oalBuffer.BindDataBuffer(buffer, _format, count, _sampleRate, _sampleAlignment);
             }
             else
             {
                 // BindDataBuffer does not support offset
                 var offsetBuffer = new byte[count];
                 Array.Copy(buffer, offset, offsetBuffer, 0, count);
-                oalBuffer.BindDataBuffer(offsetBuffer, _format, count, _sampleRate);
+                oalBuffer.BindDataBuffer(offsetBuffer, _format, count, _sampleRate, _sampleAlignment);
             }
 
             // Queue the buffer
