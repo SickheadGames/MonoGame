@@ -89,13 +89,14 @@ namespace Microsoft.Xna.Framework.Audio
                     new byte[bufferSize],
                     new byte[bufferSize],
                     new byte[bufferSize],
+                    new byte[bufferSize],
                 };
 
                 while (!sound.IsDisposed)
                 {
                     while (queue.Count < 3 && length > 0)
                     {
-                        var buffer = buffers[bindex % 3];
+                        var buffer = buffers[bindex % 4];
                         ++bindex;
 
                         var read = Math.Min(bufferSize, length);
