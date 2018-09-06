@@ -170,7 +170,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         public bool GetValueBoolean ()
 		{
-            if (ParameterClass != EffectParameterClass.Scalar || ParameterType != EffectParameterType.Bool)
+            if (ParameterClass != EffectParameterClass.Scalar || (ParameterType != EffectParameterType.Bool && ParameterType != EffectParameterType.Int32))
                 throw new InvalidCastException();
 
 #if OPENGL
@@ -408,7 +408,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void SetValue (bool value)
 		{
-            if (ParameterClass != EffectParameterClass.Scalar || ParameterType != EffectParameterType.Bool)
+            if (ParameterClass != EffectParameterClass.Scalar || (ParameterType != EffectParameterType.Bool && ParameterType != EffectParameterType.Int32))
                 throw new InvalidCastException();
 
 #if OPENGL
