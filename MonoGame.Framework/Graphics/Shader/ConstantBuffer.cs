@@ -107,8 +107,12 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 for (var i=0; i < elements.Count; i++)
                 {
-                    var rowsUsedSubParam = SetParameter(offset, elements[i]);
-                    offset += rowsUsedSubParam * rowSize;
+                    var elem = elements[i];
+                    var rowsUsedSubParam = SetParameter(offset, elem);
+                    if (elem.ColumnCount == 1)
+                        offset += rowsUsedSubParam * elementSize;
+                    else
+                        offset += rowsUsedSubParam * rowSize;
                     rowsUsed += rowsUsedSubParam;
                 }
             }
