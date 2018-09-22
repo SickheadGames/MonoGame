@@ -12,6 +12,37 @@ namespace Microsoft.Xna.Framework.Audio
 {
     partial class WaveBank
     {
+#if IOS
+        private SoundEffectInstance PlatformCreateStream(StreamInfo info)
+        {
+            MiniFormatTag codec;
+            int channels, rate, alignment;
+            DecodeFormat(info.Format, out codec, out channels, out rate, out alignment);
+
+            // TEMP FIX:  Just decode the whole thing at once.
+
+            var length = info.FileLength;
+            var buffer = new byte[length];
+
+            using (var stream = AudioEngine.OpenStream(_waveBankFileName))
+            {
+                var start = _playRegionOffset + info.FileOffset;
+                stream.Seek(start, SeekOrigin.Begin);
+                stream.Read(buffer, 0, length);
+            }
+
+            if (codec == MiniFormatTag.Adpcm)
+            {
+                var blockAlignment = (alignment + 22) * channels; // This is how XACT encodes it!
+                buffer = AudioLoader.ConvertMsAdpcmToPcm(buffer, 0, buffer.Length, (int)channels, blockAlignment);
+            }
+
+            var sound = new SoundEffect(buffer, 0, buffer.Length, rate, (AudioChannels)channels, 0, 0);
+            var inst = sound.CreateInstance();
+            inst._isXAct = true;
+            return inst;
+        }
+#else
         private SoundEffectInstance PlatformCreateStream(StreamInfo info)
         {
             MiniFormatTag codec;
@@ -124,6 +155,7 @@ namespace Microsoft.Xna.Framework.Audio
 
             return sound;
         }
+#endif
     }
 }
 
