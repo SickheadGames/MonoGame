@@ -589,9 +589,13 @@ namespace Microsoft.Xna.Framework.Graphics
 
         public void Present()
         {
+            // HACK: Stardew is broke here is some way,
+            // but this doesn't really matter as present always
+            // goes to the backbuffer.
+            //
             // We cannot present with a RT set on the device.
-            if (_currentRenderTargetCount != 0)
-                throw new InvalidOperationException("Cannot call Present when a render target is active.");
+            //if (_currentRenderTargetCount != 0)
+                //throw new InvalidOperationException("Cannot call Present when a render target is active.");
 
             _graphicsMetrics = new GraphicsMetrics();
             PlatformPresent();
