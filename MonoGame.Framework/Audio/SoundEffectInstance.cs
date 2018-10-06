@@ -205,6 +205,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
             if (!_isDisposed)
             {
+                _isXAct = false;
                 PlatformDispose(disposing);
                 _isDisposed = true;
             }
