@@ -44,12 +44,10 @@ namespace Microsoft.Xna.Framework.GamerServices
 {
     public static class GamerServicesDispatcher
     {
-        /*
         public static void Initialize ( IServiceProvider serviceProvider )
         {
-            throw new NotImplementedException();   
+            //throw new NotImplementedException();   
         }
-        */
 
         public static void Update ()
         {            

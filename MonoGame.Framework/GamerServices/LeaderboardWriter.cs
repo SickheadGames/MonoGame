@@ -8,12 +8,10 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
         }
 
-        /*
         public LeaderboardEntry GetLeaderboard(LeaderboardIdentity aLeaderboardIdentity)
         {
             throw new NotImplementedException ();
         }
-        */
 
         #region IDisposable implementation
 

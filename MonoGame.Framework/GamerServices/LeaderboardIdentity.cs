@@ -10,14 +10,14 @@ namespace Microsoft.Xna.Framework.GamerServices
         public int GameMode { get; set; }
 
         [DataMember]
-        public LeaderboardKey Key { get; set; }
+        public int Key { get; set; }
 
-        public static LeaderboardIdentity Create(LeaderboardKey aKey)
+        public static LeaderboardIdentity Create(int aKey)
         {
             return new LeaderboardIdentity() { Key = aKey};
         }
 
-        public static LeaderboardIdentity Create(LeaderboardKey aKey, int aGameMode)
+        public static LeaderboardIdentity Create(int aKey, int aGameMode)
         {
             return new LeaderboardIdentity() { Key = aKey, GameMode = aGameMode};
         }

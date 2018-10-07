@@ -47,9 +47,15 @@ namespace Microsoft.Xna.Framework.Net
 {
 	public enum NetworkSessionType
 	{
-		Local,    		// Does not involve any networking traffic, but can be used for split-screen gaming on a single Xbox 360 console. Creating a local network session may also make it easier to share code between local and online game modes. 
+		Local,          // Does not involve any networking traffic, but can be used for split-screen gaming on a single Xbox 360 console. Creating a local network session may also make it easier to share code between local and online game modes. 
 
-		SystemLink,	// Connect multiple Xbox 360 consoles or computers over a local subnet. These machines do not require a connection to Xbox LIVE or any LIVE accounts. However, connection to machines on different subnets is not allowed.
+        /// <summary>
+        /// Creates a local session with access to write to leaderboards on the Xbox LIVE servers. 
+        /// This local session type allows guests or other Xbox LIVE player profiles to join the session.
+        /// </summary>
+        LocalWithLeaderboards,
+
+        SystemLink,	// Connect multiple Xbox 360 consoles or computers over a local subnet. These machines do not require a connection to Xbox LIVE or any LIVE accounts. However, connection to machines on different subnets is not allowed.
 				// If you are a Creators Club developer testing your game, you can use this type to connect an Xbox 360 console to a computer. However, cross-platform networking is not supported in games distributed to non-–Creators Club community players.
 
 		PlayerMatch,	// Uses the Xbox LIVE servers. This enables connection to other machines over the Internet. It requires a LIVE Silver Membership for Windows-based games or a LIVE Gold membership for Xbox 360 games. Games in development will also require an XNA Creators Club premium membership. While in trial mode, Indie games downloaded from Xbox LIVE Markeplace will not have access to LIVE matchmaking.

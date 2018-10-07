@@ -48,8 +48,20 @@ namespace Microsoft.Xna.Framework.Net
 {
 	public sealed class AvailableNetworkSession
 	{
+        private readonly int _localGamersMask;
+        private readonly int _localGamerCount;
 
-		public AvailableNetworkSession ()
+        public int LocalGamersMask
+        {
+            get { return _localGamersMask; }
+        }
+
+        public int LocalGamerCount
+        {
+            get { return _localGamerCount; }
+        }
+
+        public AvailableNetworkSession ()
 		{
 			_QualityOfService = new QualityOfService();
 		}

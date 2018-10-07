@@ -9,7 +9,6 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
         }
 
-        /*
         public IAsyncResult BeginPageDown(AsyncCallback aAsyncCallback, object aAsyncState)
         {
             throw new NotImplementedException ();
@@ -49,7 +48,6 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             throw new NotImplementedException ();
         }
-        */
 
         public bool CanPageDown {
             get;
@@ -64,6 +62,14 @@ namespace Microsoft.Xna.Framework.GamerServices
         public IEnumerable<LeaderboardEntry> Entries {
             get;
             set;
+        }
+
+        public int TotalLeaderboardSize
+        {
+            get
+            {
+                return 0;
+            }
         }
 
         #region IDisposable implementation

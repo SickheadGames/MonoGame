@@ -656,26 +656,15 @@ namespace Microsoft.Xna.Framework.Net
 			return session;		
 		}
 		
-        /*
-		public static NetworkSession JoinInvited (IEnumerable<SignedInGamer> localGamers)
+		public static NetworkSession JoinInvited(IEnumerable<SignedInGamer> localGamers)
 		{
-			try {
-				throw new NotImplementedException ();
-			} finally {
-			}
+			throw new NotImplementedException ();
 		}
         
-		public static NetworkSession JoinInvited (int maxLocalGamers)
+		public static NetworkSession JoinInvited(int maxLocalGamers)
 		{
-			if (maxLocalGamers < 1 || maxLocalGamers > 4)
-				throw new ArgumentOutOfRangeException ( "maxLocalGamers must be between 1 and 4." );
-
-			try {
-				throw new NotImplementedException ();
-			} finally {
-			}
+			throw new NotImplementedException ();
 		}
-		*/
 
 		// I am not really sure how this is suppose to work so am just fleshing it in
 		//  for the way I think it should.  This will also send a message to all connected
