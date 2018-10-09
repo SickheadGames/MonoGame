@@ -243,10 +243,36 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 
             // A shortcut for copying the entire bitmap to another bitmap of the same type and format
             var fullRegion = new Rectangle(0, 0, Width, Height);
-            if ((format == destinationFormat) && (sourceRegion == fullRegion) && (sourceRegion == destinationRegion))
+            if ((sourceRegion == fullRegion) && (sourceRegion == destinationRegion))
             {
-                destinationBitmap.SetPixelData(GetPixelData());
-                return true;
+                if (format == destinationFormat)
+                {
+                    destinationBitmap.SetPixelData(GetPixelData());
+                    return true;
+                }
+                else
+                {
+                    byte[] decompressed;
+                    if (format == SurfaceFormat.Dxt3)
+                        decompressed = DxtUtil.DecompressDxt3(GetPixelData(), Width, Height);
+                    else if (format == SurfaceFormat.Dxt1)
+                        decompressed = DxtUtil.DecompressDxt1(GetPixelData(), Width, Height);
+                    else if (format == SurfaceFormat.Dxt5)
+                        decompressed = DxtUtil.DecompressDxt5(GetPixelData(), Width, Height);
+                    else
+                        return false;
+
+                    if (destinationFormat == SurfaceFormat.Color)
+                        destinationBitmap.SetPixelData(decompressed);
+                    else
+                    {
+                        var temp = new PixelBitmapContent<Color>(Width, Height);
+                        temp.SetPixelData(decompressed);
+                        BitmapContent.Copy(temp, destinationBitmap);
+                    }
+
+                    return true;
+                }
             }
 
             // No other support for copying from a DXT texture yet

@@ -38,14 +38,6 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
 
         public override TextureContent Process(TextureContent input, ContentProcessorContext context)
         {
-            SurfaceFormat format;
-            if (input.Faces[0][0].TryGetFormat(out format))
-            {
-                // If it is already a compressed format, we cannot do anything else so just return it
-                if (format.IsCompressedFormat())
-                    return input;
-            }
-
             if (ColorKeyEnabled || ResizeToPowerOfTwo || MakeSquare || PremultiplyAlpha || GenerateMipmaps)
             {
                 // Convert to floating point format for modifications. Keep the original format for conversion back later on if required.
