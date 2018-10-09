@@ -1168,29 +1168,7 @@ namespace Microsoft.Xna.Framework.Net
 			}
 		}
 	}
-
-	public class InviteAcceptedEventArgs : EventArgs
-	{
-		private SignedInGamer gamer;
-
-		public InviteAcceptedEventArgs (SignedInGamer aGamer)
-		{
-			gamer = aGamer;
-		}
-
-		public SignedInGamer Gamer { 
-			get {
-				return gamer;
-			}
-		}
-
-		public bool IsCurrentSession { 
-			get {
-				return false;
-			}
-		}
-	}
-
+    
 	public class NetworkSessionEndedEventArgs : EventArgs
 	{
 		NetworkSessionEndReason endReason;
