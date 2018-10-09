@@ -45,10 +45,12 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
 			var windowsfolder = Environment.GetFolderPath (Environment.SpecialFolder.Windows);
 		    var fontDirectory = Path.Combine(windowsfolder,"Fonts");
 			fontName = FindFontFileFromFontName (fontName, fontDirectory);
+            if (string.IsNullOrEmpty(fontName))
+                fontName = FindFontFileFromFontName(input.FontName.Replace(' ', '-'), fontDirectory);
 #elif LINUX
             fontName = FindFontFileFromFontName(fontName, input.Style.ToString());
 #endif
-			if (string.IsNullOrWhiteSpace(fontName)) {
+            if (string.IsNullOrWhiteSpace(fontName)) {
 				fontName = input.FontName;
 #endif
 				
