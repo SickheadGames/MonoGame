@@ -28,10 +28,17 @@ namespace Microsoft.Xna.Framework.Audio
 
             InitializeSound();
 
-            SourceId = controller.ReserveSource();
-            HasSourceId = true;
-
             _queuedBuffers = new Queue<OALSoundBuffer>();
+
+            try
+            {
+                SourceId = controller.ReserveSource();
+                HasSourceId = true;
+            }
+            catch (InstancePlayLimitException ex)
+            {
+                return;
+            }
         }
 
         private int PlatformGetPendingBufferCount()
