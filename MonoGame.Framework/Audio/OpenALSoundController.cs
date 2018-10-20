@@ -397,15 +397,16 @@ namespace Microsoft.Xna.Framework.Audio
             int sourceNumber;
 
             lock (availableSourcesCollection)
-            {                
-                if (availableSourcesCollection.Count == 0)
+            {
+                var count = availableSourcesCollection.Count;
+                if (count == 0)
                 {
                     throw new InstancePlayLimitException();
                 }
 
-                sourceNumber = availableSourcesCollection.Last();
+                sourceNumber = availableSourcesCollection[count - 1];
                 inUseSourcesCollection.Add(sourceNumber);
-                availableSourcesCollection.Remove(sourceNumber);
+                availableSourcesCollection.RemoveAt(count - 1);
             }
 
             return sourceNumber;
