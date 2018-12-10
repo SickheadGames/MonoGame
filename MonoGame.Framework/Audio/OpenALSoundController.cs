@@ -108,10 +108,7 @@ namespace Microsoft.Xna.Framework.Audio
         /// </summary>
 		private OpenALSoundController()
         {
-            if (!OpenSoundController())
-            {
-                throw new NoAudioHardwareException("OpenAL device could not be initialized, see console output for details.");
-            }
+            OpenSoundController();
 
             if (Alc.IsExtensionPresent(_device, "ALC_EXT_CAPTURE"))
                 Microphone.PopulateCaptureDevices();
@@ -142,7 +139,7 @@ namespace Microsoft.Xna.Framework.Audio
         /// the state of the controller is reset.
         /// </summary>
         /// <returns>True if the sound controller was setup, and false if not.</returns>
-        private bool OpenSoundController()
+        private void OpenSoundController()
         {
             try
             {
@@ -155,12 +152,14 @@ namespace Microsoft.Xna.Framework.Audio
             }
             catch (Exception ex)
             {
-                throw new NoAudioHardwareException("OpenAL device could not be initialized.", ex);
+                throw new NoAudioHardwareException("OpenAL device could not be opened.", ex);
             }
 
             AlcHelper.CheckError("Could not open OpenAL device");
 
-            if (_device != IntPtr.Zero)
+            if (_device == IntPtr.Zero)
+                throw new NoAudioHardwareException("OpenAL device open returned null");
+
             {
 #if ANDROID
                 // Attach activity event handlers so we can pause and resume all playing sounds
@@ -280,7 +279,9 @@ namespace Microsoft.Xna.Framework.Audio
 
                 AlcHelper.CheckError("Could not create OpenAL context");
 
-                if (_context != NullContext)
+                if (_context == NullContext)
+                    throw new NoAudioHardwareException("OpenAL create context returned null");
+
                 {
                     Alc.MakeContextCurrent(_context);
                     AlcHelper.CheckError("Could not make OpenAL context current");
@@ -288,10 +289,8 @@ namespace Microsoft.Xna.Framework.Audio
                     SupportsAdpcm = AL.IsExtensionPresent("AL_SOFT_MSADPCM");
                     SupportsEfx = AL.IsExtensionPresent("AL_EXT_EFX");
                     SupportsIeee = AL.IsExtensionPresent("AL_EXT_float32");
-                    return true;
                 }
             }
-            return false;
         }
 
 		public static OpenALSoundController GetInstance
