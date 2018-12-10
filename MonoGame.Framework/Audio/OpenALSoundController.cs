@@ -66,7 +66,7 @@ namespace Microsoft.Xna.Framework.Audio
 
     internal sealed class OpenALSoundController : IDisposable
     {
-        private static OpenALSoundController _instance = null;
+        private static Lazy<OpenALSoundController> _instance = new Lazy<OpenALSoundController>(() => new OpenALSoundController());
         private static EffectsExtension _efx = null;
         private IntPtr _device;
         private IntPtr _context;
@@ -298,9 +298,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
 			get
             {
-				if (_instance == null)
-					_instance = new OpenALSoundController();
-				return _instance;
+				return _instance.Value;
 			}
 		}
 
@@ -321,10 +319,10 @@ namespace Microsoft.Xna.Framework.Audio
 
         public static void DestroyInstance()
         {
-            if (_instance != null)
+            if (_instance.IsValueCreated)
             {
-                _instance.Dispose();
-                _instance = null;
+                _instance.Value.Dispose();
+                _instance = new Lazy<OpenALSoundController>();
             }
         }
 
