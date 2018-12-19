@@ -137,7 +137,57 @@ namespace Microsoft.Xna.Framework.Graphics
 
             _vertexArray = new VertexPositionColorTexture[4 * numBatchItems];
         }
-                
+
+        private SpriteBatchItem[] _leftArray;
+        private SpriteBatchItem[] _rightArray;
+
+        private void MergeSort(SpriteBatchItem[] input, int left, int right)
+        {
+            if (left >= right)
+                return;
+
+            var middle = (left + right) / 2;
+            MergeSort(input, left, middle);
+            MergeSort(input, middle + 1, right);
+
+            var leftCount = middle - left + 1;
+            if (_leftArray == null || _leftArray.Length < leftCount)
+                _leftArray = new SpriteBatchItem[leftCount];
+
+            var rightCount = right - middle;
+            if (_rightArray == null || _rightArray.Length < rightCount)
+                _rightArray = new SpriteBatchItem[rightCount];
+
+            Array.Copy(input, left, _leftArray, 0, leftCount);
+            Array.Copy(input, middle + 1, _rightArray, 0, rightCount);
+
+            var i = 0;
+            var j = 0;
+            for (var k = left; k < right + 1; k++)
+            {
+                if (i == leftCount)
+                {
+                    input[k] = _rightArray[j];
+                    j++;
+                }
+                else if (j == rightCount)
+                {
+                    input[k] = _leftArray[i];
+                    i++;
+                }
+                else if (_leftArray[i].SortKey > _rightArray[j].SortKey)
+                {
+                    input[k] = _rightArray[j];
+                    j++;
+                }
+                else
+                {
+                    input[k] = _leftArray[i];
+                    i++;
+                }
+            }
+        }
+
         /// <summary>
         /// Sorts the batch items and then groups batch drawing into maximal allowed batch sets that do not
         /// overflow the 16 bit array indices for vertices.
@@ -159,7 +209,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			case SpriteSortMode.Texture :                
 			case SpriteSortMode.FrontToBack :
 			case SpriteSortMode.BackToFront :
-                Array.Sort(_batchItemList, 0, _batchItemCount);
+                MergeSort(_batchItemList, 0, _batchItemCount-1);
 				break;
 			}
 

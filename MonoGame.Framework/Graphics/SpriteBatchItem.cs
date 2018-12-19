@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
-    internal class SpriteBatchItem : IComparable<SpriteBatchItem>
+    internal class SpriteBatchItem
 	{
 		public Texture2D Texture;
         public float SortKey;
@@ -88,17 +88,6 @@ namespace Microsoft.Xna.Framework.Graphics
             vertexBR.TextureCoordinate.X = texCoordBR.X;
             vertexBR.TextureCoordinate.Y = texCoordBR.Y;
         }
-
-        #region Implement IComparable
-        public int CompareTo(SpriteBatchItem other)
-        {
-            if (SortKey < other.SortKey)
-                return -1;
-            if (SortKey > other.SortKey)
-                return 1;
-            return 0;
-        }
-        #endregion
     }
 }
 
