@@ -295,6 +295,7 @@ namespace MonoGame.Tools.Pipeline
 
                 // Wrap content item lines with a begin comment line
                 // to make them more cohesive (for version control).                  
+                i.OriginalPath = i.OriginalPath.ToLowerInvariant();
                 line = string.Format("#begin {0}", i.OriginalPath);
                 io.WriteLine(line);
 

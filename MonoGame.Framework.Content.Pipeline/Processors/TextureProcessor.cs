@@ -58,6 +58,10 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
                 for (int f = 0; f < input.Faces.Count; ++f)
                 {
                     var face = input.Faces[f];
+
+                    var fwidth = 0;
+                    var fheight = 0;
+
                     for (int m = 0; m < face.Count; ++m)
                     {
                         var bmp = (PixelBitmapContent<Vector4>)face[m];
@@ -69,13 +73,28 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
 
                         if (ResizeToPowerOfTwo)
                         {
-                            if (!GraphicsUtil.IsPowerOfTwo(bmp.Width) || !GraphicsUtil.IsPowerOfTwo(bmp.Height) || (MakeSquare && bmp.Height != bmp.Width))
+                            //if (!GraphicsUtil.IsPowerOfTwo(bmp.Width) || !GraphicsUtil.IsPowerOfTwo(bmp.Height) || (MakeSquare && bmp.Height != bmp.Width))
+                            if (m == 0)
                             {
-                                var newWidth = GraphicsUtil.GetNextPowerOfTwo(bmp.Width);
-                                var newHeight = GraphicsUtil.GetNextPowerOfTwo(bmp.Height);
-                                if (MakeSquare)
-                                    newWidth = newHeight = Math.Max(newWidth, newHeight);
-                                var resized = new PixelBitmapContent<Vector4>(newWidth, newHeight);
+                                fwidth = bmp.Width;
+                                fheight = bmp.Height;
+                            }
+                            else
+                            {
+                                if (fwidth > 1)
+                                    fwidth /= 2;
+                                if (fheight > 1)
+                                    fheight /= 2;
+                            }
+
+                            fwidth = GraphicsUtil.GetNextPowerOfTwo(fwidth);
+                            fheight = GraphicsUtil.GetNextPowerOfTwo(fheight);
+                            if (MakeSquare)
+                                fwidth = fheight = Math.Max(fwidth, fheight);
+
+                            if (fwidth != bmp.Width || fheight != bmp.Height)
+                            {
+                                var resized = new PixelBitmapContent<Vector4>(fwidth, fheight);
                                 BitmapContent.Copy(bmp, resized);
                                 bmp = resized;
                             }

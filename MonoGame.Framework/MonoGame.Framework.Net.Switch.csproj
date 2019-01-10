@@ -23,7 +23,7 @@
     <OutputPath>bin\Switch\AnyCPU\Debug</OutputPath>
     <IntermediateOutputPath>obj\Switch\AnyCPU\Debug</IntermediateOutputPath>
     <DocumentationFile>bin\Switch\AnyCPU\Debug\MonoGame.Framework.Net.xml</DocumentationFile>
-    <DefineConstants>DEBUG;TRACE;SWITCH;NET</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;SWITCH;NET;NXButtons</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
