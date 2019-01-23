@@ -43,20 +43,25 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+#if SWITCH
+#else
+using Sce.PlayStation4;
+#endif
 
 #endregion Using clause
 
 namespace Microsoft.Xna.Framework.Net
 {
-	public sealed class AvailableNetworkSessionCollection : ReadOnlyCollection<AvailableNetworkSession>, IDisposable
-	{
-		public AvailableNetworkSessionCollection( IList<AvailableNetworkSession> list ) : base(list)
-		{
-		}
-		
-		public void Dispose()
-		{
-			
-		}
-	}
+    public sealed class AvailableNetworkSessionCollection : ReadOnlyCollection<AvailableNetworkSession>, IDisposable
+    {        
+        public AvailableNetworkSessionCollection(IList<AvailableNetworkSession> list)
+            : base(list)
+        {
+        }
+
+        public void Dispose()
+        {
+
+        }
+    }
 }

@@ -41,37 +41,31 @@ purpose and non-infringement.
 
 using System;
 using System.Runtime.Serialization;
+//using Sce.PlayStation4.Network;
 
 namespace Microsoft.Xna.Framework.GamerServices
 {
-#if WINRT || WINDOWS_PHONE
-    [DataContract]
-#else
-    [Serializable]
-#endif
     public class GamerPrivilegeException : Exception
 	{
 		
 	}
 	
     public class GamerPrivileges
-    {
-		#region Properties
+    {        
+        internal bool _authorized;
+
 		public GamerPrivilegeSetting AllowCommunication 
 		{ 
 			get
 			{
 				return GamerPrivilegeSetting.Everyone;
 			}
-		}
-		
-		public bool AllowOnlineSessions 
-		{ 
-			get
-			{
-				return true;
-			}
-		}
+		}        
+
+        public bool AllowOnlineSessions
+        {
+            get { return _authorized; }
+        }
 		
 		public GamerPrivilegeSetting AllowProfileViewing 
 		{ 
@@ -104,8 +98,5 @@ namespace Microsoft.Xna.Framework.GamerServices
 				return GamerPrivilegeSetting.Blocked;
 			} 
 		}
-		#endregion
-		
-        
     }
 }

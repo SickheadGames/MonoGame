@@ -38,24 +38,150 @@ purpose and non-infringement.
 */
 #endregion License
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Xna.Framework.GamerServices
 {
-	public class SignedInGamerCollection : List<SignedInGamer>
+	public class SignedInGamerCollection : IList<SignedInGamer>
 	{
-		#region Properties
-		// Indexer to get and set words of the containing document:
-		public SignedInGamer this [PlayerIndex index] { 
-			get {
-				if (this.Count == 0 || (int)index > this.Count - 1)
-					return null;
+	    private struct SignedInGamerEnumerator : IEnumerator<SignedInGamer>
+	    {
+	        private readonly SignedInGamer[] _array;
+	        private int _cur;
 
-				return this [(int)index];
-			}
+            public SignedInGamerEnumerator(SignedInGamer[] array)
+	        {
+	            _array = array;
+	            _cur = -1;
+	        }
+
+	        public void Dispose()
+	        {
+	        }
+
+	        public bool MoveNext()
+	        {
+                for (_cur = _cur + 1; _cur < _array.Length; _cur++)
+	            {
+                    if (_array[_cur] != null)
+	                    return true;
+	            }
+
+	            return false;
+	        }
+
+	        public void Reset()
+	        {
+                _cur = -1;
+	        }
+
+	        public SignedInGamer Current
+	        {
+	            get { return _array[_cur]; }
+	        }
+
+	        object IEnumerator.Current
+	        {
+	            get { return Current; }
+	        }
+	    }
+
+	    private readonly SignedInGamer[] _array;
+
+		public SignedInGamer this [PlayerIndex index] 
+        {
+		    get
+		    {
+		        return _array[(int)index];
+		    }
 		}
-		#endregion
-	}
 
+        public SignedInGamer this[int index]
+        {
+            get { return _array[index]; }
+            set { _array[index] = value; }
+        }
 
+	    public SignedInGamerCollection()
+	    {
+	        _array = new SignedInGamer[Gamer.MaxLocalGamers];
+	    }
+
+        #region IList
+
+        public IEnumerator<SignedInGamer> GetEnumerator()
+	    {
+	        return new SignedInGamerEnumerator(_array);
+	    }
+
+	    IEnumerator IEnumerable.GetEnumerator()
+	    {
+	        return GetEnumerator();
+	    }
+
+	    public void Add(SignedInGamer item)
+	    {
+	        _array[(int)item.PlayerIndex] = item;
+	    }
+
+	    public void Clear()
+	    {
+	        Array.Clear(_array, 0, _array.Length);
+	    }
+
+	    public bool Contains(SignedInGamer item)
+	    {
+	        return _array.Contains(item);
+	    }
+
+	    public void CopyTo(SignedInGamer[] array, int arrayIndex)
+	    {
+	        _array.CopyTo(array, arrayIndex);
+	    }
+
+	    public bool Remove(SignedInGamer item)
+	    {
+	        var i = IndexOf(item);
+	        if (i < 0)
+	            return false;
+
+	        _array[i] = null;
+	        return true;
+	    }
+
+	    public int Count
+	    {
+	        get { return this.Count(e => e != null); }
+	    }
+
+	    public bool IsReadOnly
+	    {
+	        get { return false; }
+	    }
+
+	    public int IndexOf(SignedInGamer item)
+	    {
+	        for (var i = 0; i < _array.Length; i++)
+	        {
+	            if (_array[i] == item)
+	                return i;
+	        }
+
+	        return -1;
+	    }
+
+        [Obsolete("Use indexer!", true)]
+	    public void Insert(int index, SignedInGamer item)
+	    {	        
+	    }
+
+	    public void RemoveAt(int index)
+	    {
+	        _array[index] = null;
+	    }	    
+
+        #endregion
+    }
 }

@@ -26,7 +26,12 @@ namespace Microsoft.Xna.Framework.Net
 		
 		public CommandEventType Command {
 			get { return CommandEventType.SessionStateChange; }
-		}		
+		}
+
+	    public void Dispose()
+	    {
+	        
+	    }
 	}
 }
 

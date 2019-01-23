@@ -60,6 +60,8 @@ namespace Microsoft.Xna.Framework.GamerServices
 		}
  
 		internal void AddGamer (T item) {
+            base.Items.Add(item);
+            /*
             // need to add gamers at the correct index based on GamerTag           
             if (base.Items.Count > 0)
             {
@@ -73,7 +75,7 @@ namespace Microsoft.Xna.Framework.GamerServices
                 }
             }
             base.Items.Add(item);            
-            
+            */
 		}
 		
 		internal void RemoveGamer (T item) {

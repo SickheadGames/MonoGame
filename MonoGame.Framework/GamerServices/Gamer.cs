@@ -39,116 +39,93 @@ purpose and non-infringement.
 #endregion License
 
 ﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Globalization;
+﻿using System.Runtime.Serialization;
 
 namespace Microsoft.Xna.Framework.GamerServices
 {
-    [DataContract]
-    public abstract class Gamer
+    public abstract class Gamer : IDisposable
     {
-        static SignedInGamerCollection _signedInGamers = new SignedInGamerCollection();
-        string _gamer = "MonoGame";
-        Object _tag;
-        bool disposed;
+        /// <summary>
+        /// Maximum number of gamers which can be simultaniously signed in on this platform.
+        /// </summary>
+        public const int MaxLocalGamers = 4;
 
-        LeaderboardWriter _leaderboardWriter;
-
-        #region Methods
-
-        /*
-        public IAsyncResult BeginGetProfile( AsyncCallback callback, Object asyncState )
-        {
-            throw new NotImplementedException();
-        }
-
-        public GamerProfile EndGetProfile(IAsyncResult result)
-        {
-            throw new NotImplementedException();
-        }
-
-        public GamerProfile GetProfile()
-        {
-            throw new NotImplementedException();
-        }
-        */
-
-        public override string ToString()
-        {
-            return _gamer;
-        }
-
-        internal void Dispose()
-        {
-            disposed = true;
-        }
-
-        #endregion
-        #region Properties
-        [DataMember]
-        public string DisplayName 
-        {
-            get;
-			internal set;
-        }
-
-        [DataMember]
-        public string Gamertag 
-        {
-            get
-            {
-                return _gamer;
-            }
-			
-			internal set
-			{
-				_gamer = value;
-			}
-        }
-
-        [DataMember]
-        public bool IsDisposed
-        {
-            get
-            {
-                return disposed;
-            }
-        }
-
-        public Object Tag 
-        {
-            get
-            {
-                return _tag;
-            }
-            set
-            {
-                if (_tag != value)
-                {
-                    _tag = value;
-                }
-            }
-        }
-
-        public static SignedInGamerCollection SignedInGamers
+        private static readonly SignedInGamerCollection _signedInGamers = new SignedInGamerCollection();
+        
+        public static SignedInGamerCollection SignedInGamers 
         {
             get
             {
                 return _signedInGamers;
             }
         }
+        
+        public string DisplayName { get; internal set; }
 
-        public LeaderboardWriter LeaderboardWriter 
-        { 
-            get
-            {
-                return _leaderboardWriter;
-            }
+        private string _gamerTag;
 
-            internal set 
+#if SWITCH
+        private MonoGame.Switch.UserId _userId;
+        private MonoGame.Switch.OnlineId _onlineId;
+        private MonoGame.Switch.StationId _stationId;
+#endif
+
+        public string Gamertag
+        {
+            get { return _gamerTag; }
+            internal set
             {
-                _leaderboardWriter = value;
+                _gamerTag = value;
+                //if (!int.TryParse(value, out _userId))
+                    //throw new Exception("Invalid Gamertag");
             }
         }
-        #endregion
+
+#if SWITCH
+        // only local users have this
+        public MonoGame.Switch.UserId UserId
+        {
+            get { return _userId; }
+            set
+            {
+                _userId = value;
+            }
+        }
+
+        // only users with linked online accounts have this
+        internal MonoGame.Switch.OnlineId OnlineId
+        {
+            get { return _onlineId; }
+            set
+            {
+                _onlineId = value;
+            }
+        }
+
+        public MonoGame.Switch.StationId StationId
+        {
+            get { return _stationId; }
+            set
+            {
+                _stationId = value;
+            }
+        }
+#endif
+
+        public Object Tag { get; set; }
+
+        public LeaderboardWriter LeaderboardWriter { get; internal set; }
+
+        public virtual void Dispose()
+        {
+            IsDisposed = true;
+        }
+
+        public bool IsDisposed { get; private set; }
+
+        internal Gamer()            
+        {                                    
+        }
     }
 }

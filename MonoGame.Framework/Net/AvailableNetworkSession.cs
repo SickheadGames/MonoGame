@@ -41,6 +41,10 @@
 #region Using clause
 using System;
 using System.Net;
+#if SWITCH
+#else
+using Sce.PlayStation4.Network.ToolkitNp;
+#endif
 
 #endregion Using clause
 
@@ -48,8 +52,8 @@ namespace Microsoft.Xna.Framework.Net
 {
 	public sealed class AvailableNetworkSession
 	{
-        private readonly int _localGamersMask;
-        private readonly int _localGamerCount;
+	    private readonly int _localGamersMask;
+	    private readonly int _localGamerCount;
 
         public int LocalGamersMask
         {
@@ -61,88 +65,93 @@ namespace Microsoft.Xna.Framework.Net
             get { return _localGamerCount; }
         }
 
-        public AvailableNetworkSession ()
-		{
-			_QualityOfService = new QualityOfService();
-		}
-		
-		int _currentGameCount;
-		public int CurrentGamerCount 
-		{ 
-			get
-			{
-				return _currentGameCount;
-			}
-			
-			internal set { _currentGameCount = value; }
-		}
-		
-		string _hostGamertag;
-		public string HostGamertag 
-		{ 
-			get
-			{
-				return _hostGamertag;
-			}
-			
-			internal set { _hostGamertag = value; }
-		}
-		
-		int _openPrivateGamerSlots;
-		public int OpenPrivateGamerSlots 
-		{ 
-			get
-			{
-				return _openPrivateGamerSlots;
-			}
-			
-			internal set { _openPrivateGamerSlots = value; }			
-		}
-		
-		int _openPublicGamerSlots; 
-		public int OpenPublicGamerSlots 
-		{ 
-			get
-			{
-				return _openPublicGamerSlots;
-			}
-			internal set { _openPublicGamerSlots = value; }			
-		}
-		
-		private QualityOfService _QualityOfService;
-		public QualityOfService QualityOfService 
-		{ 
-			get
-			{
-				return _QualityOfService;
-			}
-			internal set { _QualityOfService = value; }			
-		}
-		
-		NetworkSessionProperties _sessionProperties;
-		public NetworkSessionProperties SessionProperties 
-		{ 
-			get
-			{
-				return _sessionProperties;
-			}
-			internal set { _sessionProperties = value; }			
-		}
-		
-		IPEndPoint _endPoint;
-		internal IPEndPoint EndPoint 
-		{
-			get { return _endPoint; }
-			set { _endPoint = value;}
-		}
-        IPEndPoint _internalendPoint;
+#if SWITCH
 
-        internal IPEndPoint InternalEndpont
+        private readonly MonoGame.Switch.SessionInformation _info;
+
+        internal MonoGame.Switch.SessionInformation Info
         {
-            get { return _internalendPoint; }
-            set { _internalendPoint = value; }
+            get
+            {
+                return _info;
+            }
         }
 
-        internal NetworkSessionType SessionType { get; set; }
+        internal AvailableNetworkSession(MonoGame.Switch.SessionInformation info, int localGamersMask, int localGamerCount)
+        {
+            Console.WriteLine("LocalGamersMask : {0}", localGamersMask.ToString("X6"));
+            _info = info;
+
+            OpenPublicGamerSlots = _info.MaxMembers - _info.NumMembers;
+            HostGamertag = _info.ownerName;
+
+            // JCF: ???
+            OpenPrivateGamerSlots = 0;
+            InternalEndpont = new IPEndPoint(0, 0);
+            EndPoint = new IPEndPoint(0, 0);
+            QualityOfService = new QualityOfService();
+
+            SessionProperties = NetworkSessionProperties.Get(info);
+            SessionType = SessionProperties[NetworkSessionProperties.RankedSession] > 0 ? NetworkSessionType.Ranked : NetworkSessionType.PlayerMatch;
+
+            _localGamersMask = localGamersMask;
+
+            _localGamerCount = localGamerCount;
+        }
+
+#endif
+#if PLAYSTATION4
+
+	    private readonly SessionInformation _info;
+
+	    public SessionInformation Info
+	    {
+	        get
+	        {
+	            return _info;
+	        }
+	    }
+
+	    public AvailableNetworkSession(SessionInformation info, int localGamersMask, int localGamerCount)
+	    {
+            Console.WriteLine("LocalGamersMask : {0}", localGamersMask.ToString("X6"));
+	        _info = info;
+            
+	        OpenPublicGamerSlots = _info.MaxMembers - _info.NumMembers;
+	        HostGamertag = _info.HostId;
+	        
+            // JCF: ???
+            OpenPrivateGamerSlots = 0;                    
+            InternalEndpont = new IPEndPoint(0, 0);
+            EndPoint = new IPEndPoint(0, 0);            
+            QualityOfService = new QualityOfService();
+            
+	        SessionProperties = NetworkSessionProperties.Get(info);
+	        SessionType = SessionProperties[NetworkSessionProperties.RankedSession] > 0 ? NetworkSessionType.Ranked : NetworkSessionType.PlayerMatch;
+
+	        _localGamersMask = localGamersMask;
+
+	        _localGamerCount = localGamerCount;
+	    }
+
+#endif
+
+        public int CurrentGamerCount { get; internal set; }
+
+	    public string HostGamertag { get; internal set; }
+
+	    public int OpenPrivateGamerSlots { get; internal set; }
+
+	    public int OpenPublicGamerSlots { get; internal set; }
+
+	    public QualityOfService QualityOfService { get; internal set; }
+
+	    public NetworkSessionProperties SessionProperties { get; internal set; }
+
+	    public IPEndPoint EndPoint { get; set; }
+
+	    public IPEndPoint InternalEndpont { get; set; }
+
+	    internal NetworkSessionType SessionType { get; set; }
     }
 }

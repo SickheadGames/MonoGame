@@ -8,8 +8,10 @@ namespace Microsoft.Xna.Framework.Net
 		GamerLeft,
 		SessionStateChange,
 		SendData,
-		ReceiveData,
-		GamerStateChange,
+		ReceiveData,		
+        SendGamerState,
+        ReceiveGamerState,
+        HostChange,
 	}
 }
 

@@ -43,42 +43,41 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-
+using System.Net;
 using Microsoft.Xna.Framework.GamerServices;
 #endregion Using clause
 
 namespace Microsoft.Xna.Framework.Net
 {
-	// Represents a physical machine that is participating in a multiplayer session. 
-	// It can be used to detect when more than one NetworkGamer is playing on the same actual machine. 	
+
+	/// <summary>
+	/// Represents a physical machine that is participating in a multiplayer session. 
+	/// It can be used to detect when more than one NetworkGamer is playing on the same actual machine. 
+	/// </summary>
 	public sealed class NetworkMachine
 	{
-		private GamerCollection<NetworkGamer> gamers;
-		
-		#region Constructors
-		public NetworkMachine ()
-		{
-			gamers = new GamerCollection<NetworkGamer>();
+        private readonly GamerCollection<NetworkGamer> _gamers;
+
+        public MonoGame.Switch.StationId StationId;
+        //public string Address;
+	    //public ushort Port;
+
+	    public NetworkMachine()
+	    {
+            _gamers = new GamerCollection<NetworkGamer>();
 		}
-		#endregion
 		
-		#region Methods
-        /*
-		public void RemoveFromSession ()
-		{
-			throw new NotImplementedException();
-		}
-        */
-		#endregion
-		
-		#region Methods
 		public GamerCollection<NetworkGamer> Gamers 
 		{ 
 			get
 			{
-				return gamers;
+                return _gamers;
 			}
 		}
-		#endregion
+
+	    public override string ToString()
+	    {
+	        return string.Format("NetworkMachine[{0}]; StationId={1}", GetHashCode(), StationId);
+	    }
 	}
 }

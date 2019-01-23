@@ -42,52 +42,29 @@
 #region Using clause
 using System;
 using System.ComponentModel;
-
+using System.Net;
 using Microsoft.Xna.Framework.GamerServices;
 #endregion Using clause
 
 namespace Microsoft.Xna.Framework.Net
 {
-	public class NetworkGamer : Gamer, INotifyPropertyChanged
+	public class NetworkGamer : Gamer
 	{
+        protected readonly byte _internalId;
+	    protected readonly NetworkSession _session; 
+		internal GamerStates _gamerState;
+        private GamerStates _prevGamerState;
 		
-		private byte id;
-		NetworkSession session; 
-		//bool isHost;
-		//bool isLocal;
-		//bool hasVoice;
-		long remoteUniqueIdentifier = -1;
-		GamerStates gamerState;
-		GamerStates oldGamerState;
-		
-		// Declare the event
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		
-		public NetworkGamer ( NetworkSession session, byte id, GamerStates state)
+		internal NetworkGamer(NetworkSession session, byte interalId, GamerStates state)
 		{
-			this.id = id;
-			this.session = session;
-			this.gamerState = state;
-			// We will modify these HasFlags to inline code because MonoTouch does not support
-			// the HasFlag method.  Also after reading this : http://msdn.microsoft.com/en-us/library/system.enum.hasflag.aspx#2
-			// it just might be better to inline it anyway.
-			//this.isHost = (state & GamerStates.Host) != 0; // state.HasFlag(GamerStates.Host);
-			//this.isLocal = (state & GamerStates.Local) != 0; // state.HasFlag(GamerStates.Local);
-			//this.hasVoice = (state & GamerStates.HasVoice) != 0; //state.HasFlag(GamerStates.HasVoice);
-			
-			// *** NOTE TODO **
-			// This whole state stuff need to be looked at again.  Maybe we should not be using local
-			//  variables here and instead just use the flags within the gamerState.
-			
-			this.gamerState = state;
-			this.oldGamerState = state;
-		}
-		
-		internal long RemoteUniqueIdentifier
-		{
-			get { return remoteUniqueIdentifier; }
-			set { remoteUniqueIdentifier = value; }
+            _internalId = interalId;
+
+			_session = session;
+
+			_gamerState = state;
+
+            // A new networkgamer should transmit its state... or does it already in the join message?
+			_prevGamerState = state;
 		}
 		
 		public bool HasLeftSession 
@@ -102,15 +79,7 @@ namespace Microsoft.Xna.Framework.Net
 		{ 
 			get
 			{
-				return (gamerState & GamerStates.HasVoice) != 0;
-			}
-		}
-		
-		public byte Id 
-		{ 
-			get
-			{
-				return id;
+				return (_gamerState & GamerStates.HasVoice) != 0;
 			}
 		}
 		
@@ -118,7 +87,7 @@ namespace Microsoft.Xna.Framework.Net
 		{ 
 			get
 			{
-				return (gamerState & GamerStates.Guest) != 0;
+				return (_gamerState & GamerStates.Guest) != 0;
 			}
 		}
 		
@@ -126,7 +95,7 @@ namespace Microsoft.Xna.Framework.Net
 		{ 
 			get
 			{
-				return (gamerState & GamerStates.Host) != 0;
+				return (_gamerState & GamerStates.Host) != 0;
 			}
 		}
 		
@@ -134,7 +103,7 @@ namespace Microsoft.Xna.Framework.Net
 		{ 
 			get
 			{
-				return (gamerState & GamerStates.Local) != 0;
+				return (_gamerState & GamerStates.Local) != 0;
 			}
 		}
 		
@@ -158,18 +127,15 @@ namespace Microsoft.Xna.Framework.Net
 		{ 
 			get
 			{
-				return (gamerState & GamerStates.Ready) != 0;
+				return (_gamerState & GamerStates.Ready) != 0;
 			}
-			set
-			{
-				if (((gamerState & GamerStates.Ready) != 0) != value) {
-					if (value)
-						gamerState |= GamerStates.Ready;
-					else
-						gamerState &= ~GamerStates.Ready;
-					OnPropertyChanged("Ready");
-				}
-			}
+		    set
+		    {
+		        if (value)
+		            _gamerState |= GamerStates.Ready;
+		        else
+		            _gamerState &= ~GamerStates.Ready;
+		    }
 		}
 		
 		public bool IsTalking 
@@ -179,18 +145,26 @@ namespace Microsoft.Xna.Framework.Net
 				return false;
 			}
 		}
+
+        public byte Id
+        {
+            get
+            {
+                return _internalId;
+            }
+        }
 		
-		private NetworkMachine _Machine;
+		private NetworkMachine _machine;
 		public NetworkMachine Machine 
 		{ 
 			get
 			{
-				return _Machine;
+				return _machine;
 			}
 			set
 			{
-				if (_Machine != value )
-					_Machine = value;
+				if (_machine != value )
+					_machine = value;
 			}
 		}
 		
@@ -206,28 +180,49 @@ namespace Microsoft.Xna.Framework.Net
 		{ 
 			get
 			{
-				return session;
-			}
-		} 
-		
-		internal GamerStates State {
-			get { return gamerState; }
-			set { gamerState = value; }
-		}
-		
-		internal GamerStates OldState {
-			get { return oldGamerState; }
-		}		
-		
-		// Create the OnPropertyChanged method to raise the event
-		protected void OnPropertyChanged(string name)
-		{
-			PropertyChangedEventHandler handler = PropertyChanged;
-			if (handler != null)
-			{
-				handler(this, new PropertyChangedEventArgs(name));
+				return _session;
 			}
 		}
-		
+
+	    public GamerStates Status
+	    {
+	        get { return _gamerState; }
+	    }
+
+        /// <summary>
+        /// Sets the passed state but does not raise the dirty flag.        
+        /// </summary>        
+	    internal void Set(GamerStates newState)
+        {
+            _gamerState = newState;
+
+            // What if prevState was already different from the current state?
+            if (_gamerState == _prevGamerState)
+            {
+                _gamerState = newState;
+                _prevGamerState = newState;
+            }
+            else
+            {
+                _gamerState = newState;
+            }            
+        }
+
+        /// <summary>
+        /// Returns true if GamerStates has been modified since the last call to Update.
+        /// </summary>        
+        internal bool Update(out GamerStates newState, out GamerStates prevState)
+	    {
+            newState = _gamerState;
+            prevState = _prevGamerState;
+
+            if (newState != prevState)
+            {
+                _prevGamerState = _gamerState;
+                return true;
+            }
+
+            return false;
+	    }
 	}
 }

@@ -48,24 +48,37 @@ using Microsoft.Xna.Framework.GamerServices;
 
 namespace Microsoft.Xna.Framework.Net
 {
-	public sealed class LocalNetworkGamer : NetworkGamer
+	public sealed partial class LocalNetworkGamer : NetworkGamer
 	{
+	    private readonly SignedInGamer _signedInGamer;
 
-		private SignedInGamer sig;
-		internal Queue<CommandReceiveData> receivedData;
-		
-		public LocalNetworkGamer () : base(null, 0, 0)
-		{
-			sig = new SignedInGamer ();
-			receivedData = new Queue<CommandReceiveData>();
-		}
+		internal readonly Queue<CommandReceiveData> _receivedData;
 
-		public LocalNetworkGamer (NetworkSession session,byte id,GamerStates state)
-			: base(session, id, state | GamerStates.Local)
-		{
-			sig = new SignedInGamer ();
-			receivedData = new Queue<CommandReceiveData>();
-		}
+        public bool IsDataAvailable
+        {
+            get
+            {
+                lock (_receivedData)
+                {
+                    return _receivedData.Count > 0;
+                }
+            }
+        }
+
+        public SignedInGamer SignedInGamer
+        {
+            get
+            {
+                return _signedInGamer;
+            }
+        }
+
+        internal LocalNetworkGamer(NetworkSession session, SignedInGamer signedInGamer, byte internalId, GamerStates state)
+            : base(session, internalId, state)
+        {
+            _signedInGamer = signedInGamer;
+            _receivedData = new Queue<CommandReceiveData>();
+        }
 
         /*
 		public void EnableSendVoice (
@@ -82,30 +95,29 @@ namespace Microsoft.Xna.Framework.Net
 			out NetworkGamer sender)
 		{
 			if (data == null)
-				throw new ArgumentNullException("data");
+				throw new ArgumentNullException("data");            
 			
-			if (receivedData.Count <= 0) {
+			if (_receivedData.Count <= 0) {
 				sender = null;
 				return 0;
 			}
 			
-			lock (receivedData) {
+			lock (_receivedData) 
+            {								
+                var cmd = _receivedData.Peek();
 
-				CommandReceiveData crd;
-				
-				// we will peek at the value first to see if we can process it
-				crd = (CommandReceiveData)receivedData.Peek();
-				
-				if (offset + crd.data.Length > data.Length)
-					throw new ArgumentOutOfRangeException("data","The length + offset is greater than parameter can hold.");
-				
-				// no exception thrown yet so let's process it
-				// take it off the queue
-				receivedData.Dequeue();
-				
-				Array.Copy(crd.data, offset, data, 0, data.Length);
-				sender = crd.gamer;
-				return data.Length;			
+                if ((offset + data.Length) > cmd._length)
+					throw new ArgumentException("The specified array is too small to receive the incoming network packet.");
+								
+				_receivedData.Dequeue();
+
+                Array.Copy(cmd._data, cmd._offset, data, offset, cmd._length);
+
+                sender = _session.AllGamers.GetByStationId(cmd._sender);
+                if (sender == null)
+                    throw new Exception(string.Format("LocalNetworkGamer.ReceiveData(); found no gamer with id of specified sender '{0}'", cmd._sender));              
+
+                return cmd._length;
 			}
 			
 		}
@@ -117,62 +129,62 @@ namespace Microsoft.Xna.Framework.Net
 			return ReceiveData(data, 0, out sender);
 		}
 
-		public int ReceiveData (
-			PacketReader data,
-			out NetworkGamer sender)
+	    public int ReceiveData(
+	        PacketReader reader,
+	        out NetworkGamer sender)
+	    {
+	        lock (_receivedData)
+	        {
+	            if (_receivedData.Count <= 0)
+	            {
+	                sender = null;
+	                return 0;
+	            }
+
+	            // JCF: Isn't this going to create huge allocation churn every frame?
+	            reader.Reset(0);
+
+	            var cmd = _receivedData.Dequeue();
+
+                reader.Reset(cmd._data.Length);
+	            
+                //if (data.Length < cmd._length)
+	                //data.Reset(cmd._data.Length);
+
+                Array.Copy(cmd._data, cmd._offset, reader.Data, 0, cmd._length);
+
+                sender = _session.AllGamers.GetByStationId(cmd._sender);
+                if (sender == null)
+                    throw new Exception(string.Format("LocalNetworkGamer.ReceiveData(); found no gamer with id of specified sender '{0}'", cmd._sender));              
+
+	            return cmd._length;
+	        }
+	    }
+
+	    public void SendData (
+			byte[] data,
+			int offset,
+			int count,
+			SendDataOptions options)
 		{
-			lock (receivedData) {
-				if (receivedData.Count >= 0) {
-					data.Reset(0);
-
-					// take it off the queue
-					CommandReceiveData crd = (CommandReceiveData)receivedData.Dequeue();
-					
-					// lets make sure that we can handle the data
-					if (data.Length < crd.data.Length) {
-						data.Reset(crd.data.Length);
-					}
-
-					Array.Copy(crd.data, data.Data, data.Length);
-					sender = crd.gamer;
-					return data.Length;	
-					
-				}
-				else {
-					sender = null;
-					return 0;
-				}
-				
-			}
+		    Session.SendData(data, offset, count, options, null, this);
 		}
 
 		public void SendData (
 			byte[] data,
 			int offset,
 			int count,
-			SendDataOptions options)
-		{
-			CommandEvent cme = new CommandEvent(new CommandSendData(data, offset, count, options, null, this ));
-			Session.commandQueue.Enqueue(cme);
-		}
-
-		public void SendData (
-			byte[] data,
-			int offset,
-			int count,
 			SendDataOptions options,
 			NetworkGamer recipient)
 		{
-			CommandEvent cme = new CommandEvent(new CommandSendData(data, offset, count, options, recipient,this ));
-			Session.commandQueue.Enqueue(cme);
+            Session.SendData(data, offset, count, options, recipient, this);
 		}
 
 		public void SendData (
 			byte[] data,
 			SendDataOptions options)
 		{
-			CommandEvent cme = new CommandEvent(new CommandSendData(data, 0, data.Length, options, null, this ));
-			Session.commandQueue.Enqueue(cme);
+            SendData(data, 0, data.Length, SendDataOptions.None);
 		}
 
 		public void SendData (
@@ -180,45 +192,24 @@ namespace Microsoft.Xna.Framework.Net
 			SendDataOptions options,
 			NetworkGamer recipient)
 		{
-			CommandEvent cme = new CommandEvent(new CommandSendData(data, 0, data.Length, options, recipient, this ));
-			Session.commandQueue.Enqueue(cme);
+            SendData(data, 0, data.Length, options, recipient);
 		}
 
 		public void SendData (
-			PacketWriter data,
-			SendDataOptions options)
+            PacketWriter writer,
+            SendDataOptions options)
 		{
-			SendData(data.Data, 0, data.Length, options, null);
-			data.Reset();
+		    SendData(writer, options, null);
 		}
 
 		public void SendData (
-			PacketWriter data,
+            PacketWriter writer,
 			SendDataOptions options,
 			NetworkGamer recipient)
 		{
-			SendData(data.Data, 0, data.Length, options, recipient);
-			data.Reset();
-		}
-
-		public bool IsDataAvailable { 
-			get {
-				lock (receivedData) {
-					return receivedData.Count > 0;
-				}
-			}
-		}
-
-		public SignedInGamer SignedInGamer { 
-			get {
-				return sig;
-			}
-			
-			internal set {
-				sig = value;
-				DisplayName = sig.DisplayName;
-				Gamertag = sig.Gamertag;
-			}
-		}
+            writer.Flush();
+            SendData(writer.Data, 0, writer.Position, options, recipient);
+            writer.Reset();
+		}		
 	}
 }

@@ -1,67 +1,374 @@
-﻿#region License
-/*
-Microsoft Public License (Ms-PL)
-MonoGame - Copyright © 2009 The MonoGame Team
-
-All rights reserved.
-
-This license governs use of the accompanying software. If you use the software, you accept this license. If you do not
-accept the license, do not use the software.
-
-1. Definitions
-The terms "reproduce," "reproduction," "derivative works," and "distribution" have the same meaning here as under 
-U.S. copyright law.
-
-A "contribution" is the original software, or any additions or changes to the software.
-A "contributor" is any person that distributes its contribution under this license.
-"Licensed patents" are a contributor's patent claims that read directly on its contribution.
-
-2. Grant of Rights
-(A) Copyright Grant- Subject to the terms of this license, including the license conditions and limitations in section 3, 
-each contributor grants you a non-exclusive, worldwide, royalty-free copyright license to reproduce its contribution, prepare derivative works of its contribution, and distribute its contribution or any derivative works that you create.
-(B) Patent Grant- Subject to the terms of this license, including the license conditions and limitations in section 3, 
-each contributor grants you a non-exclusive, worldwide, royalty-free license under its licensed patents to make, have made, use, sell, offer for sale, import, and/or otherwise dispose of its contribution in the software or derivative works of the contribution in the software.
-
-3. Conditions and Limitations
-(A) No Trademark License- This license does not grant you rights to use any contributors' name, logo, or trademarks.
-(B) If you bring a patent claim against any contributor over patents that you claim are infringed by the software, 
-your patent license from such contributor to the software ends automatically.
-(C) If you distribute any portion of the software, you must retain all copyright, patent, trademark, and attribution 
-notices that are present in the software.
-(D) If you distribute any portion of the software in source code form, you may do so only under this license by including 
-a complete copy of this license with your distribution. If you distribute any portion of the software in compiled or object 
-code form, you may only do so under a license that complies with this license.
-(E) The software is licensed "as-is." You bear the risk of using it. The contributors give no express warranties, guarantees
-or conditions. You may have additional consumer rights under your local laws which this license cannot change. To the extent
-permitted under your local laws, the contributors exclude the implied warranties of merchantability, fitness for a particular
-purpose and non-infringement.
-*/
-#endregion License
-
+﻿
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Threading;
+using Microsoft.Xna.Framework.Net;
+#if SWITCH
+#else
+using Sce.PlayStation4.Network;
+using Sce.PlayStation4.Network.ToolkitNp;
+using Sce.PlayStation4.System;
+#endif
 
 namespace Microsoft.Xna.Framework.GamerServices
 {
-    public static class GamerServicesDispatcher
+    public static partial class GamerServicesDispatcher
     {
-        public static void Initialize ( IServiceProvider serviceProvider )
+        private static bool _networkOnline;
+        private static ThreadSafeQueue<IGamerServicesEvent> _events;
+        private static Stopwatch _stopwatch;
+
+
+        public static bool NetworkOnline
         {
-            //throw new NotImplementedException();   
+            get { return _networkOnline; }
+        }
+        
+        public static bool IsInitialized { get; private set; }
+
+        public static IntPtr WindowHandle { get; set; }  
+
+        public static unsafe void Initialize(IServiceProvider serviceProvider, sbyte defaultAge)
+        {
+            Console.WriteLine("GamerServicesDispatcher.Initialize()");
+            //Extensions.PrintCallstack();
+			
+            if (IsInitialized)
+                throw new Exception("GamerServicesDispatcher.Initialize(); Error: Already initialized");
+
+            _events = new ThreadSafeQueue<IGamerServicesEvent>();
+
+            //SystemService.OnEvent += OnSystemServiceEvent;
+
+            //UserService.OnLogin += UserService_OnLogin;
+            //UserService.OnLogout += UserService_OnLogout;
+            MonoGame.Switch.UserService.Initialize();
+
+            _networkOnline = MonoGame.Switch.Network.ConnectedToInternet();
+            Console.WriteLine("GamerServicesDispatcher.Initialize(); ConnectedToInternet={0}", _networkOnline);
+
+            //            NetCtlState netState;
+            //            int netRes = NetCtl.GetState(out netState);
+            //            if (netRes < 0)
+            //                throw new Exception("GamerServicesDispatcher.Initialize(); NetCtrl.GetState returned error : " + netRes);
+
+            //            Console.WriteLine("GamerServicesDispatcher.Initialize(); NetCtlState={0}", netState);
+            //            _networkOnline = netState == NetCtlState.StateIpObtained;
+
+            //            var tkres = ToolkitNpLibrary.Initialize();
+            //            if (tkres != ToolkitResult.Ok)
+            //                throw new Exception("GamerServicesDispatcher.Initialize(); ToolkitNpLibrary.Initialize returned error : " + tkres);
+
+            //            Console.WriteLine("GamerServicesDispatcher.Initialize(); ToolkitNpLibrary.Initialize returned {0}", tkres);
+
+            //            // ESRB rating : T (13+)
+            //            // PEGI rating : 7 (7+)
+            //            // Since we are not submitting different versions for different regions
+            //            // we use the least restrictive.
+            //            var npres = Np.SetContentRestriction(defaultAge);
+            //            /*
+            //#if SCEE
+            //            var npres = Np.SetContentRestriction(13);            
+            //#else
+            //            var npres = Np.SetContentRestriction(defaultAge);            
+            //#endif
+            //             * */
+            //            if(npres != NpResult.Ok)
+            //                throw new Exception("GamerServicesDispatcher.Initialize(); Np.SetContentRestriction returned error : " + npres);
+
+            //			Console.WriteLine("GamerServicesDispatcher.Initialize(); Np.SetContentRestriction returned {0}", npres);            
+
+            //            tkres = Matching.Initialize(NetworkSessionProperties.AttributeConfig);
+            //            if (tkres != ToolkitResult.Ok)
+            //                throw new Exception("GamerServicesDispatcher.Initialize(); Matching.Initialize returned error : " + tkres);  
+
+            //            Console.WriteLine("GamerServicesDispatcher.Initialize(); Matching.Initialize returned {0}", tkres);
+
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+
+            IsInitialized = true;
+
+            /*
+            npres = Np.RegisterPlusEventCallback(Np_PlusEventCallback);
+            if (npres != NpResult.Ok)
+            {
+                var msg = string.Format("GamerServicesDispatcher.Initialize(); Np.RegisterPlusEventCallback returned error : {0:x6}", npres);
+                Console.WriteLine(msg);
+                throw new Exception(msg);
+            }
+            */
+
+            /*
+            npres = Np.RegisterStateCallback(Np_StateCallback);
+            if (npres != NpResult.Ok)
+            {
+                var msg = string.Format("GamerServicesDispatcher.Initialize(); Np.RegisterStateCallback returned error : {0:x6}", npres);
+                Console.WriteLine(msg);
+                throw new Exception(msg);
+            }
+            */
+        }
+        /*
+        private static void Np_PlusEventCallback(int userid, NpPlusEventType eventtype)
+        {
+            Console.WriteLine("Np_PlusEventCallback(); userId={0}, eventtype={1}", userid, eventtype);
+        }
+        */
+
+        /*
+        private static unsafe void Np_StateCallback(int userid, NpState state, IntPtr npidhandle, byte* npidopt)
+        {
+            Console.WriteLine("Np_StateCallback(); userId={0}, state={1}", userid, state);        
+        }
+        */
+
+        //private static void OnSystemServiceEvent(SystemServiceEvent evt)
+        //{
+        //    Console.WriteLine("GamerServicesDispatcher.OnSystemServiceEvent(); evtType=" + evt.EventType);
+
+        //    if (evt.EventType == SystemServiceEventType.SessionInvitation)
+        //    {
+        //        var invitationEvent = evt.AsSessionInvitation();
+        //        var obj = new Tuple<string, string>(invitationEvent.RecipientOnlineId, invitationEvent.SessionId);
+        //        NetworkSession.HandleInvitationAccepted(obj);
+        //    }
+        //}
+
+        public static void Update()
+        {
+            var dt = (float)_stopwatch.Elapsed.TotalSeconds;
+            _stopwatch.Restart();
+            Update(dt);
         }
 
-        public static void Update ()
-        {            
+        internal static void Update(float elapsedSeconds)
+        {
+            MonoGame.Switch.UserService.Update(elapsedSeconds);
+            MonoGame.Switch.Network.Update(elapsedSeconds);
+
+            //SystemService.Update(true);
+
+            IGamerServicesEvent e;
+            while (_events.TryDequeue(out e))
+                e.Dispatch();
+
+            //FlushSwitchEvents();
+
+            // JCF: This is not technically correct for all games.
+            //      Really the flag for 'is using realtime multiplayer' should be
+            //      per gamer, because just because a gamer is signed in doesn't 
+            //      necessarily mean they are playing/participating in the current game/session.
+            //
+            //      Ideally such a flag could be set automatically when they
+            //      join/create a NetworkSession and unset when it is disposed.
+            /*
+            if (Guide.RealtimeMultiplayerInUse)
+            {
+                foreach (var g in SignedInGamer.SignedInGamers)
+                {                  
+                    Np.NotifyPlusFeature(g.UserId, NpPlusFeature.RealtimeMultiplay);
+                }
+            }
+            */
+
+#if PLAYSTATION4
+            var ret = Np.CheckCallback();
+            if (ret != NpResult.Ok)
+            {
+                var msg = string.Format("GamerServicesDispatcher.Update(); Np.CheckCallback returned error : {0:x6}", ret);
+                Console.WriteLine(msg);
+
+                throw new Exception(msg);
+            }
+#endif
         }
 
-        public static bool IsInitialized { get { return false;  } }
+        private static void FlushPlatformEvents()
+        {
+#if PLAYSTATION4
+            var e = new ToolkitUserEvent();
+            while (ToolkitNpLibrary.TryGetEvent(ref e))
+            {
+                Console.WriteLine("GamerServicesDispatcher.FlushToolkitEvents(); userId={0}, onlineId={1}, state={2}, eventType={3}", e.UserId.NullOrToString(), e.OnlineId.NullOrToString(), e.UserState, e.Type);                                
 
-        public static IntPtr WindowHandle { get; set; }
+                switch (e.Type)
+                {
+                    case ToolkitUserEventType.LoggedIntoPsn:
+                    {
+                        var gamer = SignedInGamer.SignedInGamers.GetByUserId(e.UserId);
+                        if (gamer == null)
+                        {
+                            throw new Exception(
+                                string.Format("GamerServicesDispatcher.FlushToolkitEvents(); error : no SignedInGamer with id={0} was found.",
+                                    e.UserId));
+                        }
+                        gamer._isSignedIntoPSN = true;
 
-        public static event EventHandler<EventArgs> InstallingTitleUpdate;
+                        string onlineId;
+                        if (Np.GetOnlineId(gamer.UserId, out onlineId) == NpResult.Ok)
+                            gamer.Gamertag = onlineId;
 
-		private static bool SuppressEventHandlerWarningsUntilEventsAreProperlyImplemented()
-		{
-			return InstallingTitleUpdate != null;
-		}
+                        break;
+                    }                        
+                    case ToolkitUserEventType.LoggedOutOfPsn:
+                    {
+                        var gamer = SignedInGamer.SignedInGamers.GetByUserId(e.UserId);
+                        if (gamer == null)
+                        {
+                            throw new Exception(
+                                string.Format("GamerServicesDispatcher.FlushToolkitEvents(); error : no SignedInGamer with id={0} was found.",
+                                    e.UserId));
+                        }
+                        gamer._isSignedIntoPSN = false;
+                        break;
+                    }
+                    case ToolkitUserEventType.NetworkDown:
+                    {
+                        _networkOnline = false;
+                        break;
+                    }
+                    case ToolkitUserEventType.NetworkUp:
+                    {
+                        _networkOnline = true;
+
+                        foreach (var g in SignedInGamer.SignedInGamers)
+                        {
+                            string onlineId;
+                            if (Np.GetOnlineId(g.UserId, out onlineId) == NpResult.Ok)
+                                g.Gamertag = onlineId;
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+#endif
+        }
+
+        //internal static void Network_OnSessionEvent(MonoGame.Switch.StationId stationId, MonoGame.Switch.NetEventKind kind, int resultCode)
+        //{
+        //    var session = NetworkSession.GetCurrentSession();
+        //    if (session != null)
+        //    {
+        //        MonoGame.Switch.Network.PushEvent(stationId, kind, resultCode);// session._commandQueue.Enqueue()
+        //    }
+        //}
+
+        // Called by native code when a local user account connects to online services
+        internal static void Network_OnServiceConnection(MonoGame.Switch.UserHandle userHandle)
+        {
+            Console.WriteLine("Network_OnServiceConnection");
+
+            var gamer = SignedInGamer.SignedInGamers.GetByUserId(userHandle.id);
+            if (gamer == null)
+            {
+                throw new Exception(
+                    string.Format("GamerServicesDispatcher.Network_OnServiceConnection(); error : no SignedInGamer with id={0} was found.",
+                        userHandle.id));
+            }
+            gamer._isSignedIntoPSN = true;
+
+            MonoGame.Switch.OnlineId onlineId = MonoGame.Switch.UserService.GetLocalUserOnlineId(userHandle);
+            gamer.OnlineId = onlineId;
+
+            // jcf: all local users have the same stationid.
+            //var stationId = MonoGame.Switch.Network.GetLocalStationId();
+            gamer.StationId = MonoGame.Switch.StationId.Invalid;
+
+            // since gamertag has to be unique, and the switch 'nickname' doesn't, we append the onlineid to the end of it
+            string nickname = MonoGame.Switch.UserService.GetLocalUserNickname(userHandle);
+            gamer.Gamertag = string.Format("{0}+0x{1:X}", nickname, onlineId.id);
+        }
+
+        // Called by native code when a local user account disconnects from online services
+        internal static void Network_OnServiceDisconnection(MonoGame.Switch.UserHandle userHandle)
+        {
+            Console.WriteLine("Network_OnServiceDisconnection");
+
+            var gamer = SignedInGamer.SignedInGamers.GetByUserId(userHandle.id);
+            if (gamer == null)
+            {
+                throw new Exception(
+                    string.Format("GamerServicesDispatcher.Network_OnServiceDisconnection(); error : no SignedInGamer with id={0} was found.",
+                        userHandle.id));
+            }
+            gamer._isSignedIntoPSN = false;
+            gamer.StationId = MonoGame.Switch.StationId.Invalid;
+            gamer.OnlineId = MonoGame.Switch.OnlineId.Invalid;
+            gamer.Gamertag = gamer.DisplayName;
+        }
+
+        // Called by native code when a local user account is closed
+        internal static void UserService_OnClosed(MonoGame.Switch.UserHandle userHandle, int playerIndex)
+        {
+            Console.WriteLine("UserService_OnClosed( userId={0}, playerIndex={1} )", userHandle, playerIndex);
+
+            var gamer = Gamer.SignedInGamers.GetByUserId(userHandle.id);
+            if (gamer == null)
+                throw new Exception();
+
+            var e = new GamerSignOutEvent()
+            {
+                Sender = null,
+                Args = new SignedOutEventArgs(gamer),
+            };
+            _events.Enqueue(e);
+        }
+
+        // Called by native code when a local user account is opened
+        internal static void UserService_OnOpened(MonoGame.Switch.UserHandle userHandle, int playerIndex)
+        {
+            Console.WriteLine("UserService_OnOpened( userId={0}, playerIndex={1} )", userHandle, playerIndex);
+
+            var name = MonoGame.Switch.UserService.GetLocalUserNickname(userHandle);
+            var onlineId = MonoGame.Switch.UserService.GetLocalUserOnlineId(userHandle);
+
+            // jcf: all local users have the same stationid.
+            //      note that this will actually be StationId.Invalid until the service is actually started
+            var stationId = MonoGame.Switch.StationId.Invalid;// MonoGame.Switch.Network.GetLocalStationId();
+
+            var isGuest = false;
+            
+            var privileges = new GamerPrivileges();
+            privileges._authorized = false;
+
+            if (_networkOnline)
+            {
+                /*
+                var ret = Np.CheckNpAvailability(onlineId);
+                Console.WriteLine("Np.CheckNpAvailability() returned : " + ret);
+                if (ret == NpResult.Ok)
+                {
+                    privileges._hasPlus = true;
+                    privileges._oldEnough = true;
+                }
+                */
+            }
+
+            var gamer = new SignedInGamer
+            {
+                UserId = userHandle.id,
+                OnlineId = onlineId,
+                StationId = stationId,
+                Gamertag = name,
+                DisplayName = name,
+                Privileges = privileges,
+                IsGuest = isGuest,                            
+            };
+
+            //gamer.InstallAchievements();
+
+            Console.WriteLine("UserService_OnOpened(); onlineId={0}, userName:{1}", onlineId.NullOrToString(), name.NullOrToString());
+
+            var item = new GamerSignInEvent()
+            {
+                Sender = null,
+                Args = new SignedInEventArgs(gamer),
+            };
+            _events.Enqueue(item);
+        }
     }
 }

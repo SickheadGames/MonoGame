@@ -355,6 +355,12 @@
     <Compile Include="IPlatformBackButton.cs">
       <Platforms>tvOS</Platforms>
     </Compile>
+    
+    <!-- jcf: added from skulls version of monogame.ps4 -->
+    <Compile Include="ThreadSafeQueue.cs" />
+    <Compile Include="Storage\StorageContainer.cs" />
+    <Compile Include="Storage\StorageDevice.cs" />
+    <Compile Include="Storage\StorageDeviceHelper.cs" />
 
     <!-- Microsoft.Xna.Framework.Audio -->
     <Compile Include="Audio\AudioChannels.cs" />

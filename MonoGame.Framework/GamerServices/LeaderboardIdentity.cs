@@ -2,24 +2,24 @@ using System;
 using System.Runtime.Serialization;
 
 namespace Microsoft.Xna.Framework.GamerServices
-{
-    [DataContract]
+{    
     public struct LeaderboardIdentity
     {
-        [DataMember]
-        public int GameMode { get; set; }
-
-        [DataMember]
-        public int Key { get; set; }
-
-        public static LeaderboardIdentity Create(int aKey)
+        private readonly int _key;
+        
+        public int Key
         {
-            return new LeaderboardIdentity() { Key = aKey};
+            get { return _key; }          
         }
 
-        public static LeaderboardIdentity Create(int aKey, int aGameMode)
+        private LeaderboardIdentity(int key)
         {
-            return new LeaderboardIdentity() { Key = aKey, GameMode = aGameMode};
+            _key = key;
+        }
+
+        public static LeaderboardIdentity Create(int key)
+        {
+            return new LeaderboardIdentity(key);
         }
     }
 }

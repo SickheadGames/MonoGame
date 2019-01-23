@@ -2,37 +2,79 @@ using System;
 
 namespace Microsoft.Xna.Framework.Net
 {
-	internal class CommandGamerStateChange : ICommand
-	{
-		
-		GamerStates newState;
-		GamerStates oldState;
-		NetworkGamer gamer;
-		
-		public CommandGamerStateChange (NetworkGamer gamer)
+    internal class CommandSendGamerState : ICommand
+    {
+        private readonly LocalNetworkGamer _gamer;
+		private readonly GamerStates _newState;
+        private readonly GamerStates _prevState;
+
+        public CommandSendGamerState(LocalNetworkGamer gamer, GamerStates newState, GamerStates prevState)
 		{
-			this.gamer = gamer;
-			this.newState = gamer.State;
-			this.oldState = gamer.OldState;
+			_gamer = gamer;
+            _newState = newState;
+            _prevState = prevState;
 		}
 		
-		public NetworkGamer Gamer 
+		public LocalNetworkGamer Gamer 
 		{
-			get { return gamer; }
+			get { return _gamer; }
 		}
 		public GamerStates NewState
 		{
-			get { return newState; }
+			get { return _newState; }
 		}
 		
-		public GamerStates OldState
+		public GamerStates PrevState
 		{
-			get { return oldState; }
+			get { return _prevState; }
 		}
 		
 		public CommandEventType Command {
-			get { return CommandEventType.GamerStateChange; }
-		}		
-	}
+			get { return CommandEventType.SendGamerState; }
+		}
+
+	    public void Dispose()
+	    {
+	        
+	    }
+    }
+
+    internal class CommandReceiveGamerState : ICommand
+    {
+        private readonly NetworkGamer _gamer;
+        private readonly GamerStates _newState;
+        private readonly GamerStates _prevState;
+
+        public CommandReceiveGamerState(NetworkGamer gamer, GamerStates newState, GamerStates prevState)
+        {
+            _gamer = gamer;
+            _newState = newState;
+            _prevState = prevState;
+        }
+
+        public NetworkGamer Gamer
+        {
+            get { return _gamer; }
+        }
+        public GamerStates NewState
+        {
+            get { return _newState; }
+        }
+
+        public GamerStates PrevState
+        {
+            get { return _prevState; }
+        }
+
+        public CommandEventType Command
+        {
+            get { return CommandEventType.ReceiveGamerState; }
+        }
+
+        public void Dispose()
+        {
+
+        }
+    }
 }
 

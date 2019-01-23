@@ -3,32 +3,34 @@ using System;
 namespace Microsoft.Xna.Framework.Net
 {
 	internal class CommandSendData : ICommand
-	{
-		internal int gamerInternalIndex = -1;
-		internal byte[] data;
-		internal SendDataOptions options;
-		internal int offset;
-		internal int count;
-		internal NetworkGamer gamer;
-		internal LocalNetworkGamer sender;
-		
-		public CommandSendData (byte[] data, int offset, int count, SendDataOptions options, NetworkGamer gamer, LocalNetworkGamer sender)
-		{
-			if (gamer != null)
-				gamerInternalIndex = gamer.Id;
-			this.data = new byte[count];
-			Array.Copy(data, offset, this.data, 0, count);
-			this.offset = offset;
-			this.count = count;
-			this.options = options;
-			this.gamer = gamer;
-			this.sender = sender;
-				
+	{		
+		internal readonly byte[] _data;
+        internal readonly SendDataOptions _options;
+        internal readonly int _offset;
+        internal readonly int _length;
+        internal readonly NetworkGamer _recipient;
+        internal readonly LocalNetworkGamer _sender;
+
+        public CommandEventType Command
+        {
+            get { return CommandEventType.SendData; }
+        }
+
+	    public CommandSendData(byte[] data, int offset, int length, SendDataOptions options, NetworkGamer recipient, LocalNetworkGamer sender)
+	    {
+	        _data = NetworkSession.GetBuffer(length);
+            Array.Copy(data, offset, _data, 0, length);
+			
+		    _offset = 0;
+		    _length = length;
+            _options = options;
+            _recipient = recipient;
+            _sender = sender;				
 		}
-		
-		public CommandEventType Command {
-			get { return CommandEventType.SendData; }
-		}
+
+	    public void Dispose()
+	    {
+	    }
 	}
 }
 

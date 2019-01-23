@@ -41,60 +41,152 @@
 #region Using clause
 using System;
 using System.Collections.Generic;
-
+using System.Text;
 using Microsoft.Xna.Framework.GamerServices;
+#if SWITCH
+#else
+using Sce.PlayStation4.Network.ToolkitNp;
+#endif
 
 #endregion Using clause
 
 namespace Microsoft.Xna.Framework.Net
 {
-	public class NetworkSessionProperties : List<Nullable<int>>
-	{
+    /// <summary>
+    /// NetworkSessionProperies can contain up to eight interger values.
+    /// </summary>
+	public class NetworkSessionProperties : List<int?>
+    {
+        public const int RankedSession = 7;
+        public const int MaxProperties = 8;
 
-		// The NetworkSessionProperies can contain up to eight interger values
-		//  from all the documentation I can find as well as tests that have been done
-		//  to confirm this.
-		public NetworkSessionProperties () : base(8)
+        public NetworkSessionProperties()
+            : base(MaxProperties)
 		{
-			this.Add (null);
-			this.Add (null);
-			this.Add (null);
-			this.Add (null);
-			this.Add (null);
-			this.Add (null);
-			this.Add (null);
-			this.Add (null);
-
-		}
-		
-		public static void WriteProperties (NetworkSessionProperties properties, int[] propertyData) 
-		{
-			
-			for (int x = 0; x < 8; x++) {
-				if ((properties != null) && properties[x].HasValue) {
-					// flag it as having a value
-					propertyData[x*2] = 1;
-					propertyData[x*2+1] = properties[x].Value;
-					
-				}
-				else {
-					// flag it as not having a value
-					propertyData[x*2] = 0;
-					propertyData[x*2+1] = 0;
-					
-				}
-			}
-		}
-		
-		public static void ReadProperties (NetworkSessionProperties properties, int[] propertyData) 
-		{
-			for (int x = 0; x < 8; x++) {
-				// set it to null to start
-				properties[x] = null;
-				// and only if the flag is turned on do we have a value.
-				if (propertyData[x*2] > 0)
-					properties[x] = propertyData[x*2+1];
-			}
+            for (var i = 0; i < MaxProperties; i++)
+			    Add (null);			
 		}		
-	}
+
+         private static readonly string[] AttributeNames = new string[MaxProperties]
+        {
+            "Attribute1",
+            "Attribute2",
+            "Attribute3",
+            "Attribute4",
+            "Attribute5",
+            "Attribute6",
+            "Attribute7",
+            "RankedSession",            
+        };
+
+#if SWITCH
+
+        internal static NetworkSessionProperties Get(MonoGame.Switch.SessionInformation sessionInfo)
+        {
+            var properties = new NetworkSessionProperties();
+            for (var i = 0; i < MaxProperties; i++)
+            {
+                bool exists;
+                var val = sessionInfo.GetIntAttribute(AttributeNames[i], out exists);
+                if (!exists)
+                {
+                    Console.WriteLine("Attributes[ {0} ] = null", AttributeNames[i]);
+                }
+                else
+                {
+                    Console.WriteLine("Attributes[ {0} ] = {1}", AttributeNames[i], val);
+
+                    properties[i] = (int)val;
+                }
+            }
+
+            return properties;
+        }
+
+#else
+        public static AttributeConfig AttributeConfig
+        {
+            get
+            {
+                var config = new AttributeConfig();
+
+                // Needed for internal use, is not searchable.
+                config.AddInternalInt("dummy");
+                
+                for (var i = 0; i < MaxProperties; i++)
+                {
+                    config.AddSearchableInt(AttributeNames[i]);
+                }
+
+                return config;
+            }
+        }
+
+        internal void Set(CreateSessionRequest req)
+        {
+            for (var i = 0; i < MaxProperties; i++)
+            {
+                if (this[i] != null)
+                    req.SetAttribute(AttributeNames[i], (uint)(this[i].Value));
+            }
+        }
+
+        internal void Set(SearchSessionsRequest req)
+        {
+            for (var i = 0; i < MaxProperties; i++)
+            {
+                if (this[i] != null)
+                    req.SetAttribute(AttributeNames[i], (uint)this[i].Value, SearchOperator.Equal);
+            }
+        }
+
+        internal static NetworkSessionProperties Get(SessionInformation sessionInfo)
+        {
+            var properties = new NetworkSessionProperties();
+            for (var i = 0; i < MaxProperties; i++)
+            {
+                bool exists;
+                var val = sessionInfo.GetIntAttribute(AttributeNames[i], out exists);
+                if (!exists)
+                {
+                    Console.WriteLine("Attributes[ {0} ] = null", AttributeNames[i]);
+                }
+                else
+                {
+                    Console.WriteLine("Attributes[ {0} ] = {1}", AttributeNames[i], val);
+
+                    properties[i] = (int)val;
+                }                
+            }
+
+            return properties;
+        }
+#endif
+
+        public bool Equals(NetworkSessionProperties other)
+        {
+            for (var i = 0; i < MaxProperties; i++)
+            {
+                var a = this[i];
+                var b = other[i];
+                if (!a.Equals(b))
+                    return false;                
+            }
+
+            return true;
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            for (var i = 0; i < MaxProperties; i++)
+            {
+                var item = this[i];
+                sb.AppendFormat("Property[{0}]; {1} : {2}\n", i, AttributeNames[i], (item.HasValue ? item.Value.ToString() : "[null]"));
+            }
+
+            return sb.ToString();
+        }
+    }
 }

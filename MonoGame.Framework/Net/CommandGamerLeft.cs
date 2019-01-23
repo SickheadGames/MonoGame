@@ -4,29 +4,26 @@ namespace Microsoft.Xna.Framework.Net
 {
 	internal class CommandGamerLeft : ICommand
 	{
-		int gamerInternalIndex = -1;
-		internal long remoteUniqueIdentifier = -1;
-		
-		public CommandGamerLeft (int internalIndex)
+	    private readonly MonoGame.Switch.StationId _stationId;
+
+        public CommandGamerLeft(MonoGame.Switch.StationId stationId)
 		{
-			gamerInternalIndex = internalIndex;
-			
-		}
-		
-		public CommandGamerLeft (long uniqueIndentifier)
-		{
-			this.remoteUniqueIdentifier = uniqueIndentifier;
-			
+            _stationId = stationId;			
 		}		
 		
-		public int InternalIndex
-		{
-			get { return gamerInternalIndex; }
+		public MonoGame.Switch.StationId StationId
+        {
+            get { return _stationId; }
 		}
 		
 		public CommandEventType Command {
 			get { return CommandEventType.GamerLeft; }
 		}
+
+	    public void Dispose()
+	    {
+	        
+	    }
 	}
 }
 
