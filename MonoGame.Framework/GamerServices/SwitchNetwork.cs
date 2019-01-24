@@ -230,8 +230,10 @@ namespace MonoGame.Switch
             return !Equals(a, b);
         }
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern bool Equals(OnlineId a, OnlineId b);
+        public static bool Equals(OnlineId a, OnlineId b)
+        {
+            return a.id == b.id;
+        }
     }
 
     public static class UserService

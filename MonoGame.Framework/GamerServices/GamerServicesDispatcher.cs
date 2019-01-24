@@ -274,8 +274,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             MonoGame.Switch.OnlineId onlineId = MonoGame.Switch.UserService.GetLocalUserOnlineId(userHandle);
             gamer.OnlineId = onlineId;
 
-            // jcf: all local users have the same stationid.
-            //var stationId = MonoGame.Switch.Network.GetLocalStationId();
+            // jcf: actually, the station id doesn't exist yet, that happens when a game is hosted/joined
             gamer.StationId = MonoGame.Switch.StationId.Invalid;
 
             // since gamertag has to be unique, and the switch 'nickname' doesn't, we append the onlineid to the end of it

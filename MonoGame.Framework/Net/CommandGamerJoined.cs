@@ -6,11 +6,11 @@ namespace Microsoft.Xna.Framework.Net
 	{
 		GamerStates _states;
         MonoGame.Switch.StationId _stationId = MonoGame.Switch.StationId.Invalid;
-        byte _internalId;
+        NetworkSessionParticipantId _internalId;
         string _gamerTag = string.Empty;
 		string _displayName = string.Empty;
 
-        public CommandGamerJoined (MonoGame.Switch.StationId stationId, byte internalId, string displayName, string gamerTag, bool isHost, bool isLocal)
+        public CommandGamerJoined (MonoGame.Switch.StationId stationId, NetworkSessionParticipantId internalId, string displayName, string gamerTag, bool isHost, bool isLocal)
 		{
             _stationId = stationId;
             _internalId = internalId;
@@ -53,7 +53,7 @@ namespace Microsoft.Xna.Framework.Net
             }
         }
 
-        public byte InternalId
+        public NetworkSessionParticipantId InternalId
         {
             get
             {

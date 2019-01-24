@@ -16,7 +16,7 @@ using Sce.PlayStation4.System;
 
 namespace Microsoft.Xna.Framework.Net
 {
-    internal static class HelperExtensions
+    internal static partial class HelperExtensions
     {
 
         public static IAsyncResult AsApm<T>(this Task<T> task,
@@ -1469,8 +1469,10 @@ namespace Microsoft.Xna.Framework.Net
                                     var hostStationId = MonoGame.Switch.Network.GetHostStationId();
                                     var localStationId = MonoGame.Switch.Network.GetLocalStationId();
 
-                                    var ishost = stationId == hostStationId;
-                                    var islocal = stationId == localStationId;
+                                    var isNewPlayerHost = stationId == hostStationId;
+                                    var isNewPlayerLocal = stationId == localStationId;
+
+                                    var isLocalPlayerHost = hostStationId == localStationId;
 
                                     //var member = _matchingSession.GetMemberByOnlineId(onlineId);
 
@@ -1489,18 +1491,23 @@ namespace Microsoft.Xna.Framework.Net
 
                                     string displayName = MonoGame.Switch.Network.GetPlayerName(stationId);
                                     string gamertag = string.Format("{0}+0x{1:X}", displayName, stationId);
-                                    byte internalId = 0;
 
-                                    // jcf: todo - internalId has to be unique for each player in the game, and be deterministic - this is currently just hard coded to work with two players
-                                    if (!ishost)
-                                        internalId = 1;
+                                    //byte internalId = 0;
+                                    //// jcf: todo - internalId has to be unique for each player in the game, and be deterministic - this is currently just hard coded to work with two players
+                                    //if (!isNewPlayerHost)
+                                    //    internalId = 1;
 
-                                    var cmd = new CommandGamerJoined(stationId, internalId, displayName, gamertag, ishost, islocal);
+                                    // since we have only one participant per station, the participant id IS the station id, for us
+                                    // (otherwise, we'd have to actually iterate all participants at this station, and add a gamer-joined event for all of them)
+                                    NetworkSessionParticipantId internalId = new NetworkSessionParticipantId(stationId.id);
+
+                                    var cmd = new CommandGamerJoined(stationId, internalId, displayName, gamertag, isNewPlayerHost, isNewPlayerLocal);
                                     //cmd.State = cmd.State | GamerStates.Ready;
                                     //cmd.DisplayName = onlineId;
                                     //cmd.GamerTag = onlineId;
 
-                                    Console.WriteLine("Allocating CommandGamerJoined; gamerTag: {0}, stationId: {1}, isHost: {2}, isLocal: {3}", cmd.GamerTag, cmd.StationId, ishost, islocal);
+                                    Console.WriteLine("Allocating CommandGamerJoined; gamerTag: {0}, stationId: {1}, isHost: {2}, isLocal: {3}",
+                                        cmd.GamerTag, cmd.StationId, isNewPlayerHost, isNewPlayerLocal);
 
                                     var evt = new CommandEvent(CommandEventType.GamerJoined, cmd);
                                     _commandQueue.Enqueue(evt);
@@ -1916,6 +1923,7 @@ namespace Microsoft.Xna.Framework.Net
                 if ((cmd.State & GamerStates.Local) != 0)
                 {
                     // jcf: hack... how do we match these two up anyway?
+                    //      Note: this only works because we only have one local player per session allowed, currently.
                     var sig = Gamer.SignedInGamers.GetByPlayerIndex(PlayerIndex.One);
                     if (sig == null)
                         throw new Exception("NetworkSession.ProcessGamerJoined(); Gamer.SignedInGamers does not contain gamertag " + cmd.GamerTag);

@@ -73,7 +73,7 @@ namespace Microsoft.Xna.Framework.Net
             }
         }
 
-        internal LocalNetworkGamer(NetworkSession session, SignedInGamer signedInGamer, byte internalId, GamerStates state)
+        internal LocalNetworkGamer(NetworkSession session, SignedInGamer signedInGamer, NetworkSessionParticipantId internalId, GamerStates state)
             : base(session, internalId, state)
         {
             _signedInGamer = signedInGamer;

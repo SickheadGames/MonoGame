@@ -42,20 +42,72 @@
 #region Using clause
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Net;
 using Microsoft.Xna.Framework.GamerServices;
 #endregion Using clause
 
 namespace Microsoft.Xna.Framework.Net
 {
-	public class NetworkGamer : Gamer
+    public struct NetworkSessionParticipantId
+    {
+        public static readonly NetworkSessionParticipantId Invalid = new NetworkSessionParticipantId(0);
+
+        internal readonly UInt64 _value;
+
+        public NetworkSessionParticipantId(UInt64 id)
+        {
+            _value = id;
+        }
+
+        public static bool operator <(NetworkSessionParticipantId a, NetworkSessionParticipantId b)
+        {
+            return a._value < b._value;
+        }
+
+        public static bool operator >(NetworkSessionParticipantId a, NetworkSessionParticipantId b)
+        {
+            return a._value > b._value;
+        }
+
+        public static bool operator ==(NetworkSessionParticipantId a, NetworkSessionParticipantId b)
+        {
+            return Equals(a, b);
+        }
+
+        public static bool operator !=(NetworkSessionParticipantId a, NetworkSessionParticipantId b)
+        {
+            return !Equals(a, b);
+        }
+
+        public static bool Equals(NetworkSessionParticipantId a, NetworkSessionParticipantId b)
+        {
+            return a._value == b._value;
+        }
+    }
+
+    public static class NetworkSessionParticipantIdExtensions
+    {
+        public static void Write(this BinaryWriter io, NetworkSessionParticipantId pid)
+        {
+            io.Write(pid._value);
+        }
+
+        public static NetworkSessionParticipantId ReadNetId(this BinaryReader io)
+        {
+            var id = io.ReadUInt64();
+            return new NetworkSessionParticipantId(id);
+        }
+    }
+
+    public class NetworkGamer : Gamer
 	{
-        protected readonly byte _internalId;
+        protected readonly NetworkSessionParticipantId _internalId;
 	    protected readonly NetworkSession _session; 
 		internal GamerStates _gamerState;
         private GamerStates _prevGamerState;
 		
-		internal NetworkGamer(NetworkSession session, byte interalId, GamerStates state)
+		internal NetworkGamer(NetworkSession session, NetworkSessionParticipantId interalId, GamerStates state)
 		{
             _internalId = interalId;
 
@@ -146,7 +198,7 @@ namespace Microsoft.Xna.Framework.Net
 			}
 		}
 
-        public byte Id
+        public NetworkSessionParticipantId Id
         {
             get
             {
