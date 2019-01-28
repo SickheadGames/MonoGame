@@ -16,10 +16,8 @@ namespace MonoGame.Switch
         public string ownerName;
         public int MaxMembers;
         public int NumMembers;
-        public Dictionary<string, string> data;
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern int GetIntAttribute(string name, out bool exists);
+        public int GameMode;
+        public string data;
 
         public bool IsValid()
         {
@@ -53,14 +51,20 @@ namespace MonoGame.Switch
     public static class Network
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern int _TrySearch(Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer, List<SessionInformation> sessions);
+        private static extern int _TrySearch(
+            int gameMode,
+            Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer,
+            Microsoft.Xna.Framework.Net.NetworkSessionProperties properties,
+            List<SessionInformation> sessions);
 
-        internal static int TrySearch(Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer, out List<SessionInformation> sessions)
+        internal static int TrySearch(
+            int gameMode,
+            Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer,
+            Microsoft.Xna.Framework.Net.NetworkSessionProperties properties,
+            out List<SessionInformation> sessions)
         {
             sessions = new List<SessionInformation>();
-            //var handle = GCHandle.Alloc(sessions, GCHandleType.Pinned);
-            int result = _TrySearch(gamer, sessions);
-            //handle.Free();
+            int result = _TrySearch(gameMode, gamer, properties, sessions);
             return result;
         }
 
@@ -71,7 +75,11 @@ namespace MonoGame.Switch
         public static extern void Shutdown();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern int TryHost(Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer);
+        internal static extern int TryHost(
+            int gameMode,
+            Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer,
+            int maxGamers,
+            Microsoft.Xna.Framework.Net.NetworkSessionProperties properties);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern int TryJoin(Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer, SessionInformation session);
@@ -148,6 +156,13 @@ namespace MonoGame.Switch
 
             _sessionEvents.Enqueue(e);
         }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void UpdateSessionProperties(Microsoft.Xna.Framework.Net.NetworkSessionProperties properties);
+
+        private static Microsoft.Xna.Framework.Net.NetworkSessionProperties _requestLobbyDataProperties;
+        private static List<MonoGame.Switch.SessionInformation> _requestLobbyDataResults;
+        private static string _appData;
     }
 
     public struct UserId

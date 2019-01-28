@@ -91,8 +91,8 @@ namespace Microsoft.Xna.Framework.Net
             EndPoint = new IPEndPoint(0, 0);
             QualityOfService = new QualityOfService();
 
-            SessionProperties = NetworkSessionProperties.Get(info);
-            SessionType = SessionProperties[NetworkSessionProperties.RankedSession] > 0 ? NetworkSessionType.Ranked : NetworkSessionType.PlayerMatch;
+            SessionProperties = NetworkSessionProperties.FromApplicationDataString(info.data);
+            SessionType = info.GameMode == 1 ? NetworkSessionType.Ranked : NetworkSessionType.PlayerMatch;
 
             _localGamersMask = localGamersMask;
 

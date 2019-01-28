@@ -55,52 +55,109 @@ namespace Microsoft.Xna.Framework.Net
     /// <summary>
     /// NetworkSessionProperies can contain up to eight interger values.
     /// </summary>
-	public class NetworkSessionProperties : List<int?>
+	public class NetworkSessionProperties
     {
-        public const int RankedSession = 7;
-        public const int MaxProperties = 8;
+        internal const int MaxProperties = 8;
+
+        private readonly int?[] _array;
+        private bool _dirty;
 
         public NetworkSessionProperties()
-            : base(MaxProperties)
 		{
-            for (var i = 0; i < MaxProperties; i++)
-			    Add (null);			
-		}		
+            _array = new int?[MaxProperties];
+		}
 
-         private static readonly string[] AttributeNames = new string[MaxProperties]
+        private static string[] _attributeNames;
+        public static void Config(string[] attributeNames)
         {
-            "Attribute1",
-            "Attribute2",
-            "Attribute3",
-            "Attribute4",
-            "Attribute5",
-            "Attribute6",
-            "Attribute7",
-            "RankedSession",            
-        };
+            _attributeNames = attributeNames;
+        }
+
+        internal bool Dirty
+        {
+            get
+            {
+                return _dirty;
+            }
+        }
+
+        internal void MarkClean()
+        {
+            _dirty = false;
+        }
+
+        public int? this[int index]
+        {
+            get
+            {
+                return _array[index];
+            }
+            set
+            {
+                if (_array[index] != value)
+                {
+                    _array[index] = value;
+                    _dirty = true;
+                }
+            }
+        }
 
 #if SWITCH
 
-        internal static NetworkSessionProperties Get(MonoGame.Switch.SessionInformation sessionInfo)
+        internal static NetworkSessionProperties FromApplicationDataString(string applicationData)
         {
+            Console.WriteLine("NetworkSessionProperties.FromApplicationDataString(); '{0}'", applicationData);
+
             var properties = new NetworkSessionProperties();
-            for (var i = 0; i < MaxProperties; i++)
+
+            var lines = applicationData.Split('\n');
+            foreach (var line in lines)
             {
-                bool exists;
-                var val = sessionInfo.GetIntAttribute(AttributeNames[i], out exists);
-                if (!exists)
+                var words = line.Split('=');
+                if (words.Length < 1)
+                    throw new Exception("Error parsing ApplicationData");
+
+                var key = words[0];
+                if (string.IsNullOrEmpty(key))
+                    continue;
+
+                int index = Array.IndexOf<string>(_attributeNames, key, 0, _attributeNames.Length);
+                if (index == -1)
+                    continue;
+                    //throw new Exception("Error parsing ApplicationData");
+
+                if (words.Length < 2 || string.IsNullOrEmpty(words[1]) || string.IsNullOrWhiteSpace(words[1]))
                 {
-                    Console.WriteLine("Attributes[ {0} ] = null", AttributeNames[i]);
+                    properties._array[index] = null;
                 }
                 else
                 {
-                    Console.WriteLine("Attributes[ {0} ] = {1}", AttributeNames[i], val);
+                    var val = words[1];
+                    int intval = int.Parse(val);
 
-                    properties[i] = (int)val;
+                    // dont use public indexer, we aren't dirty
+                    properties._array[index] = intval;
                 }
             }
 
             return properties;
+        }
+
+        internal string ToApplicationDataString()
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < MaxProperties; i++)
+            {
+                var key = _attributeNames[i];
+                var val = _array[i];
+
+                sb.Append(key);
+                sb.Append('=');
+                sb.Append(val);
+                sb.Append('\n');
+            }
+
+            return sb.ToString();
         }
 
 #else
@@ -183,7 +240,7 @@ namespace Microsoft.Xna.Framework.Net
             for (var i = 0; i < MaxProperties; i++)
             {
                 var item = this[i];
-                sb.AppendFormat("Property[{0}]; {1} : {2}\n", i, AttributeNames[i], (item.HasValue ? item.Value.ToString() : "[null]"));
+                sb.AppendFormat("Property[{0}]; {1} : {2}\n", i, _attributeNames[i], (item.HasValue ? item.Value.ToString() : "[null]"));
             }
 
             return sb.ToString();

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.GamerServices;
@@ -65,7 +66,8 @@ namespace Microsoft.Xna.Framework.Net
         internal readonly Queue<CommandEvent> _commandQueue;
         private readonly NetworkSessionType _sessionType;
         private readonly NetworkSessionProperties _sessionProperties;
-        
+        private readonly int _gameMode;
+
         private bool _isHost;
         private NetworkGamer _hostingGamer;
         private int _maxGamers;
@@ -500,11 +502,10 @@ namespace Microsoft.Xna.Framework.Net
 
                 //sessionInfo = _matchingSession.Info;
                 _isHost = false;
-                _sessionProperties = NetworkSessionProperties.Get(sessionInfo);
+                _sessionProperties = NetworkSessionProperties.FromApplicationDataString(sessionInfo.data);
                 _maxGamers = sessionInfo.MaxMembers;
                 
-                _sessionType = _sessionProperties[NetworkSessionProperties.RankedSession] > 0
-                    ? NetworkSessionType.Ranked : NetworkSessionType.PlayerMatch;
+                _sessionType = sessionInfo.GameMode == 1 ? NetworkSessionType.Ranked : NetworkSessionType.PlayerMatch;
 
                 FlushCommands();
 
@@ -548,9 +549,13 @@ namespace Microsoft.Xna.Framework.Net
             _maxGamers = maxGamers;
             _privateGamerSlots = privateGamerSlots;
             _sessionProperties = sessionProperties;
+            _sessionProperties.MarkClean();
             _isHost = true;
 
-            _sessionProperties[NetworkSessionProperties.RankedSession] = _sessionType == NetworkSessionType.Ranked ? 1 : 0;
+            if (_sessionType == NetworkSessionType.Ranked)
+                _gameMode = 1;
+            else
+                _gameMode = 0;
 
             /*
             foreach (var g in localGamers)
@@ -568,7 +573,7 @@ namespace Microsoft.Xna.Framework.Net
                     hostUserId.id.a <= 0 ? "[null]" : MonoGame.Switch.UserService.GetLocalUserNickname(hostUserId),
                     hostUserId);
 #if SWITCH
-                int hostResult = MonoGame.Switch.Network.TryHost(hostGamer);
+                int hostResult = MonoGame.Switch.Network.TryHost(_gameMode, hostGamer, _maxGamers, _sessionProperties);
 
                 if (hostResult != 0)
                 {
@@ -750,7 +755,6 @@ namespace Microsoft.Xna.Framework.Net
             var privateGamerSlots = 0;
 
             var sessionProperties = new NetworkSessionProperties();
-            sessionProperties[NetworkSessionProperties.RankedSession] = sessionType == NetworkSessionType.Ranked ? 1 : 0;
 
             var localGamers = new List<SignedInGamer>();
 
@@ -800,7 +804,6 @@ namespace Microsoft.Xna.Framework.Net
             if (sessionProperties == null)
             {
                 sessionProperties = new NetworkSessionProperties();
-                sessionProperties[NetworkSessionProperties.RankedSession] = sessionType == NetworkSessionType.Ranked ? 1 : 0;                
             }
 
             var hostGamerIndex = localGamers.FirstOrDefault().PlayerIndex;
@@ -911,12 +914,12 @@ namespace Microsoft.Xna.Framework.Net
             if (localGamerCount < 1 || localGamerCount > 4)
                 throw new ArgumentException("Must be between 1 and 4 localGamers.");
 
-            searchProperties[NetworkSessionProperties.RankedSession] = sessionType == NetworkSessionType.Ranked ? 1 : 0;
+            int gameMode = sessionType == NetworkSessionType.Ranked ? 1 : 0;
 
             var firstLocalGamer = localGamers.FirstOrDefault();
 
             List<MonoGame.Switch.SessionInformation> sessionlist;
-            var searchResult = MonoGame.Switch.Network.TrySearch(firstLocalGamer, out sessionlist);
+            var searchResult = MonoGame.Switch.Network.TrySearch(gameMode, firstLocalGamer, searchProperties, out sessionlist);
             if (searchResult != 0)
                 throw new NetErrorException(firstLocalGamer.UserId, (int)searchResult, 0);
 
@@ -1246,15 +1249,15 @@ namespace Microsoft.Xna.Framework.Net
             if (_isDisposed)
                 return;
 
-            // JCF: Something like this should really be done.
-            /*
-            var prop = NetworkSessionProperties.Get(_matchingSession.Info);
-            if (!prop.Equals(_sessionProperties))
+            if (_isHost)
             {
-                var Matching.ModifySession(req);
+                if (_sessionProperties.Dirty)
+                {
+                    MonoGame.Switch.Network.UpdateSessionProperties(_sessionProperties);
+                    _sessionProperties.MarkClean();
+                }
             }
-            */
-
+            
             // JCF: Hacky, don't really need this flag to be in Guide anymore since we should technically be
             //      able to tell what we need right here.. if the networksession is PlayerMatch or Ranked and
             //      it is currently in Playing state, then notify plus feature..
@@ -1270,7 +1273,6 @@ namespace Microsoft.Xna.Framework.Net
                         //MonoGame.Switch.Network.NotifyOnline(localGamer.UserId, NpPlusFeature.RealtimeMultiplay);
                     }
                 }
-
             }
             catch (Exception e)
             {
