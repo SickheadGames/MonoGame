@@ -84,6 +84,11 @@ namespace Microsoft.Xna.Framework.Net
         {
             return a._value == b._value;
         }
+
+        public override string ToString()
+        {
+            return _value.ToString("X");
+        }
     }
 
     public static class NetworkSessionParticipantIdExtensions

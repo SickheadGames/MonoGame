@@ -1681,6 +1681,18 @@ namespace Microsoft.Xna.Framework.Net
 
         private unsafe void ProcessSendData(CommandSendData cmd)
         {
+#if DEBUG
+            var sb = new StringBuilder();
+            for (int i = 0; i <  cmd._data.Length; i++)
+            {
+                var byt = cmd._data[i];
+                sb.Append(byt.ToString("X2"));
+                if (i != cmd._data.Length - 1)
+                    sb.Append(" ");
+            }
+            Console.WriteLine("Sending Data ({0}):");
+            Console.WriteLine("   " + sb.ToString());
+#endif
             fixed (byte* pData = cmd._data)
             {
                 byte* buffer = pData + cmd._offset;
@@ -1709,6 +1721,18 @@ namespace Microsoft.Xna.Framework.Net
 
         private void ProcessReceiveData(CommandReceiveData cmd)
         {
+#if DEBUG
+            var sb = new StringBuilder();
+            for (int i = 0; i < cmd._data.Length; i++)
+            {
+                var byt = cmd._data[i];
+                sb.Append(byt.ToString("X2"));
+                if (i != cmd._data.Length-1)
+                    sb.Append(" ");
+            }
+            Console.WriteLine("Receiving Data ({0}):");
+            Console.WriteLine("   " + sb.ToString());
+#endif
             // The public API for reading data is on LocalNetworkGamer
             // hence we just queue the data for processing there.
 
@@ -1912,7 +1936,7 @@ namespace Microsoft.Xna.Framework.Net
 
             foreach (var g in _allGamers)
             {
-                if (g.Gamertag == cmd.GamerTag)
+                if (g.Id == cmd.InternalId)
                 {
                     Console.WriteLine("NetworkSession.ProcessGamerJoined(); gamer already exists in _allGamers.");
                     gamer = g;
