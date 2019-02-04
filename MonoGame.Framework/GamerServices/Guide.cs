@@ -361,7 +361,7 @@ namespace Microsoft.Xna.Framework.GamerServices
         public static void ShowSignIn(int paneCount, bool onlineOnly)
         {
             Console.WriteLine("Guide.ShowSignIn() paneCount={0}, onlineOnly={1}", paneCount, onlineOnly); 
-            
+
             throw new NotImplementedException();
         }
 
@@ -482,8 +482,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             }
         }
 
-        public delegate bool UpdateMultiplayerAvailableDelegate(SignedInGamer gamer, MonoGame.Switch.NetworkMode mode);
-
+        //public delegate bool UpdateMultiplayerAvailableDelegate(SignedInGamer gamer, MonoGame.Switch.NetworkMode mode);
         //public static IAsyncResult BeginUpdateMultiplayerAvailable(SignedInGamer gamer, AsyncCallback callback, Object asyncState)
         //{
         //    Console.WriteLine("Guide.BeginUpdateMultiplayerAvailable(); gamer={0}", gamer.NullOrGamertag());
@@ -494,7 +493,6 @@ namespace Microsoft.Xna.Framework.GamerServices
         //    UpdateMultiplayerAvailableDelegate del = UpdateMultiplayerAvailable;
         //    return del.BeginInvoke(gamer, callback, asyncState);
         //}
-
         //public static bool EndUpdateMultiplayerAvailable(IAsyncResult result)
         //{
         //    Console.WriteLine("Guide.EndUpdateMultiplayerAvailable();");
@@ -513,7 +511,6 @@ namespace Microsoft.Xna.Framework.GamerServices
         //    {
         //        result.AsyncWaitHandle.Close();
         //    }
-
         //    return returnValue;
         //}
 

@@ -69,6 +69,8 @@ namespace Microsoft.Xna.Framework.GamerServices
         private MonoGame.Switch.UserId _userId;
         private MonoGame.Switch.OnlineId _onlineId;
         private MonoGame.Switch.StationId _stationId;
+        private UInt64 _leaderboardId;
+
 #endif
 
         public string Gamertag
@@ -109,6 +111,16 @@ namespace Microsoft.Xna.Framework.GamerServices
             set
             {
                 _stationId = value;
+            }
+        }
+
+        // The id used to identify this player on the leaderboards
+        public UInt64 LeaderboardId
+        {
+            get { return _leaderboardId; }
+            set
+            {
+                _leaderboardId = value;
             }
         }
 #endif

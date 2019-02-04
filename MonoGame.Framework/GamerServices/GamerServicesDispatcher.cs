@@ -273,6 +273,7 @@ namespace Microsoft.Xna.Framework.GamerServices
 
             MonoGame.Switch.OnlineId onlineId = MonoGame.Switch.UserService.GetLocalUserOnlineId(userHandle);
             gamer.OnlineId = onlineId;
+            gamer.LeaderboardId = onlineId.id;
 
             // jcf: actually, the station id doesn't exist yet, that happens when a game is hosted/joined
             gamer.StationId = MonoGame.Switch.StationId.Invalid;
@@ -297,6 +298,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             gamer._isSignedIntoPSN = false;
             gamer.StationId = MonoGame.Switch.StationId.Invalid;
             gamer.OnlineId = MonoGame.Switch.OnlineId.Invalid;
+            gamer.LeaderboardId = 0;
             gamer.Gamertag = gamer.DisplayName;
         }
 

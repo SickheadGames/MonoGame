@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -9,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace MonoGame.Switch
 {
+    #region Network Types
+
     internal struct SessionInformation
     {
         public uint sessionId;
@@ -28,7 +31,8 @@ namespace MonoGame.Switch
     public enum NetworkMode : int
     {
         Local,
-        Online
+        Online,
+        Leaderboards,
     }
 
     public enum NetEventKind : int
@@ -47,6 +51,8 @@ namespace MonoGame.Switch
         public StationId toStationId;
         public int size;
     }
+
+    #endregion
 
     public static class Network
     {
@@ -165,6 +171,8 @@ namespace MonoGame.Switch
         private static string _appData;
     }
 
+    #region UserService Types
+
     public struct UserId
     {
         internal UInt64 a;
@@ -251,6 +259,8 @@ namespace MonoGame.Switch
         }
     }
 
+    #endregion
+
     public static class UserService
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -281,327 +291,134 @@ namespace MonoGame.Switch
         public static extern void Update(float elapsedSeconds);
     }
 
-    /*
-        public class SwitchSDKHelper : SDKHelper
-        {
-            private readonly SwitchSDKNetHelper _netHelper = new SwitchSDKNetHelper();
-
-            public void EarlyInitialize()
-            {
-            }
-
-            public void Initialize()
-            {
-                // Note we don't do anything here because
-                // we delay network connections until the
-                // user tries to actually play co-op.
-
-                ConnectionProgress = 0;
-            }
-
-            public void GetAchievement(string achieve)
-            {
-            }
-
-            public void ResetAchievements()
-            {
-            }
-
-            public void Update()
-            {
-                _netHelper.Update();
-            }
-
-            public void Shutdown()
-            {
-            }
-
-            public void DebugInfo()
-            {
-            }
-
-            public string FilterDirtyWords(string words)
-            {
-                return SwitchSDKNetHelper.FilterDirtyWords(words);
-            }
-
-            public virtual string Name { get; } = "Switch";
-
-            public bool ConnectionFinished
-            {
-                get
-                {
-                    ConnectionProgress = 3;
-                    return _netHelper.IsConnectionFinished();
-                }
-            }
-
-            public int ConnectionProgress { get; private set; }
-
-            public SDKNetHelper Networking
-            {
-                get
-                {
-                    if (_netHelper.IsStarted())
-                        return _netHelper;
-
-                    return null;
-                }
-            }
-        }
-    */
-
-#if false
-    class SwitchSDKNetHelper
+    public static class Ranking
     {
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern ulong SwitchGetNsaId();
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern ulong SwitchGetUserIdForStation(ulong stationId);
+        #region Types
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private extern void SwitchRequestFriendLobbyData();
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private extern void SwitchNetUpdate();
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private extern void SwitchNetShutdown();
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal extern bool IsConnectionFinished();
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal extern bool IsStarted();
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern string FilterDirtyWords(string text);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool CheckFreeCommunicationPermission();
-
-        public static bool LocalMode = false;
-
-        private static string _userId;
-
-        private List<LobbyUpdateListener> lobbyUpdateListeners = new List<LobbyUpdateListener>();
-
-        //private SwitchNetServer _server;
-        //private SwitchNetClient _client;
-
-        private readonly Dictionary<uint, SessionInfo> _browseSessions = new Dictionary<uint, SessionInfo>();
-
-        private static void ErrorExitToTitle()
+        public class GetRankResults
         {
-            Console.WriteLine("ErrorExitToTitle(); Not implemented");
-        }
+            public int FirstInRange;
+            public int LastInRange;
+            public int TotalPlayers;
+            public List<Item> Items;
 
-        public SwitchSDKNetHelper()
-        {
-        }
-
-        public string GetLobbyData(uint sessionId, string key)
-        {
-            SessionInfo info;
-            if (_browseSessions.TryGetValue(sessionId, out info))
+            public GetRankResults()
             {
-                string value;
-                if (info.data.TryGetValue(key, out value))
-                    return value;
-            }
-            return string.Empty;
-        }
-
-        public object GetLobbyFromInviteCode(string inviteCode)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetLobbyOwnerName(object lobby)
-        {
-            var sessionId = (uint)lobby;
-            SessionInfo info;
-            if (_browseSessions.TryGetValue(sessionId, out info))
-                return info.ownerName;
-            return string.Empty;
-        }
-
-        //public Client GetRequestedClient()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public string GetUserID()
-        //{
-        //    return GetSwitchUserID();
-        //}
-
-        //internal static string GetSwitchUserID()
-        //{
-        //    if (LocalMode)
-        //        return "";
-
-        //    if (_userId == null)
-        //    {
-        //        var id = SwitchGetNsaId();
-        //        _userId = id.ToString("X");
-        //    }
-
-        //    return _userId;
-        //}
-
-        //internal static string GetUserIdFromStation(ulong stationId)
-        //{
-        //    if (LocalMode)
-        //        return "";
-
-        //    var id = SwitchGetUserIdForStation(stationId);
-        //    var userId = id.ToString("X");
-        //    return userId;
-        //}
-
-        //public void RequestFriendLobbyData()
-        //{
-        //    _browseSessions.Clear();
-        //    SwitchRequestFriendLobbyData();
-        //}
-
-        //public void ShowInviteDialog(object lobby)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public bool SupportsInviteCodes()
-        //{
-        //    return false;
-        //}
-
-        /*
-        internal void Update()
-        {
-            // Shutdown the network if we're not actively playing online
-            // or within one of the stages of the coop menus.
-            var inMultiplayer = false;
-            inMultiplayer |= Game1.IsClient;
-            inMultiplayer |= Game1.IsServer;
-            inMultiplayer |= TitleMenu.subMenu is CoopMenu;
-            inMultiplayer |= TitleMenu.subMenu is FarmhandMenu;
-            inMultiplayer |= TitleMenu.subMenu is CharacterCustomization;
-            inMultiplayer |= Game1.gameMode == Game1.loadingMode;
-            if (!inMultiplayer)
-            {
-                _client = null;
-                _server = null;
-                SwitchNetShutdown();
-            }
-
-            SwitchNetUpdate();
-        }
-        */
-
-        private void OnLobbyDataUpdated(uint sessionId, IntPtr session, string ownerName, string data)
-        {
-            // Create/update the slot data.
-            var info = new SessionInfo();
-            info.session = session;
-            info.ownerName = ownerName;
-            info.data = new Dictionary<string, string>();
-
-            var kvp = data.Split('\n');
-            for (var i = 0; (i + 1) < kvp.Length; i += 2)
-            {
-                var key = kvp[i + 0];
-                var val = kvp[i + 1];
-                info.data[key] = val;
-            }
-
-            _browseSessions[sessionId] = info;
-
-            foreach (var listener in lobbyUpdateListeners)
-            {
-                listener.OnLobbyUpdate(sessionId);
+                FirstInRange = 0;
+                LastInRange = 0;
+                TotalPlayers = 0;
+                Items = new List<Item>();
             }
         }
 
-        public void AddLobbyUpdateListener(LobbyUpdateListener listener)
+        public struct Item
         {
-            lobbyUpdateListeners.Add(listener);
+            public uint Category;
+            public uint Group0;
+            public uint Group1;
+            public UInt64 Score;
+            public uint Ranking;
+            public byte[] Data;
+            public string UserName;
+            public UInt64 PrincipalId;
         }
 
-        public void RemoveLobbyUpdateListener(LobbyUpdateListener listener)
+        public enum RequestMode
         {
-            lobbyUpdateListeners.Remove(listener);
+            Everyone,
+            Friends,
+            Nearby,
+        }
+
+        #endregion
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void Initialize();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void Update();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int _TryStartup(MonoGame.Switch.UserId userId);
+
+        public static int TryStartup(MonoGame.Switch.UserId userId)
+        {
+            int resultCode = Network.TryStart(userId, NetworkMode.Leaderboards);
+            if (resultCode != 0)
+            {
+                return resultCode;
+            }
+
+            return _TryStartup(userId);
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int _TryUpload(ref Item item);
+
+        // after this call, item.Rank will be assigned to the approximate rank
+        // item.PrincipalId is not used, its always the currently signed in user
+        public static int TryUpload(ref Item item)
+        {
+            // combines the gamertag into the byte array
+            var stream = new MemoryStream();
+            var writer = new BinaryWriter(stream);
+            writer.Write(1); // version number
+            writer.Write(item.UserName);
+            if (item.Data == null)
+                writer.Write(0);
+            else
+            {
+                writer.Write(item.Data.Length);
+                writer.Write(item.Data);
+            }
+            item.Data = stream.ToArray();
+
+            return _TryUpload(ref item);
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int _TryDownload(RequestMode mode, int category, int startPos, int sizeOfPage, GetRankResults results);
+
+        public static int TryDownload(RequestMode mode, int category, int startPos, int sizeOfPage, GetRankResults results)
+        {
+            int resultCode = _TryDownload(mode, category, startPos, sizeOfPage, results);
+            if (resultCode != 0)
+                return resultCode;
+
+            // extract gamertag from byte[]
+
+            for (var i = 0; i < results.Items.Count; i++)
+            {
+                var item = results.Items[i];
+
+                var stream = new MemoryStream(item.Data);
+                var io = new BinaryReader(stream);
+                int ver = io.ReadInt32(); // version number
+                if (ver != 1)
+                {
+                    Console.WriteLine("Leaderboard Data is version '{0}' but we expected it to be '{1}'", ver, 1);
+                    continue;
+                }
+
+                var userName = io.ReadString();
+                item.UserName = userName;
+
+                var len = io.ReadInt32();
+                if (len == 0)
+                {
+                    item.Data = null;
+                }
+                else
+                {
+                    var data = io.ReadBytes(len);
+                    item.Data = data;
+                }
+
+                results.Items[i] = item;
+            }
+
+            return 0;
         }
     }
-#endif
-    public interface LobbyUpdateListener
-    {
-        void OnLobbyUpdate(uint lobby);
-    }
 
-    /*
-        public interface SDKNetHelper
-        {
-            string GetUserID();
-
-            Client CreateClient(LobbyId lobby);
-
-            // The platform can ask us to behave as a client. If it does this it provides
-            // the address / lobby through its API. In Steam, this can happen two ways:
-            //  * Through the +connect_lobby command-line argument.
-            //  * Through the GameLobbyJoinRequested_t callback.
-            // When this happens, the game disconnects from any existing games and connects
-            // through the client returned by this function.
-            // If we're not being asked to behave as a client, this function returns null.
-            Client GetRequestedClient();
-
-            Server CreateServer(IGameServer gameServer);
-
-            // Listen for lobbies found by RequestFriendLobbyData.
-            void AddLobbyUpdateListener(LobbyUpdateListener listener);
-            void RemoveLobbyUpdateListener(LobbyUpdateListener listener);
-
-            // Returns data asynchronously through LobbyUpdateListeners.
-            // GetLobbyData may be used during LobbyUpdateListener.OnLobbyUpdate
-            void RequestFriendLobbyData();
-
-            // Returns data from a lobby obtained by RequestFriendLobbyData.
-            string GetLobbyData(LobbyId lobby, string key);
-            string GetLobbyOwnerName(LobbyId lobby);
-
-            bool SupportsInviteCodes();
-            object GetLobbyFromInviteCode(string inviteCode);
-            void ShowInviteDialog(LobbyId lobby);
-        }
-    */
-
-    //public interface SDKHelper
-    //{
-    //    // EarlyInitialize vs Initialize:
-    //    // * EarlyInitialize happens before any content is loaded. SDKs can use this to install
-    //    //   crash handlers before content is loaded. Rail does this for instance.
-    //    // * Initialize happens after audio is loaded. Audio files are large, and XACT requires
-    //    //   contiguous memory to load them. If the SDK increases memory fragmentation, like
-    //    //   Steam apparently does, and causes random crashes when loading audio, it should be
-    //    //   initialized here.
-    //    void EarlyInitialize();
-    //    void Initialize();
-
-    //    void Update();
-    //    void Shutdown();
-    //    void DebugInfo();
-
-    //    void GetAchievement(string achieve);
-    //    void ResetAchievements();
-    //    string FilterDirtyWords(string words);
-
-    //    string Name { get; }
-
-    //    // Networking is null until a connection to the online service is established
-    //    SDKNetHelper Networking { get; }
-
-    //    // Indicates if the game has finished trying to establish a connection.
-    //    // If it succeeded, Networking will be non-null.
-    //    bool ConnectionFinished { get; }
-    //    // An arbitrary integer >= 0 that indicates progress towards establishing a connection
-    //    // with the online service.
-    //    int ConnectionProgress { get; }
-    //}
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Net;
 using System;
 using System.Collections.Generic;
+using System.IO;
 #if SWITCH
 #else
 using Sce.PlayStation4.Network;
@@ -21,17 +22,10 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             public LeaderboardIdentity Leaderboard;
             public LeaderboardEntry Entry;
-#if SWITCH
-#else
-            public NpScoreRequest Request;
-#endif
         }
 
         private readonly Gamer _gamer;
-#if SWITCH
-#else
-        private readonly NpScoreTitleContext _context;
-#endif
+
         private readonly Dictionary<LeaderboardIdentity, LeaderboardEntry> _leaderboardIdentities;
         
         private static readonly Dictionary<LeaderboardIdentity, List<LeaderboardEntry>> _commitedEntries;
@@ -81,29 +75,6 @@ namespace Microsoft.Xna.Framework.GamerServices
             _gamer = gamer;
 
             _leaderboardIdentities = new Dictionary<LeaderboardIdentity, LeaderboardEntry>();
-
-#if SWITCH
-#endif
-#if PLAYSTATION4
-            NpResult contextRes;
-            _context = NpScoreTitleContext.Create(gamer.UserId, out contextRes);
-
-            if (contextRes != NpResult.Ok ||
-                _context == null)
-            {
-                Console.WriteLine("NpScoreTitleContext creation failed! {0}", contextRes);
-                return;
-            }
-
-            NpCommunityError res;
-            res = _context.Initialize(0);
-
-            if (res != NpCommunityError.Ok)
-            {
-                Console.WriteLine("NpScoreTitleContext initialization failed! {0}", res);
-                return;
-            }
-#endif
         }
 
         static LeaderboardWriter()
@@ -126,7 +97,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             {
                 entry = new LeaderboardEntry()
                 {
-                    Gamer = _gamer,                    
+                    Gamer = _gamer,
                 };
                 _leaderboardIdentities.Add(aLeaderboardIdentity, entry);
             }
@@ -142,123 +113,73 @@ namespace Microsoft.Xna.Framework.GamerServices
 
         private void DoCommitEntries()
         {
-#if SWITCH
-#endif
-#if PLAYSTATION4
             Console.WriteLine("LeaderboardWriter.DoCommitEntries(); BEGIN");
-
-            Console.WriteLine("LeaderboardWriter.DoCommitEntries(); if1");
-            if (_context == null)
-            {
-                Console.WriteLine("LeaderboardWriter.DoCommitEntries(); true1");
-                return;
-            }
 
             try
             {                
                 Console.WriteLine("LeaderboardWriter.DoCommitEntries(); _leaderboardIdentities.Count={0}", _leaderboardIdentities.Count);
 
-                var pendingList = new List<PendingEntry>();
-
-                foreach (var entry in _leaderboardIdentities)
+                int startupResultCode = MonoGame.Switch.Ranking.TryStartup(this._gamer.UserId);
+                if (startupResultCode != 0)
                 {
-                    NpCommunityError res;
-                    var request = NpScoreRequest.Create(_context, out res);
-                    
-                    if (res != NpCommunityError.Ok || request == null)
-                    {                        
-                        Console.WriteLine("LeaderboardWriter.DoCommitEntries(); Could not create necessary NpScoreRequest to CommitEntries(). {0}", res);
+                    Console.WriteLine("Ranking.TryStartup returned error code {0}", startupResultCode);
+
+                    throw new NetErrorException(this._gamer.UserId, startupResultCode, 0);
+                }
+
+                foreach (var e in _leaderboardIdentities)
+                {
+                    var entry = e.Value;
+                    var lb = e.Key;
+
+                    var category = (uint)lb.Key;
+                    var score = (uint)entry.Rating;
+                    var data = entry.GameInfo?.ToArray();
+                    var userName = entry.Gamer.DisplayName;
+
+                    var item = new MonoGame.Switch.Ranking.Item();
+                    item.Group0 = 0;
+                    item.Group1 = 0;
+                    item.Category = category;
+                    item.Score = score;
+                    item.Data = data;
+                    item.UserName = userName;
+
+                    int resultCode = MonoGame.Switch.Ranking.TryUpload(ref item);
+                    if (resultCode != 0)
+                    {
+                        Console.WriteLine("Ranking.TryUpload returned error code {0}", resultCode);
                         continue;
                     }
 
-                    var boardId = (uint)entry.Key.Key;
-                    var score = (long)entry.Value.Rating;
-                    var gameInfo = entry.Value.GameInfo;
+                    entry.Ranking = (int)item.Ranking;
 
-                    var gameInfoBytes = gameInfo == null ? null : gameInfo.ToArray();                    
-                    var npResult = request.RecordScoreAsync(boardId, score, string.Empty, gameInfoBytes, 0);
-                    if (npResult != NpCommunityError.Ok)
-                        continue;
-
-                    var item = new PendingEntry()
+                    lock (_commitedEntries)
                     {
-                        Leaderboard = entry.Key,
-                        Entry = entry.Value,
-                        Request = request,
-                    };
-                    pendingList.Add(item);
-                }
-
-                Console.WriteLine("LeaderboardWriter.DoCommitEntries(); waiting for pending record(s), pending.Count=={0}", pendingList.Count);
-
-                while (pendingList.Any())
-                {
-                    var item = pendingList[0];
-
-                    Console.WriteLine("LeaderboardWriter.DoCommitEntries(); pending loopbefore WaitResult");
-
-                    try
-                    {
-                        Console.WriteLine("LeaderboardWriter.DoCommitEntries(); before WaitResult");
-
-                        uint tmpRank;
-                        var npResult = item.Request.WaitAsync(out tmpRank);
-
-                        Console.WriteLine("LeaderboardWriter.DoCommitEntries(); after WaitResult");
-
-                        var leaderboardId = item.Leaderboard;
-                        var entry = item.Entry;
-
-                        lock (_commitedEntries)
+                        if (!_commitedEntries.ContainsKey(lb))
                         {
-                            if (!_commitedEntries.ContainsKey(leaderboardId))
-                            {
-                                _commitedEntries.Add(leaderboardId, new List<LeaderboardEntry>());
-                            }
-
-                            Console.WriteLine("LeaderboardWriter.DoCommitEntries(); if3");
-
-                            if (npResult == NpCommunityError.Ok)
-                            {
-                                Console.WriteLine("LeaderboardWriter.DoCommitEntries(); true3");
-                                Console.WriteLine("LeaderboardWriter.DoCommitEntries(); Adding to 'commited entries' cache.");
-
-                                var list = _commitedEntries[leaderboardId];
-                                if (!list.Contains(entry))
-                                    list.Add(entry);
-                                entry.Ranking = (int)tmpRank;
-                            }
-                            else
-                            {
-                                Console.WriteLine("LeaderboardWriter.DoCommitEntries(); WaitResult returned error " + npResult);
-                                //...
-                            }
+                            _commitedEntries.Add(lb, new List<LeaderboardEntry>());
                         }
 
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("LeaderboardWriter.DoCommitEntries(); pending loop exception : " + e);
-                        //throw;
+                        var list = _commitedEntries[lb];
+                        if (!list.Contains(entry))
+                            list.Add(entry);
                     }
 
-                    pendingList.Remove(item);
-
-                    item.Request.Dispose();
-                    item.Request = null;
+                    Console.WriteLine("LeaderboardWriter.DoCommitEntries(); loop");
                 }
 
-                Console.WriteLine("LeaderboardWriter.DoCommitEntries(); WriteFinished exists : {0}", WriteFinished != null);
-
-                if (WriteFinished != null)
-                    WriteFinished(true);
+                var cb = WriteFinished;
+                if (cb != null)
+                    cb(true);
             }
             catch (Exception e)
             {
                 Console.WriteLine("LeaderboardWriter.DoCommitEntries(); exception : " + e);
                 //throw;
             }
-#endif
+
+            Console.WriteLine("LeaderboardWriter.DoCommitEntries(); END");
         }
 
 #region IDisposable implementation

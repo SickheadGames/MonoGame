@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Net;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace Microsoft.Xna.Framework.GamerServices
 {
@@ -13,55 +14,33 @@ namespace Microsoft.Xna.Framework.GamerServices
     {
         private static LeaderboardReader _last;
 
-        public delegate void ReadFinishedCallback(IAsyncResult async);
-
-        private delegate LeaderboardReader ReadDelegate(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage);
-
-        private delegate void PageDelegate();
-
-        private int _curPosition;
         private readonly int _pageSize;
-        private readonly int _userId;
-
-        private bool _friendsOnly;
-        private List<LeaderboardEntry> _allFriendEntries;
-
-#if SWITCH
-#else
-        private readonly NpScoreRequest _request;
-        private readonly NpScoreTitleContext _context;
-        private NpScoreRankings _leaderboardRankings;
-#endif
-
-        private LeaderboardIdentity _boardIdent;
-
+        private readonly MonoGame.Switch.UserId _userId;
+        private readonly bool _friendsOnly;
+        private readonly List<LeaderboardEntry> _allFriendEntries;
+        private readonly LeaderboardIdentity _boardIdent;
         private readonly List<LeaderboardEntry> _entries;
         private readonly ReadOnlyCollection<LeaderboardEntry> _readonlyEntries;
+
+        private MonoGame.Switch.Ranking.GetRankResults _rankingInfo;
+        private int _curPosition;
 
         public int TotalLeaderboardSize
         {
             get
             {
-                // jcf: todo
-                return 0;
-
-                /*
-                //return _entries.Count;
-                if (_leaderboardRankings == null)
+                if (_rankingInfo == null)
                     return 0;
 
                 if (_friendsOnly)
                     return _allFriendEntries.Count;
 
-                return (int)_leaderboardRankings.TotalPlayers;
-                */
+                return _rankingInfo.TotalPlayers;
             }
         }
 
-        private LeaderboardReader(int userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
+        private LeaderboardReader(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage, bool friendsOnly)
         {
-#if SWITCH
-#else
             if (_last != null)
             {
                 _last.Dispose();
@@ -69,6 +48,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             }
 
             _userId = userId;
+            _friendsOnly = friendsOnly;
             _curPosition = startPos;
             _pageSize = sizeOfPage;
             _boardIdent = id;
@@ -77,31 +57,54 @@ namespace Microsoft.Xna.Framework.GamerServices
             _entries = new List<LeaderboardEntry>(25);
             _readonlyEntries = new ReadOnlyCollection<LeaderboardEntry>(_entries);
 
-            NpResult contextRes;
-            _context = NpScoreTitleContext.Create(userId, out contextRes);
-            _context.Initialize(0);
+            int resultCode = MonoGame.Switch.Ranking.TryStartup(userId);
+            if (resultCode != 0)
+            {
+                throw new NetErrorException(userId, resultCode, 0);
+            }
 
-            System.Diagnostics.Debug.Assert(contextRes == NpResult.Ok, string.Format("LeaderboardReader() ContextCreation failed! {0}", contextRes));
-
-            NpCommunityError requestRes;
-            _request = NpScoreRequest.Create(_context, out requestRes);
-
-            System.Diagnostics.Debug.Assert(requestRes == NpCommunityError.Ok,
-                string.Format("LeaderboardReader() RequestCreation failed! {0}", requestRes));
-                
             _last = this;
-#endif
         }
 
 #region Synchronous API
+
+        private static LeaderboardReader _Read(MonoGame.Switch.Ranking.RequestMode mode, MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
+        {
+            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage, friendsOnly: true);
+
+            var rankingInfo = new MonoGame.Switch.Ranking.GetRankResults();
+
+            int resultCode = MonoGame.Switch.Ranking.TryDownload(
+                mode,
+                reader._boardIdent.Key,
+                startPos,
+                sizeOfPage,
+                rankingInfo);
+
+            if (resultCode != 0)
+            {
+                throw new NetErrorException(userId, resultCode, 0);
+            }
+
+            reader._rankingInfo = rankingInfo;
+
+            reader.UpdateChanges();
+
+            reader.MergeLocalCache(false);
+
+            reader._curPosition = 0;
+            reader.ClipAllFriendsToPage();
+
+            return reader;
+        }
 
         public static LeaderboardReader ReadFriends(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
         {
             Console.WriteLine("LeaderboardReader.ReadFriends()");
 
-#if SWITCH
-            return null;
-#else
+            return _Read(MonoGame.Switch.Ranking.RequestMode.Friends, userId, id, startPos, sizeOfPage);
+
+#if PS4
             var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage);
             reader._friendsOnly = true;
 
@@ -125,9 +128,9 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             Console.WriteLine("LeaderboardReader.ReadRange()");
 
-#if SWITCH
-            return null;
-#else
+            return _Read(MonoGame.Switch.Ranking.RequestMode.Everyone, userId, id, startPos, sizeOfPage);
+
+#if PS4
             var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage);
             reader._friendsOnly = false;
 
@@ -153,7 +156,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             Console.WriteLine("LeaderboardReader.ReadOwn()");
 
 #if SWITCH
-            return null;
+            return _Read(MonoGame.Switch.Ranking.RequestMode.Nearby, userId, id, startPos, sizeOfPage);
 #else
             var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage);
             reader._friendsOnly = false;
@@ -242,14 +245,30 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             Console.WriteLine("LeaderboardReader.BeginReadFriends(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
-            ReadDelegate method = ReadFriends;
-            return method.BeginInvoke(userId, id, startPos, sizeOfPage, callback, state);
+            var task = new Task<LeaderboardReader>(
+                () =>
+                {
+                    Console.WriteLine("BeginJoin - inside task");
+                    return ReadFriends(userId, id, startPos, sizeOfPage);
+                });
+            task.Start();
+
+            return task.AsApm(callback, state);
         }
 
         public static IAsyncResult BeginReadOwn(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage, AsyncCallback callback, object state)
         {
-            ReadDelegate method = ReadOwn;
-            return method.BeginInvoke(userId, id, startPos, sizeOfPage, callback, state);
+            Console.WriteLine("LeaderboardReader.BeginReadOwn(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
+
+            var task = new Task<LeaderboardReader>(
+                () =>
+                {
+                    Console.WriteLine("BeginReadOwn - inside task");
+                    return ReadOwn(userId, id, startPos, sizeOfPage);
+                });
+            task.Start();
+
+            return task.AsApm(callback, state);
         }
 
         public static IAsyncResult BeginReadRange(MonoGame.Switch.UserId userId,
@@ -259,8 +278,17 @@ namespace Microsoft.Xna.Framework.GamerServices
             AsyncCallback callback,
             object state)
         {
-            ReadDelegate method = ReadRange;
-            return method.BeginInvoke(userId, id, startPos, sizeOfPage, callback, state);
+            Console.WriteLine("LeaderboardReader.BeginReadRange(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
+
+            var task = new Task<LeaderboardReader>(
+                () =>
+                {
+                    Console.WriteLine("BeginReadRange - inside task");
+                    return ReadRange(userId, id, startPos, sizeOfPage);
+                });
+            task.Start();
+
+            return task.AsApm(callback, state);
         }
 
         public static LeaderboardReader EndRead(IAsyncResult result)
@@ -270,22 +298,14 @@ namespace Microsoft.Xna.Framework.GamerServices
             LeaderboardReader returnValue = null;
             try
             {
-                AsyncResult asyncResult = (AsyncResult)result;
-
-                Console.WriteLine("LeaderboardReader.EndRead(); 1, asyncResult = {0}", asyncResult.NullOrToString());
-
-                result.AsyncWaitHandle.WaitOne();
-
-                if (asyncResult.AsyncDelegate is ReadDelegate)
-                {
-                    returnValue = ((ReadDelegate)asyncResult.AsyncDelegate).EndInvoke(result);
-                    Console.WriteLine("LeaderboardReader.EndRead(); 2, asyncResult.AsyncDelegate = {0}", asyncResult.AsyncDelegate.NullOrToString());
-                }
+                returnValue = ((Task<LeaderboardReader>)result).Result;
             }
             finally
             {
-                result.AsyncWaitHandle.Close();
+                Console.WriteLine("LeaderboardReader.EndRead - 1");
             }
+
+            Console.WriteLine("LeaderboardReader.EndRead - 2");
 
             return returnValue;
         }
@@ -294,16 +314,32 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             Console.WriteLine("LeaderboardReader.BeginPageUp(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
-            PageDelegate method = PageUp;
-            return method.BeginInvoke(callback, state);
+            var task = new Task<int>(
+                () =>
+                {
+                    Console.WriteLine("BeginReadRange - inside task");
+                    PageUp();
+                    return 0;
+                });
+            task.Start();
+
+            return task.AsApm(callback, state);
         }
 
         public IAsyncResult BeginPageDown(AsyncCallback callback, object state)
         {
             Console.WriteLine("LeaderboardReader.BeginPageDown(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
-            PageDelegate method = PageDown;
-            return method.BeginInvoke(callback, state);
+            var task = new Task<int>(
+                () =>
+                {
+                    Console.WriteLine("BeginPageDown - inside task");
+                    PageDown();
+                    return 0;
+                });
+            task.Start();
+
+            return task.AsApm(callback, state);
         }
 
         public void EndPageDown(IAsyncResult result)
@@ -322,65 +358,59 @@ namespace Microsoft.Xna.Framework.GamerServices
 
         private void EndPageOp(IAsyncResult result)
         {
+            int returnValue = 0;
             try
             {
-                var asyncResult = (AsyncResult)result;
-
-                result.AsyncWaitHandle.WaitOne();
-
-                if (asyncResult.AsyncDelegate is PageDelegate)
-                {
-                    ((PageDelegate)asyncResult.AsyncDelegate).EndInvoke(result);
-                }
+                returnValue = ((Task<int>)result).Result;
             }
             finally
             {
-                result.AsyncWaitHandle.Close();
             }
         }
 
 #endregion
 
-        //private static void CheckResult(int userId, int code)
-        //{
-        //    if (code != 0)
-        //    {
-        //        throw new NetErrorException(userId, code);
-        //    }
-        //}
+        internal void HandleResultItem()
+        {
 
-#if SWITCH
-#else
+        }
+
         private void UpdateChanges()
         {
-            Console.WriteLine("LeaderboardReader.UpdateChanges(); numResults={0}", _leaderboardRankings.NumResults);
+            Console.WriteLine("LeaderboardReader.UpdateChanges(); numResults={0}", _rankingInfo.Items.Count);
 
             _entries.Clear();
             _allFriendEntries.Clear();
 
-            var numResults = _leaderboardRankings.NumResults;
-            for (var x = 0; x < numResults; x++)
+            for (var i = 0; i < _rankingInfo.Items.Count; i++)
             {
-                _leaderboardRankings.Index = x;
+                var item = _rankingInfo.Items[i];
 
-                var rank = (int)_leaderboardRankings.RankAtIndex;
-                var score = _leaderboardRankings.ScoreValueAtIndex;
-                var gameInfo = _leaderboardRankings.GameInfoAtIndex;
-                var gamertag = _leaderboardRankings.UserOnlineIdAtIndex;
+                var rank = item.Ranking;
+                var score = item.Score;
+                var gameInfo = item.Data;
+                var userName = item.UserName;
+                var principalId = item.PrincipalId;
 
-                if (string.IsNullOrWhiteSpace(gamertag))
+                if (string.IsNullOrWhiteSpace(userName))
                     continue;
+
+                var gamertag = string.Format("{0}+0x{1:X}", userName, principalId);
 
                 var entry = new LeaderboardEntry()
                 {
-                    Ranking = rank,
-                    Rating = score,
-                    Gamer = (Gamer)new RemoteGamer(gamertag)
+                    Ranking = (int)rank,
+                    Rating = (long)score,
+                    Gamer = new RemoteGamer(gamertag)
+                    {
+                        LeaderboardId = principalId,
+                        DisplayName = userName,
+                    },
                 };
                 if (gameInfo != null)
                     entry.GameInfo = new MemoryStream(gameInfo);
 
-                Console.WriteLine("LeaderboardReader.UpdateChanges(); Entry[{0}] : {1}", x, entry);
+                Console.WriteLine("LeaderboardReader.UpdateChanges(); Entry[{0}] : {1}", i, entry);
 
                 _entries.Add(entry);
             }
@@ -396,7 +426,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             if (cachedEntry == null)
                 return;
 
-            var existing = GetEntryForGamer(cachedEntry.Gamer.Gamertag);
+            var existing = GetEntryForGamer(cachedEntry.Gamer.LeaderboardId);
             if (existing != null)
             {
                 if (existing.Ranking != 0 && existing.Ranking > cachedEntry.Ranking)
@@ -412,7 +442,7 @@ namespace Microsoft.Xna.Framework.GamerServices
 
             if (currentPageOnly)
             {
-                var firstSerialRank = _leaderboardRankings.FirstInRange;
+                var firstSerialRank = _rankingInfo.FirstInRange;
                 if (cachedEntry.Ranking < firstSerialRank && _entries.Count >= _pageSize)
                 {
                     Console.WriteLine(
@@ -420,7 +450,7 @@ namespace Microsoft.Xna.Framework.GamerServices
                     return;
                 }
 
-                var lastSerialRank = _leaderboardRankings.LastInRange;
+                var lastSerialRank = _rankingInfo.LastInRange;
                 if (cachedEntry.Ranking > lastSerialRank && _entries.Count >= _pageSize)
                 {
                     Console.WriteLine("LeaderboardReader.MergeLocalCache(); could not include cached entry because it belongs after the current page.");
@@ -471,17 +501,22 @@ namespace Microsoft.Xna.Framework.GamerServices
             }
         }
 
-        private LeaderboardEntry GetEntryForGamer(string gamertag)
+        private LeaderboardEntry GetEntryForGamer(UInt64 principalId)
         {
             foreach (var e in _entries)
             {
-                if (e.Gamer.Gamertag.Equals(gamertag))
+                var remoteGamer = (e.Gamer as RemoteGamer);
+                if (remoteGamer == null)
+                {
+                    throw new Exception("Expected all ");
+                }
+                if (e.Gamer.LeaderboardId.Equals(principalId))
                     return e;
             }
 
             return null;
         }
-#endif
+
         public bool CanPageDown 
         {
             get
@@ -519,6 +554,7 @@ namespace Microsoft.Xna.Framework.GamerServices
 
                 _disposed = true;
             }
+
 
 #if SWITCH
 #else
