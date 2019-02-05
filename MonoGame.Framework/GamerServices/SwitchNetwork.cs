@@ -387,6 +387,7 @@ namespace MonoGame.Switch
 
             // extract gamertag from byte[]
 
+
             for (var i = 0; i < results.Items.Count; i++)
             {
                 var item = results.Items[i];
@@ -419,6 +420,9 @@ namespace MonoGame.Switch
 
             return 0;
         }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void DumpState();
     }
 
 }
