@@ -1476,37 +1476,14 @@ namespace Microsoft.Xna.Framework.Net
 
                                     var isLocalPlayerHost = hostStationId == localStationId;
 
-                                    //var member = _matchingSession.GetMemberByOnlineId(onlineId);
-
-                                    //byte id = (byte)member.RoomMemberId;
-                                    //if ((ushort)id != member.RoomMemberId)
-                                    //    throw new Exception("member.RoomMemberId is greater than byte.MaxValue!");
-
-                                    ////var sessionInfo = _matchingSession.Info;
-                                    ////var gamertag = onlineId;
-                                    //var localGamer = Gamer.SignedInGamers.GetByOnlineId(onlineId);
-                                    //var islocal = localGamer != null;
-                                    //var isHost = sessionInfo.HostId == onlineId;
-
-                                    //var localGamer = Gamer.SignedInGamers.GetByStationId(stationId);
-                                    //var islocal = localGamer != null;
-
                                     string displayName = MonoGame.Switch.Network.GetPlayerName(stationId);
                                     string gamertag = string.Format("{0}+0x{1:X}", displayName, stationId);
-
-                                    //byte internalId = 0;
-                                    //// jcf: todo - internalId has to be unique for each player in the game, and be deterministic - this is currently just hard coded to work with two players
-                                    //if (!isNewPlayerHost)
-                                    //    internalId = 1;
 
                                     // since we have only one participant per station, the participant id IS the station id, for us
                                     // (otherwise, we'd have to actually iterate all participants at this station, and add a gamer-joined event for all of them)
                                     NetworkSessionParticipantId internalId = new NetworkSessionParticipantId(stationId.id);
 
                                     var cmd = new CommandGamerJoined(stationId, internalId, displayName, gamertag, isNewPlayerHost, isNewPlayerLocal);
-                                    //cmd.State = cmd.State | GamerStates.Ready;
-                                    //cmd.DisplayName = onlineId;
-                                    //cmd.GamerTag = onlineId;
 
                                     Console.WriteLine("Allocating CommandGamerJoined; gamerTag: {0}, stationId: {1}, isHost: {2}, isLocal: {3}",
                                         cmd.GamerTag, cmd.StationId, isNewPlayerHost, isNewPlayerLocal);
@@ -1530,25 +1507,11 @@ namespace Microsoft.Xna.Framework.Net
                                     break;
                                 }
 
-                                /*
-                                var member = _matchingSession.GetMemberByOnlineId(onlineId);
-
-                                if (member == null)
-                                {
-                                    Console.WriteLine("SessionMember {0} leaving this session was not found.", onlineId);
-                                    break;
-                                }
-                                */
-
                                 var cmd = new CommandGamerLeft(stationId);
-                                //cmd.remoteUniqueIdentifier = member.RoomMemberId;
 
                                 var evt = new CommandEvent(CommandEventType.GamerLeft, cmd);
 
                                 _commandQueue.Enqueue(evt);
-
-                                //_allGamers.RemoveGamer(netgamer);
-                                //_members.Remove(onlineId);     
 
                                 break;
                             }
@@ -1559,9 +1522,6 @@ namespace Microsoft.Xna.Framework.Net
                                 var evt = new CommandEvent(CommandEventType.SessionStateChange, cmd);
 
                                 _commandQueue.Enqueue(evt);
-
-                                //_allGamers.Clear();
-                                //_members.Clear();
 
                                 break;
                             }
