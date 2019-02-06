@@ -44,6 +44,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             //UserService.OnLogin += UserService_OnLogin;
             //UserService.OnLogout += UserService_OnLogout;
             MonoGame.Switch.UserService.Initialize();
+            MonoGame.Switch.Ranking.Initialize();
 
             _networkOnline = MonoGame.Switch.Network.ConnectedToInternet();
             Console.WriteLine("GamerServicesDispatcher.Initialize(); ConnectedToInternet={0}", _networkOnline);
@@ -147,6 +148,7 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             MonoGame.Switch.UserService.Update(elapsedSeconds);
             MonoGame.Switch.Network.Update(elapsedSeconds);
+            MonoGame.Switch.Ranking.Update();
 
             //SystemService.Update(true);
 
