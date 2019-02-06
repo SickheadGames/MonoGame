@@ -114,7 +114,7 @@ namespace Microsoft.Xna.Framework.GamerServices
         private void DoCommitEntries()
         {
             Console.WriteLine("LeaderboardWriter.DoCommitEntries(); BEGIN");
-
+            bool success = true;
             try
             {                
                 Console.WriteLine("LeaderboardWriter.DoCommitEntries(); _leaderboardIdentities.Count={0}", _leaderboardIdentities.Count);
@@ -168,18 +168,25 @@ namespace Microsoft.Xna.Framework.GamerServices
 
                     Console.WriteLine("LeaderboardWriter.DoCommitEntries(); loop");
                 }
-
-                var cb = WriteFinished;
-                if (cb != null)
-                    cb(true);
             }
             catch (Exception e)
             {
                 Console.WriteLine("LeaderboardWriter.DoCommitEntries(); exception : " + e);
-                //throw;
+                success = false;
             }
 
             Console.WriteLine("LeaderboardWriter.DoCommitEntries(); END");
+
+            try
+            {
+                var cb = WriteFinished;
+                if (cb != null)
+                    cb(success);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception occured within WriteFinished callback?");
+            }
         }
 
 #region IDisposable implementation
