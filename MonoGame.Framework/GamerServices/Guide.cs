@@ -48,6 +48,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Net;
 using Microsoft.Xna.Framework.Storage;
+using System.Runtime.CompilerServices;
 #if SWITCH
 #else
 using Sce.PlayStation4.Input;
@@ -139,63 +140,19 @@ namespace Microsoft.Xna.Framework.GamerServices
         }
         #endregion
 
-#region Show Keyboard Input
+        #region Show Keyboard Input
 
-#region Privates
-#if SWITCH
-#else
-        private class AsyncKeyboardInput : IAsyncResult
-        {
-            public bool IsCompleted
-            {
-                get { return _dlg.Status != ImeDialogStatus.Running; }
-            }
+        #region Privates
 
-            public WaitHandle AsyncWaitHandle { get; private set; }
-            public object AsyncState { get; private set; }
-            public bool CompletedSynchronously { get; private set; }
-
-            public ImeDialog Dialog { get { return _dlg; } }
-
-            private ImeDialog _dlg;
-
-            public AsyncKeyboardInput(ImeDialog dlg, object state)
-            {
-                _dlg = dlg;
-                AsyncState = state;
-            }
-
-            public string End()
-            {
-                ImeDialogEndStatus endStatus;
-                var err = _dlg.GetResult(out endStatus);
-                
-                string text = null;
-                if (endStatus == ImeDialogEndStatus.Ok)
-                {
-                    text = _dlg.InputText;                    
-                }
-
-                _dlg.Dispose();
-                _dlg = null;
-
-                return text;
-            }
-
-            public AsyncCallback Callback { get; set; }
-        }
-
-        private static void UpdateImeDialog(AsyncKeyboardInput result)
-        {
-            while (result.Dialog.Status == ImeDialogStatus.Running)
-            {
-                Thread.Sleep(200);
-            }
-
-            result.Callback(result);
-        }
-#endif
-#endregion
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern static string GetKeyboardInput(
+            PlayerIndex playerIndex,
+            string title,
+            string description,
+            string defaultText,
+            bool usePasswordMode);
+     
+        #endregion
 
         public static IAsyncResult BeginShowKeyboardInput(PlayerIndex playerIndex,
                                                           string title,
@@ -217,52 +174,34 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             Console.WriteLine("Guide.BeginShowKeyboardInput() playerIndex={0}, title={1}, description={2}", playerIndex, title, description);
 
-            // JCF: Is this correct??
             IsVisible = true;
 
-            Console.WriteLine("Guide.BeginShowKeyboardInput not implemented!");
+            var task = new Task<string>(
+                () =>
+                {
+                    Console.WriteLine("BeginJoin - inside task");
+                    return GetKeyboardInput(playerIndex, title, description, defaultText, usePasswordMode);
+                });
+            task.Start();
 
-#if SWITCH
-            return null;
-#else
-            var dlg = new ImeDialog();
-            dlg.UserId = UserService.InitialUser;
-            dlg.Title = title;
-            dlg.InputText = defaultText;
-            dlg.Placeholder = description;
-            var err = dlg.Init();
-
-            if (err != ImeError.Ok)
-            {
-                Console.WriteLine("ImeDialog.Init(); returned error '{0}'", err);
-
-                dlg.Dispose();
-                dlg = null;
-                IsVisible = false;
-                return null;
-            }
-
-            var result = new AsyncKeyboardInput(dlg, state);
-            result.Callback = callback;
-
-            ThreadPool.QueueUserWorkItem((e) => UpdateImeDialog(result));
-
-            return result;
-#endif
+            return task.AsApm(callback, state);
         }        
 
         public static string EndShowKeyboardInput(IAsyncResult result)
         {
             Console.WriteLine("Guide.EndShowKeyboardInput()");
 
-            // JCF: Is this correct??
-            IsVisible = false;
-#if SWITCH
-            return null;
-#else
-            var obj = (AsyncKeyboardInput)result;
-            return obj.End();
-#endif
+            string returnValue = null;
+            try
+            {
+                returnValue = ((Task<string>)result).Result;
+            }
+            finally
+            {
+                IsVisible = false;
+            }
+
+            return returnValue;
         }
 
 #endregion
