@@ -57,10 +57,20 @@ namespace Microsoft.Xna.Framework.GamerServices
             _entries = new List<LeaderboardEntry>(25);
             _readonlyEntries = new ReadOnlyCollection<LeaderboardEntry>(_entries);
 
-            int resultCode = MonoGame.Switch.Ranking.TryStartup(userId);
-            if (resultCode != 0)
+            try
             {
-                throw new NetErrorException(userId, resultCode, 0);
+                // jcf: hack, to prevent user input during startup process, since it isn't really cancelable
+                Guide.IsVisible = true;
+
+                int resultCode = MonoGame.Switch.Ranking.TryStartup(userId);
+                if (resultCode != 0)
+                {
+                    throw new NetErrorException(userId, resultCode, 0);
+                }
+            }
+            finally
+            {
+                Guide.IsVisible = false;
             }
 
             _last = this;
