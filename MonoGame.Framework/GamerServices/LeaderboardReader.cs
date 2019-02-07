@@ -258,7 +258,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             var task = new Task<LeaderboardReader>(
                 () =>
                 {
-                    Console.WriteLine("BeginJoin - inside task");
+                    Console.WriteLine("BeginReadFriends - inside task");
                     return ReadFriends(userId, id, startPos, sizeOfPage);
                 });
             task.Start();

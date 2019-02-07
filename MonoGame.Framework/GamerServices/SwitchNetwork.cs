@@ -57,6 +57,9 @@ namespace MonoGame.Switch
     public static class Network
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void Initialize();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern int _TrySearch(
             int gameMode,
             Microsoft.Xna.Framework.GamerServices.SignedInGamer gamer,
