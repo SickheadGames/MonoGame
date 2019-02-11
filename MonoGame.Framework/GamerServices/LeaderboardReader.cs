@@ -22,6 +22,7 @@ namespace Microsoft.Xna.Framework.GamerServices
         private readonly List<LeaderboardEntry> _entries;
         private readonly ReadOnlyCollection<LeaderboardEntry> _readonlyEntries;
 
+        private MonoGame.Switch.Ranking.RequestMode _requestMode;
         private MonoGame.Switch.Ranking.GetRankResults _rankingInfo;
         private int _curPosition;
 
@@ -80,7 +81,7 @@ namespace Microsoft.Xna.Framework.GamerServices
 
         private static LeaderboardReader _Read(MonoGame.Switch.Ranking.RequestMode mode, MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
         {
-            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage, friendsOnly: true);
+            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage, mode == MonoGame.Switch.Ranking.RequestMode.Friends);
 
             var rankingInfo = new MonoGame.Switch.Ranking.GetRankResults();
 
@@ -96,13 +97,15 @@ namespace Microsoft.Xna.Framework.GamerServices
                 throw new NetErrorException(userId, resultCode, 0);
             }
 
+            reader._requestMode = mode;
+
             reader._rankingInfo = rankingInfo;
 
             reader.UpdateChanges();
 
             reader.MergeLocalCache(false);
 
-            reader._curPosition = 0;
+            reader._curPosition = startPos;
             reader.ClipAllFriendsToPage();
 
             return reader;
@@ -113,25 +116,6 @@ namespace Microsoft.Xna.Framework.GamerServices
             Console.WriteLine("LeaderboardReader.ReadFriends()");
 
             return _Read(MonoGame.Switch.Ranking.RequestMode.Friends, userId, id, startPos, sizeOfPage);
-
-#if PS4
-            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage);
-            reader._friendsOnly = true;
-
-            reader._leaderboardRankings = new NpScoreRankings((uint)reader._pageSize, true, false, true);
-            var requestRes = reader._request.GetFriendsRanking((uint)reader._boardIdent.Key, reader._context, reader._leaderboardRankings);
-
-            CheckResult(userId, (int)requestRes);
-
-            reader.UpdateChanges();
-
-            reader.MergeLocalCache(false);
-
-            reader._curPosition = 0;
-            reader.ClipAllFriendsToPage();
-
-            return reader;
-#endif
         }
 
         public static LeaderboardReader ReadRange(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
@@ -139,22 +123,6 @@ namespace Microsoft.Xna.Framework.GamerServices
             Console.WriteLine("LeaderboardReader.ReadRange()");
 
             return _Read(MonoGame.Switch.Ranking.RequestMode.Everyone, userId, id, startPos, sizeOfPage);
-
-#if PS4
-            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage);
-            reader._friendsOnly = false;
-
-            reader._leaderboardRankings = new NpScoreRankings((uint)reader._pageSize, true, false, true);
-            var requestRes = reader._request.GetRankingsByRange((uint)reader._boardIdent.Key, (uint)reader._curPosition, reader._leaderboardRankings);
-
-            CheckResult(userId, (int)requestRes);
-
-            reader.UpdateChanges();
-
-            reader.MergeLocalCache(true);
-
-            return reader;
-#endif
         }
 
         /// <summary>
@@ -165,30 +133,53 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             Console.WriteLine("LeaderboardReader.ReadOwn()");
 
-#if SWITCH
             return _Read(MonoGame.Switch.Ranking.RequestMode.Nearby, userId, id, startPos, sizeOfPage);
-#else
-            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage);
-            reader._friendsOnly = false;
+        }
 
-            reader._leaderboardRankings = new NpScoreRankings((uint)reader._pageSize, true, false, true);
-            var requestRes = reader._request.GetOwnRanking((uint)reader._boardIdent.Key, reader._context, reader._leaderboardRankings);
+        private void _ReadPos(int newPos)
+        {
+            if (_friendsOnly)
+            {
+                _curPosition = newPos;
+                ClipAllFriendsToPage();
 
-            CheckResult(userId, (int)requestRes);
+                return;
+            }
 
-            reader.UpdateChanges();
+            try
+            {
+                // jcf: hack, to prevent user input during startup process, since it isn't really cancelable
+                Guide.IsVisible = true;
 
-            reader.MergeLocalCache(true);
+                int resultCode = MonoGame.Switch.Ranking.TryStartup(_userId);
+                if (resultCode != 0)
+                {
+                    throw new NetErrorException(_userId, resultCode, 0);
+                }
+            }
+            finally
+            {
+                Guide.IsVisible = false;
+            }
 
-            reader._curPosition = (int)reader._leaderboardRankings.FirstInRange;
+            var requestRes = MonoGame.Switch.Ranking.TryDownload(_requestMode, _boardIdent.Key, newPos, _pageSize, _rankingInfo);
 
-            return reader;
-#endif
+            System.Diagnostics.Debug.Assert(requestRes == 0, string.Format("LeaderboardReader.PageUp(); failed! {0}", requestRes));
+
+            //CheckResult(_userId, (int)requestRes);
+
+            _curPosition = newPos;
+
+            UpdateChanges();
+
+            MergeLocalCache(true);
         }
 
         public void PageDown()
         {
 #if SWITCH
+            var newPos = Math.Min(_curPosition + _pageSize, TotalLeaderboardSize);
+            _ReadPos(newPos);
 #else
             var newPos = Math.Min(_curPosition + _pageSize, TotalLeaderboardSize);
             
@@ -217,6 +208,8 @@ namespace Microsoft.Xna.Framework.GamerServices
         public void PageUp()
         {
 #if SWITCH
+            var newPos = Math.Max(0, _curPosition - _pageSize);
+            this._ReadPos(newPos);
 #else
             var newPos = Math.Max(0, _curPosition - _pageSize);            
 

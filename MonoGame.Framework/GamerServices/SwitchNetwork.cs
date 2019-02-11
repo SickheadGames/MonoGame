@@ -344,6 +344,9 @@ namespace MonoGame.Switch
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern int _TryStartup(MonoGame.Switch.UserId userId);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void OnNetworkShuttingDown();
+
         public static int TryStartup(MonoGame.Switch.UserId userId)
         {
             int resultCode = Network.TryStart(userId, NetworkMode.Leaderboards);
@@ -395,27 +398,35 @@ namespace MonoGame.Switch
             {
                 var item = results.Items[i];
 
-                var stream = new MemoryStream(item.Data);
-                var io = new BinaryReader(stream);
-                int ver = io.ReadInt32(); // version number
-                if (ver != 1)
+                if (item.Data != null)
                 {
-                    Console.WriteLine("Leaderboard Data is version '{0}' but we expected it to be '{1}'", ver, 1);
-                    continue;
-                }
+                    var stream = new MemoryStream(item.Data);
+                    var io = new BinaryReader(stream);
+                    int ver = io.ReadInt32(); // version number
+                    if (ver != 1)
+                    {
+                        Console.WriteLine("Leaderboard Data is version '{0}' but we expected it to be '{1}'", ver, 1);
+                        continue;
+                    }
 
-                var userName = io.ReadString();
-                item.UserName = userName;
+                    var userName = io.ReadString();
+                    item.UserName = userName;
 
-                var len = io.ReadInt32();
-                if (len == 0)
-                {
-                    item.Data = null;
+                    var len = io.ReadInt32();
+                    if (len == 0)
+                    {
+                        item.Data = null;
+                    }
+                    else
+                    {
+                        var data = io.ReadBytes(len);
+                        item.Data = data;
+                    }
                 }
                 else
                 {
-                    var data = io.ReadBytes(len);
-                    item.Data = data;
+                    item.UserName = "Player";
+                    item.Data = null;
                 }
 
                 results.Items[i] = item;
