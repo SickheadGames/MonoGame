@@ -385,7 +385,7 @@ namespace Microsoft.Xna.Framework.GamerServices
 
 #region Multiplayer Available
 
-        public static bool MultiplayerAvailable(SignedInGamer gamer)
+        public static bool MultiplayerAvailable(SignedInGamer gamer, MonoGame.Switch.NetworkMode mode)
         {
             if (!GamerServicesDispatcher.NetworkOnline)
                 return false;
@@ -396,14 +396,17 @@ namespace Microsoft.Xna.Framework.GamerServices
             if (!gamer.Privileges.AllowOnlineSessions)
                 return false;
 
+            if (!MonoGame.Switch.Network.IsAvailable(mode))
+                return false;
+
             return true;
         }
 
-        public static bool MultiplayerAvailable(IEnumerable<SignedInGamer> gamers)
+        public static bool MultiplayerAvailable(IEnumerable<SignedInGamer> gamers, MonoGame.Switch.NetworkMode mode)
         {
             foreach (var g in gamers)
             {
-                if (!MultiplayerAvailable(g))
+                if (!MultiplayerAvailable(g, mode))
                     return false;
             }
 
