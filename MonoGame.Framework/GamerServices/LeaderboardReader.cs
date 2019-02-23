@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.Xna.Framework.GamerServices
 {
@@ -149,7 +150,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             try
             {
                 // jcf: hack, to prevent user input during startup process, since it isn't really cancelable
-                Guide.IsVisible = true;
+                //Guide.IsVisible = true;
 
                 int resultCode = MonoGame.Switch.Ranking.TryStartup(_userId);
                 if (resultCode != 0)
@@ -159,7 +160,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             }
             finally
             {
-                Guide.IsVisible = false;
+                //Guide.IsVisible = false;
             }
 
             var requestRes = MonoGame.Switch.Ranking.TryDownload(_requestMode, _boardIdent.Key, newPos, _pageSize, _rankingInfo);
@@ -244,30 +245,48 @@ namespace Microsoft.Xna.Framework.GamerServices
             int startPos,
             int sizeOfPage,
             AsyncCallback callback,
-            object state)
+            ICancellable state)
         {
             Console.WriteLine("LeaderboardReader.BeginReadFriends(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
             var task = new Task<LeaderboardReader>(
                 () =>
                 {
-                    Console.WriteLine("BeginReadFriends - inside task");
-                    return ReadFriends(userId, id, startPos, sizeOfPage);
+                    MonoGame.Switch.Ranking.WaitSafeCallTimeout();
+
+                    if (state.IsCancelled)
+                    {
+                        Console.WriteLine("LeaderboardReader.BeginReadFriends(); was canceled, skipping Ranking call...");
+                        throw new TaskCanceledException();
+                    }
+                    else
+                    {
+                        return ReadFriends(userId, id, startPos, sizeOfPage);
+                    }
                 });
             task.Start();
 
             return task.AsApm(callback, state);
         }
 
-        public static IAsyncResult BeginReadOwn(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage, AsyncCallback callback, object state)
+        public static IAsyncResult BeginReadOwn(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage, AsyncCallback callback, ICancellable state)
         {
             Console.WriteLine("LeaderboardReader.BeginReadOwn(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
             var task = new Task<LeaderboardReader>(
                 () =>
                 {
-                    Console.WriteLine("BeginReadOwn - inside task");
-                    return ReadOwn(userId, id, startPos, sizeOfPage);
+                    MonoGame.Switch.Ranking.WaitSafeCallTimeout();
+
+                    if (state.IsCancelled)
+                    {
+                        Console.WriteLine("LeaderboardReader.BeginReadOwn(); was canceled, skipping Ranking call...");
+                        throw new TaskCanceledException();
+                    }
+                    else
+                    {
+                        return ReadOwn(userId, id, startPos, sizeOfPage);
+                    }
                 });
             task.Start();
 
@@ -279,15 +298,24 @@ namespace Microsoft.Xna.Framework.GamerServices
             int startPos,
             int sizeOfPage,
             AsyncCallback callback,
-            object state)
+            ICancellable state)
         {
             Console.WriteLine("LeaderboardReader.BeginReadRange(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
             var task = new Task<LeaderboardReader>(
                 () =>
                 {
-                    Console.WriteLine("BeginReadRange - inside task");
-                    return ReadRange(userId, id, startPos, sizeOfPage);
+                    MonoGame.Switch.Ranking.WaitSafeCallTimeout();
+
+                    if (state.IsCancelled)
+                    {
+                        Console.WriteLine("LeaderboardReader.BeginReadRange(); was canceled, skipping Ranking call...");
+                        throw new TaskCanceledException();
+                    }
+                    else
+                    {
+                        return ReadRange(userId, id, startPos, sizeOfPage);
+                    }
                 });
             task.Start();
 
@@ -313,7 +341,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             return returnValue;
         }
 
-        public IAsyncResult BeginPageUp(AsyncCallback callback, object state)
+        public IAsyncResult BeginPageUp(AsyncCallback callback, ICancellable state)
         {
             Console.WriteLine("LeaderboardReader.BeginPageUp(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
@@ -329,7 +357,7 @@ namespace Microsoft.Xna.Framework.GamerServices
             return task.AsApm(callback, state);
         }
 
-        public IAsyncResult BeginPageDown(AsyncCallback callback, object state)
+        public IAsyncResult BeginPageDown(AsyncCallback callback, ICancellable state)
         {
             Console.WriteLine("LeaderboardReader.BeginPageDown(); callback = {0}, state = {1}", callback.NullOrToString(), state.NullOrToString());
 
@@ -573,6 +601,12 @@ namespace Microsoft.Xna.Framework.GamerServices
         }
 
 #endregion
+    }
+
+    public interface ICancellable
+    {
+        bool IsCancelled { get; }
+        void Cancel();
     }
 }
 

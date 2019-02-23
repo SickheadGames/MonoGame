@@ -339,6 +339,10 @@ namespace MonoGame.Switch
         #endregion
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void WaitSafeCallTimeout();
+
+        
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Initialize();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
