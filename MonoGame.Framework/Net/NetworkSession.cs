@@ -2042,8 +2042,17 @@ namespace Microsoft.Xna.Framework.Net
             var newHost = AllGamers.GetByStationId(cmd.NewHost);
             var oldHost = AllGamers.GetByStationId(cmd.OldHost);
 
-            newHost._gamerState |= GamerStates.Host;
-            oldHost._gamerState &= ~GamerStates.Host;
+            if (newHost == null)
+            {
+                Console.WriteLine("Warning: Gamer for NewHost with StationId '{0}' was not found.", cmd.NewHost);
+            }
+            else
+            {
+                newHost._gamerState |= GamerStates.Host;
+            }
+
+            if (oldHost != null)
+                oldHost._gamerState &= ~GamerStates.Host;
 
             _hostingGamer = newHost;
             _isHost = _hostingGamer.IsLocal;
