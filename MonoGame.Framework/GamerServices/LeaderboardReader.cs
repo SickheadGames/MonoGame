@@ -17,14 +17,16 @@ namespace Microsoft.Xna.Framework.GamerServices
 
         private readonly int _pageSize;
         private readonly MonoGame.Switch.UserId _userId;
-        private readonly bool _friendsOnly;
-        private readonly List<LeaderboardEntry> _allFriendEntries;
+        //private readonly bool _friendsOnly;
+        //private readonly List<LeaderboardEntry> _allFriendEntries;
         private readonly LeaderboardIdentity _boardIdent;
         private readonly List<LeaderboardEntry> _entries;
         private readonly ReadOnlyCollection<LeaderboardEntry> _readonlyEntries;
 
         private MonoGame.Switch.Ranking.RequestMode _requestMode;
         private MonoGame.Switch.Ranking.GetRankResults _rankingInfo;
+
+        // note: one is the first position (there is no zero)
         private int _curPosition;
 
         public int TotalLeaderboardSize
@@ -34,14 +36,14 @@ namespace Microsoft.Xna.Framework.GamerServices
                 if (_rankingInfo == null)
                     return 0;
 
-                if (_friendsOnly)
-                    return _allFriendEntries.Count;
+                //if (_friendsOnly)
+                    //return _allFriendEntries.Count;
 
                 return _rankingInfo.TotalPlayers;
             }
         }
 
-        private LeaderboardReader(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage, bool friendsOnly)
+        private LeaderboardReader(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
         {
             if (_last != null)
             {
@@ -50,12 +52,12 @@ namespace Microsoft.Xna.Framework.GamerServices
             }
 
             _userId = userId;
-            _friendsOnly = friendsOnly;
+            //_friendsOnly = friendsOnly;
             _curPosition = startPos;
             _pageSize = sizeOfPage;
             _boardIdent = id;
 
-            _allFriendEntries = new List<LeaderboardEntry>();
+            //_allFriendEntries = new List<LeaderboardEntry>();
             _entries = new List<LeaderboardEntry>(25);
             _readonlyEntries = new ReadOnlyCollection<LeaderboardEntry>(_entries);
 
@@ -82,15 +84,15 @@ namespace Microsoft.Xna.Framework.GamerServices
 
         private static LeaderboardReader _Read(MonoGame.Switch.Ranking.RequestMode mode, MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
         {
-            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage, mode == MonoGame.Switch.Ranking.RequestMode.Friends);
+            var reader = new LeaderboardReader(userId, id, startPos, sizeOfPage);
 
             var rankingInfo = new MonoGame.Switch.Ranking.GetRankResults();
 
             int resultCode = MonoGame.Switch.Ranking.TryDownload(
                 mode,
                 reader._boardIdent.Key,
-                startPos,
-                sizeOfPage,
+                0,
+                255, // maximum number of results
                 rankingInfo);
 
             if (resultCode != 0)
@@ -102,13 +104,8 @@ namespace Microsoft.Xna.Framework.GamerServices
 
             reader._rankingInfo = rankingInfo;
 
-            reader.UpdateChanges();
-
-            reader.MergeLocalCache(false);
-
-            reader._curPosition = startPos;
-            reader.ClipAllFriendsToPage();
-
+            reader._SetPos(startPos);
+            
             return reader;
         }
 
@@ -137,103 +134,25 @@ namespace Microsoft.Xna.Framework.GamerServices
             return _Read(MonoGame.Switch.Ranking.RequestMode.Nearby, userId, id, startPos, sizeOfPage);
         }
 
-        private void _ReadPos(int newPos)
+        private void _SetPos(int newPos)
         {
-            if (_friendsOnly)
-            {
-                _curPosition = newPos;
-                ClipAllFriendsToPage();
-
-                return;
-            }
-
-            try
-            {
-                // jcf: hack, to prevent user input during startup process, since it isn't really cancelable
-                //Guide.IsVisible = true;
-
-                int resultCode = MonoGame.Switch.Ranking.TryStartup(_userId);
-                if (resultCode != 0)
-                {
-                    throw new NetErrorException(_userId, resultCode, 0);
-                }
-            }
-            finally
-            {
-                //Guide.IsVisible = false;
-            }
-
-            var requestRes = MonoGame.Switch.Ranking.TryDownload(_requestMode, _boardIdent.Key, newPos, _pageSize, _rankingInfo);
-
-            System.Diagnostics.Debug.Assert(requestRes == 0, string.Format("LeaderboardReader.PageUp(); failed! {0}", requestRes));
-
-            //CheckResult(_userId, (int)requestRes);
-
             _curPosition = newPos;
 
-            UpdateChanges();
+            UpdateEntries();
 
             MergeLocalCache(true);
         }
 
         public void PageDown()
         {
-#if SWITCH
             var newPos = Math.Min(_curPosition + _pageSize, TotalLeaderboardSize);
-            _ReadPos(newPos);
-#else
-            var newPos = Math.Min(_curPosition + _pageSize, TotalLeaderboardSize);
-            
-            if (_friendsOnly)
-            {
-                _curPosition = newPos;
-                ClipAllFriendsToPage();
-
-                return;
-            }
-
-            var requestRes = _request.GetRankingsByRange((uint)_boardIdent.Key, (uint)newPos, _leaderboardRankings);            
-
-            System.Diagnostics.Debug.Assert(requestRes == NpCommunityError.Ok, string.Format("LeaderboardReader.PageDown(); failed! {0}", requestRes));
-
-            CheckResult(_userId, (int)requestRes);
-
-            _curPosition = newPos;
-
-            UpdateChanges();
-
-            MergeLocalCache(true);
-#endif
+            _SetPos(newPos);
         }
 
         public void PageUp()
         {
-#if SWITCH
             var newPos = Math.Max(0, _curPosition - _pageSize);
-            this._ReadPos(newPos);
-#else
-            var newPos = Math.Max(0, _curPosition - _pageSize);            
-
-            if (_friendsOnly)
-            {
-                _curPosition = newPos;
-                ClipAllFriendsToPage();
-
-                return;
-            }
-
-            var requestRes = _request.GetRankingsByRange((uint)_boardIdent.Key, (uint)newPos, _leaderboardRankings);
-
-            System.Diagnostics.Debug.Assert(requestRes == NpCommunityError.Ok, string.Format("LeaderboardReader.PageUp(); failed! {0}", requestRes));
-
-            CheckResult(_userId, (int)requestRes);
-
-            _curPosition = newPos;
-
-            UpdateChanges();
-
-            MergeLocalCache(true);
-#endif
+            _SetPos(newPos);
         }
 
 #endregion
@@ -406,15 +325,19 @@ namespace Microsoft.Xna.Framework.GamerServices
 
         }
 
-        private void UpdateChanges()
+        private void UpdateEntries()
         {
-            Console.WriteLine("LeaderboardReader.UpdateChanges(); numResults={0}", _rankingInfo.Items.Count);
+            Console.WriteLine("LeaderboardReader.UpdateEntries(); numResults={0}", _rankingInfo.Items.Count);
 
             _entries.Clear();
-            _allFriendEntries.Clear();
 
             for (var i = 0; i < _rankingInfo.Items.Count; i++)
             {
+                if (i < (_curPosition-1))
+                    continue;
+                if ((i+1) > ((_curPosition - 1) + _pageSize))
+                    break;
+
                 var item = _rankingInfo.Items[i];
 
                 var rank = item.Ranking;
@@ -434,6 +357,7 @@ namespace Microsoft.Xna.Framework.GamerServices
                     Rating = (long)score,
                     Gamer = new RemoteGamer(gamertag)
                     {
+                        OnlineId = new MonoGame.Switch.OnlineId(principalId),
                         LeaderboardId = principalId,
                         DisplayName = userName,
                     },
@@ -514,24 +438,6 @@ namespace Microsoft.Xna.Framework.GamerServices
             }
         }
 
-        private void ClipAllFriendsToPage()
-        {
-            // On the first call copy the retrived entries.
-            if (_allFriendEntries.Count == 0)
-                _allFriendEntries.AddRange(_entries);
-            
-            _entries.Clear();
-
-            for (var i = 0; i < _pageSize; i++)
-            {
-                var offset = i + _curPosition;
-                if (offset >= _allFriendEntries.Count)
-                    break;
-
-                _entries.Add(_allFriendEntries[offset]);
-            }
-        }
-
         private LeaderboardEntry GetEntryForGamer(UInt64 principalId)
         {
             foreach (var e in _entries)
@@ -552,7 +458,7 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             get
             {                
-                return ( _curPosition + _pageSize ) < TotalLeaderboardSize;
+                return ( (_curPosition-1) + _pageSize ) < TotalLeaderboardSize;
             }
         }
 
@@ -560,7 +466,7 @@ namespace Microsoft.Xna.Framework.GamerServices
         {
             get
             {
-                return _curPosition > 1;
+                return (_curPosition-1) > 1;
             }
         }
 
