@@ -242,6 +242,7 @@ namespace Microsoft.Xna.Framework.GamerServices
 
         public static void ShowGamerCard(PlayerIndex playerIndex, Gamer gamer)
         {
+            IsVisible = true;
             var task = new Task(() => DoShowGamerCard(playerIndex, gamer));
             task.Start();
         }
@@ -250,26 +251,23 @@ namespace Microsoft.Xna.Framework.GamerServices
 	    {
             Console.WriteLine("Guide.ShowGamerCard() playerIndex={0}, gamer={1}", playerIndex, gamer.NullOrGamertag());
 
-            IsVisible = true;
+            try
+            {
+                var localGamer = SignedInGamer.SignedInGamers.GetByPlayerIndex(playerIndex);
+                if (localGamer == null)
+                    throw new Exception(string.Format("Guide.ShowGamerCard(); SignedInGamer with {0} not found.", playerIndex));
 
-            var localGamer = SignedInGamer.SignedInGamers.GetByPlayerIndex(playerIndex);
-            if (localGamer == null)
-                throw new Exception(string.Format("Guide.ShowGamerCard(); SignedInGamer with {0} not found.", playerIndex));
+                var targetGamer = gamer;
+                if (targetGamer == null)
+                    throw new Exception("Guide.ShowGamerCard(); targetGamer is null.");
 
-            var targetGamer = gamer;
-            if (targetGamer == null)
-                throw new Exception("Guide.ShowGamerCard(); targetGamer is null.");
+                if (string.IsNullOrEmpty(targetGamer.Gamertag))
+                    throw new Exception("Guide.ShowGamerCard(); targetGamer.Gamertag is null.");
 
-            if (string.IsNullOrEmpty(targetGamer.Gamertag))
-                throw new Exception("Guide.ShowGamerCard(); targetGamer.Gamertag is null.");
+                // Not implemented.
+                //if (player.Privileges.AllowProfileViewing)
+                //throw new GamerPrivilegeException();
 
-            // Not implemented.
-            //if (player.Privileges.AllowProfileViewing)
-            //throw new GamerPrivilegeException();
-
-#if SWITCH
-            throw new NotImplementedException();
-#endif
 #if PLAYSTATION4
             NpProfileDialog.Initialize();
 
@@ -286,8 +284,19 @@ namespace Microsoft.Xna.Framework.GamerServices
 
             NpProfileDialog.Terminate();
 #endif
-
-            IsVisible = false;
+#if SWITCH
+                int resultCode = MonoGame.Switch.Friends.ShowUserDetailInfo(localGamer.UserId, targetGamer.OnlineId, localGamer.DisplayName, targetGamer.DisplayName);
+#endif
+            }
+            catch( Exception e)
+            {
+                Console.WriteLine("Exception occured within Guide.DoShowGamerCard():");
+                Console.WriteLine(e);
+            }
+            finally
+            {
+                IsVisible = false;
+            }
 	    }
 
         public static void ShowMarketplace(PlayerIndex playerIndex)

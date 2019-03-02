@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace MonoGame.Switch
 {
+    #region Network
+
     #region Network Types
 
     internal struct SessionInformation
@@ -177,6 +179,10 @@ namespace MonoGame.Switch
         private static string _appData;
     }
 
+    #endregion
+
+    #region UserService
+
     #region UserService Types
 
     public struct UserId
@@ -297,6 +303,10 @@ namespace MonoGame.Switch
         public static extern void Update(float elapsedSeconds);
     }
 
+    #endregion
+
+    #region Ranking
+
     public static class Ranking
     {
         #region Types
@@ -340,7 +350,6 @@ namespace MonoGame.Switch
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void WaitSafeCallTimeout();
-
         
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Initialize();
@@ -372,6 +381,12 @@ namespace MonoGame.Switch
         // item.PrincipalId is not used, its always the currently signed in user
         public static int TryUpload(ref Item item)
         {
+            Console.WriteLine(
+                "TryUpload()\n" +
+                "   category={0}\n" +
+                "   score={1}\n",
+                item.Category, item.Score);
+
             // combines the gamertag into the byte array
             var stream = new MemoryStream();
             var writer = new BinaryWriter(stream);
@@ -446,4 +461,15 @@ namespace MonoGame.Switch
         public static extern void DumpState();
     }
 
+    #endregion
+
+    #region Friends
+
+    public static class Friends
+    {
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern int ShowUserDetailInfo(MonoGame.Switch.UserId viewerUserId, MonoGame.Switch.OnlineId targetOnlineId, string viewerDisplayName, string targetDisplayName);
+    }
+
+    #endregion
 }
