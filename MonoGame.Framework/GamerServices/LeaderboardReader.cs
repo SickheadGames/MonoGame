@@ -360,7 +360,9 @@ namespace Microsoft.Xna.Framework.GamerServices
                 if (gameInfo != null)
                     entry.GameInfo = new MemoryStream(gameInfo);
 
+#if DEBUG
                 Console.WriteLine("LeaderboardReader.UpdateChanges(); Entry[{0}] : {1}", i, entry);
+#endif
 
                 _entries.Add(entry);
             }
