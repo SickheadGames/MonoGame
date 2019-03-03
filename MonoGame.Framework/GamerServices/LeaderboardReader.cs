@@ -36,9 +36,6 @@ namespace Microsoft.Xna.Framework.GamerServices
                 if (_rankingInfo == null)
                     return 0;
 
-                //if (_friendsOnly)
-                    //return _allFriendEntries.Count;
-
                 return _rankingInfo.TotalPlayers;
             }
         }
@@ -52,12 +49,10 @@ namespace Microsoft.Xna.Framework.GamerServices
             }
 
             _userId = userId;
-            //_friendsOnly = friendsOnly;
             _curPosition = startPos;
             _pageSize = sizeOfPage;
             _boardIdent = id;
 
-            //_allFriendEntries = new List<LeaderboardEntry>();
             _entries = new List<LeaderboardEntry>(25);
             _readonlyEntries = new ReadOnlyCollection<LeaderboardEntry>(_entries);
 
@@ -126,7 +121,7 @@ namespace Microsoft.Xna.Framework.GamerServices
         /// <summary>
         /// Allocate a LeaderboardReader which is populated with ratings for the current player and those nearby on the same leaderboard.
         /// Note that startPos is not actually used.
-        /// </summary>        
+        /// </summary>
         public static LeaderboardReader ReadOwn(MonoGame.Switch.UserId userId, LeaderboardIdentity id, int startPos, int sizeOfPage)
         {
             Console.WriteLine("LeaderboardReader.ReadOwn()");
