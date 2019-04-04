@@ -1650,7 +1650,7 @@ namespace Microsoft.Xna.Framework.Net
                 if (i != cmd._data.Length - 1)
                     sb.Append(" ");
             }
-            Console.WriteLine("Sending Data ({0}):");
+            Console.WriteLine("Sending Data ({0}):", cmd._data.Length);
             Console.WriteLine("   " + sb.ToString());
 #endif
             fixed (byte* pData = cmd._data)
@@ -1690,7 +1690,7 @@ namespace Microsoft.Xna.Framework.Net
                 if (i != cmd._data.Length-1)
                     sb.Append(" ");
             }
-            Console.WriteLine("Receiving Data ({0}):");
+            Console.WriteLine("Receiving Data ({0}):", cmd._data.Length);
             Console.WriteLine("   " + sb.ToString());
 #endif
             // The public API for reading data is on LocalNetworkGamer
