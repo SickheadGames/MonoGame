@@ -94,7 +94,8 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
         private float spacing;
         private FontDescriptionStyle style;
         private bool useKerning;
-	    private CharacterCollection characters = new CharacterCollection();
+        private bool disableAntialiasing;
+        private CharacterCollection characters = new CharacterCollection();
 
 		/// <summary>
 		/// Gets or sets the name of the font, such as "Times New Roman" or "Arial". This value cannot be null or empty.
@@ -177,6 +178,21 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 				style = value;
 			}
 		}
+
+        /// <summary>
+        /// </summary>
+        [ContentSerializer(Optional = true)]
+        public bool DisableAntialiasing
+        {
+            get
+            {
+                return disableAntialiasing;
+            }
+            set
+            {
+                disableAntialiasing = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the default character for the font.

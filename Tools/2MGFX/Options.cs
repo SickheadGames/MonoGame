@@ -12,6 +12,9 @@ namespace TwoMGFX
         [CommandLineParser.Required]
         public string OutputFile = string.Empty;
 
+        [CommandLineParser.Name("IntermediateDir", "\t\t - Location to store intermediate files, such as individual shaders extracted from the .fx and debug symbols.")]
+        public string IntermediateDir = string.Empty;
+
         [CommandLineParser.ProfileName]
         public ShaderProfile Profile = ShaderProfile.OpenGL;
 

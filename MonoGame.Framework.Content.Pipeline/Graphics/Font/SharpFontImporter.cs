@@ -38,7 +38,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 					// Rasterize each character in turn.
 					foreach (char character in characters)
 					{
-						var glyph = ImportGlyph(character, face);
+                        var glyph = ImportGlyph(character, face, options.DisableAntialiasing);
 						glyphList.Add(glyph);
 					}
 					Glyphs = glyphList;
@@ -74,8 +74,8 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 
 				if (face.FamilyName == "Microsoft Sans Serif" && options.FontName != "Microsoft Sans Serif")
 					throw new PipelineException(string.Format("Font {0} is not installed on this computer.", options.FontName));
-
-				return face;
+                               
+                return face;
 
 				// A font substitution must have occurred.
 				//throw new Exception(string.Format("Can't find font '{0}'.", options.FontName));
@@ -87,11 +87,11 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
 		}
 
 		// Rasterizes a single character glyph.
-		private Glyph ImportGlyph(char character, Face face)
+		private Glyph ImportGlyph(char character, Face face, bool disableAntialiasing)
 		{
 			uint glyphIndex = face.GetCharIndex(character);
-			face.LoadGlyph(glyphIndex, LoadFlags.Default, LoadTarget.Normal);
-			face.Glyph.RenderGlyph(RenderMode.Normal);
+			face.LoadGlyph(glyphIndex, LoadFlags.Default, disableAntialiasing ? LoadTarget.Mono : LoadTarget.Normal);
+			face.Glyph.RenderGlyph(disableAntialiasing ? RenderMode.Mono : RenderMode.Normal);
 
 			// Render the character.
             BitmapContent glyphBitmap = null;
@@ -106,10 +106,11 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                 {
                     //variables needed for the expansion, amount of written data, length of the data to write
                     int written = 0, length = face.Glyph.Bitmap.Width * face.Glyph.Bitmap.Rows;
-                    for(int i = 0; written < length; i++)
+                    for(int r = 0; written < length; )
                     {
                         //width in pixels of each row
                         int width = face.Glyph.Bitmap.Width;
+                        int i = r;
                         while(width > 0)
                         {
                             //valid data in the current byte
@@ -122,6 +123,11 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
                             if(width > 0)
                                 i++;
                         }
+
+                        if (face.Glyph.Bitmap.Pitch < face.Glyph.Bitmap.Width)
+                            r += face.Glyph.Bitmap.Pitch;
+                        else
+                            r += face.Glyph.Bitmap.Width;
                     }
                 }
                 else
@@ -171,11 +177,8 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
             for(int i = 7; i > 7 - length; i--)
             {
                 tmp = (byte) (1 << i);
-                if(origin / tmp == 1)
-                {
+				if ((origin & tmp) > 0)
                     destination[startIndex + 7 - i] = byte.MaxValue;
-                    origin -= tmp;
-                }
                 else
                     destination[startIndex + 7 - i] = byte.MinValue;
             }

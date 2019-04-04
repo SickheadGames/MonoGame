@@ -8,7 +8,7 @@ using System.IO;
 namespace Microsoft.Xna.Framework.Graphics
 {
 
-    // TODO: We should convert the types below 
+    // TODO: We should convert the types below
     // into the start of a Shader reflection API.
 
     internal enum SamplerType
@@ -83,11 +83,13 @@ namespace Microsoft.Xna.Framework.Graphics
 					Samplers[s].state.AddressU = (TextureAddressMode)reader.ReadByte();
 					Samplers[s].state.AddressV = (TextureAddressMode)reader.ReadByte();
 					Samplers[s].state.AddressW = (TextureAddressMode)reader.ReadByte();
-                    Samplers[s].state.BorderColor = new Color(
-                        reader.ReadByte(), 
-                        reader.ReadByte(), 
-                        reader.ReadByte(), 
-                        reader.ReadByte());
+
+                    var r = reader.ReadByte();
+                    var g = reader.ReadByte();
+                    var b = reader.ReadByte();
+                    var a = reader.ReadByte();
+
+                    Samplers[s].state.BorderColor = new Color(r, g, b, a);
 					Samplers[s].state.Filter = (TextureFilter)reader.ReadByte();
 					Samplers[s].state.MaxAnisotropy = reader.ReadInt32();
 					Samplers[s].state.MaxMipLevel = reader.ReadInt32();

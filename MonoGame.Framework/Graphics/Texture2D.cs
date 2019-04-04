@@ -174,8 +174,9 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Rectangle checkedRect;
             ValidateParams(0, 0, null, data, startIndex, elementCount, out checkedRect);
-            PlatformSetData(0, data, startIndex, elementCount);
+            PlatformSetData(0, 0, checkedRect, data, startIndex, elementCount);
         }
+
 		/// <summary>
         /// Changes the texture's pixels
         /// </summary>
@@ -185,7 +186,8 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
             Rectangle checkedRect;
             ValidateParams(0, 0, null, data, 0, data.Length, out checkedRect);
-            PlatformSetData(0, data, 0, data.Length);
+
+            PlatformSetData(0, 0, checkedRect, data, 0, data.Length);
         }
         /// <summary>
         /// Retrieves the contents of the texture
@@ -203,6 +205,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Rectangle checkedRect;
             ValidateParams(level, arraySlice, rect, data, startIndex, elementCount, out checkedRect);
+
             PlatformGetData(level, arraySlice, checkedRect, data, startIndex, elementCount);
         }
         /// <summary>
@@ -317,6 +320,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             var textureBounds = new Rectangle(0, 0, Math.Max(width >> level, 1), Math.Max(height >> level, 1));
             checkedRect = rect ?? textureBounds;
+            /*
             if (level < 0 || level >= LevelCount)
                 throw new ArgumentException("level must be smaller than the number of levels in this texture.");
             if (arraySlice > 0 && !GraphicsDevice.GraphicsCapabilities.SupportsTextureArrays)
@@ -362,6 +366,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 throw new ArgumentException(string.Format("elementCount is not the right size, " +
                                             "elementCount * sizeof(T) is {0}, but data size is {1}.",
                                             elementCount * tSize, dataByteSize), "elementCount");
+            */
         }
 	}
 }

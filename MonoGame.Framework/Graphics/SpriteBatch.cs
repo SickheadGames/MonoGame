@@ -2,7 +2,17 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+// jcf: gross, but, i don't see an alternative
+#if PSVITA
+#define DISABLE_CHECK_VALID
+#endif
+
+#if !DISABLE_CHECK_VALID
+#define ENABLE_CHECK_VALID
+#endif
+
 using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace Microsoft.Xna.Framework.Graphics
@@ -156,7 +166,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
             _spritePass.Apply();
 		}
-		
+
+        [Conditional("ENABLE_CHECK_VALID")]
         void CheckValid(Texture2D texture)
         {
             if (texture == null)
@@ -165,6 +176,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 throw new InvalidOperationException("Draw was called, but Begin has not yet been called. Begin must be called successfully before you can call Draw.");
         }
 
+        [Conditional("ENABLE_CHECK_VALID")]
         void CheckValid(SpriteFont spriteFont, string text)
         {
             if (spriteFont == null)
@@ -175,6 +187,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 throw new InvalidOperationException("DrawString was called, but Begin has not yet been called. Begin must be called successfully before you can call DrawString.");
         }
 
+        [Conditional("ENABLE_CHECK_VALID")]
         void CheckValid(SpriteFont spriteFont, StringBuilder text)
         {
             if (spriteFont == null)
