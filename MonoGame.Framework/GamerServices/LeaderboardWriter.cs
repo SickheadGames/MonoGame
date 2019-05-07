@@ -119,6 +119,19 @@ namespace Microsoft.Xna.Framework.GamerServices
             {                
                 Console.WriteLine("LeaderboardWriter.DoCommitEntries(); _leaderboardIdentities.Count={0}", _leaderboardIdentities.Count);
 
+                int numCalls = _leaderboardIdentities.Count * 3;
+                while (true)
+                {
+                    int sleep = MonoGame.Switch.Ranking.TryAddCall(numCalls);
+                    if (sleep > 0)
+                    {
+                        System.Threading.Thread.Sleep(sleep);
+                        continue;
+                    }
+
+                    break;
+                }
+
                 int startupResultCode = MonoGame.Switch.Ranking.TryStartup(this._gamer.UserId);
                 if (startupResultCode != 0)
                 {

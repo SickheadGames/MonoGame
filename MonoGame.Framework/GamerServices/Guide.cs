@@ -408,6 +408,9 @@ namespace Microsoft.Xna.Framework.GamerServices
             if (!MonoGame.Switch.Network.IsAvailable(mode))
                 return false;
 
+            if (mode == MonoGame.Switch.NetworkMode.Online && MonoGame.Switch.Network.NeedStartVoice())
+                return false;
+
             return true;
         }
 
@@ -496,6 +499,15 @@ namespace Microsoft.Xna.Framework.GamerServices
                 }
 
                 gamer.Privileges._authorized = true;
+
+                if (mode == MonoGame.Switch.NetworkMode.Online)
+                {
+                    bool startVoiceResult = MonoGame.Switch.Network.TryStartVoice();
+                    if (startVoiceResult != true)
+                    {
+                        Console.WriteLine("Network.startVoiceResult returned {0}.", startVoiceResult);
+                    }
+                }
 
                 return true;
             }

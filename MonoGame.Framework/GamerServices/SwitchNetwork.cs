@@ -86,6 +86,12 @@ namespace MonoGame.Switch
         internal static extern int TryStart(UserId userId, NetworkMode mode);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool NeedStartVoice();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool TryStartVoice();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Shutdown();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -349,8 +355,22 @@ namespace MonoGame.Switch
         #endregion
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void WaitSafeCallTimeout();
-        
+        private static extern int _TryAddCall(int count);
+
+        private static object _lock = new object();
+
+        // count is number of ranking api calls which will we want to make
+        // return value is number of milliseconds to wait before doing so is possible/safe
+        // if return value is zero, the specified number of calls is added to the history window
+        public static int TryAddCall(int count)
+        {
+            lock (_lock)
+            {
+                int res = _TryAddCall(count);
+                return res;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void Initialize();
 

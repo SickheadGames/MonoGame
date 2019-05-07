@@ -99,7 +99,45 @@ namespace Microsoft.Xna.Framework.GamerServices
 
             reader._rankingInfo = rankingInfo;
 
-            reader._SetPos(startPos);
+            var userHandle = MonoGame.Switch.UserService.GetOpenLocalUserHandle(userId);
+            var onlineId = MonoGame.Switch.UserService.GetLocalUserOnlineId(userHandle);
+            ulong principalId = onlineId.id;
+
+            if (mode == MonoGame.Switch.Ranking.RequestMode.Nearby)
+            {
+                // startpos is not used
+                // instead, we set the current position such that the current users record (if they had one) will appear approx in the middle of a page
+                
+                int userRecordPos = -1;
+                for (int i = 0; i < rankingInfo.Items.Count; i++)
+                {
+                    var item = rankingInfo.Items[i];
+                    if (item.PrincipalId == principalId)
+                    {
+                        userRecordPos = i;
+                        break;
+                    }
+                }
+
+                if (userRecordPos == -1)
+                {
+                    Console.WriteLine("Warning: Local user requesting 'nearby' rankings not found.\n");
+                    reader._SetPos(startPos);
+                }
+                else
+                {
+                    startPos = userRecordPos - (sizeOfPage / 2);
+                    if (startPos > userRecordPos)
+                        startPos = userRecordPos;
+                    if (startPos < 0)
+                        startPos = 0;
+                    reader._SetPos(startPos);
+                }
+            }
+            else
+            {
+                reader._SetPos(startPos);
+            }
             
             return reader;
         }
@@ -166,15 +204,21 @@ namespace Microsoft.Xna.Framework.GamerServices
             var task = new Task<LeaderboardReader>(
                 () =>
                 {
-                    MonoGame.Switch.Ranking.WaitSafeCallTimeout();
+                    while (true)
+                    {
+                        if (state.IsCancelled)
+                        {
+                            Console.WriteLine("LeaderboardReader.BeginReadFriends(); was canceled, skipping Ranking call...");
+                            throw new TaskCanceledException();
+                        }
 
-                    if (state.IsCancelled)
-                    {
-                        Console.WriteLine("LeaderboardReader.BeginReadFriends(); was canceled, skipping Ranking call...");
-                        throw new TaskCanceledException();
-                    }
-                    else
-                    {
+                        int rem = MonoGame.Switch.Ranking.TryAddCall(1);
+                        if (rem > 0)
+                        {
+                            System.Threading.Thread.Sleep(10);
+                            continue;
+                        }
+
                         return ReadFriends(userId, id, startPos, sizeOfPage);
                     }
                 });
@@ -190,15 +234,21 @@ namespace Microsoft.Xna.Framework.GamerServices
             var task = new Task<LeaderboardReader>(
                 () =>
                 {
-                    MonoGame.Switch.Ranking.WaitSafeCallTimeout();
+                    while (true)
+                    {
+                        if (state.IsCancelled)
+                        {
+                            Console.WriteLine("LeaderboardReader.BeginReadOwn(); was canceled, skipping Ranking call...");
+                            throw new TaskCanceledException();
+                        }
 
-                    if (state.IsCancelled)
-                    {
-                        Console.WriteLine("LeaderboardReader.BeginReadOwn(); was canceled, skipping Ranking call...");
-                        throw new TaskCanceledException();
-                    }
-                    else
-                    {
+                        int rem = MonoGame.Switch.Ranking.TryAddCall(1);
+                        if (rem > 0)
+                        {
+                            System.Threading.Thread.Sleep(10);
+                            continue;
+                        }
+
                         return ReadOwn(userId, id, startPos, sizeOfPage);
                     }
                 });
@@ -219,15 +269,21 @@ namespace Microsoft.Xna.Framework.GamerServices
             var task = new Task<LeaderboardReader>(
                 () =>
                 {
-                    MonoGame.Switch.Ranking.WaitSafeCallTimeout();
+                    while (true)
+                    {
+                        if (state.IsCancelled)
+                        {
+                            Console.WriteLine("LeaderboardReader.BeginReadRange(); was canceled, skipping Ranking call...");
+                            throw new TaskCanceledException();
+                        }
 
-                    if (state.IsCancelled)
-                    {
-                        Console.WriteLine("LeaderboardReader.BeginReadRange(); was canceled, skipping Ranking call...");
-                        throw new TaskCanceledException();
-                    }
-                    else
-                    {
+                        int rem = MonoGame.Switch.Ranking.TryAddCall(1);
+                        if (rem > 0)
+                        {
+                            System.Threading.Thread.Sleep(10);
+                            continue;
+                        }
+
                         return ReadRange(userId, id, startPos, sizeOfPage);
                     }
                 });
