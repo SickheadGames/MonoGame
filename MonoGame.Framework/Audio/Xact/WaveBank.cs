@@ -408,7 +408,11 @@ namespace Microsoft.Xna.Framework.Audio
             if (disposing)
             {
                 foreach (var s in _sounds)
-                    s.Dispose();
+                {
+                    // these will be null for streaming banks (not a bug)
+                    if (s != null)
+                        s.Dispose();
+                }
 
                 IsPrepared = false;
                 IsInUse = false;
