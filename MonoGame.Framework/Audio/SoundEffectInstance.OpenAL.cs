@@ -104,8 +104,16 @@ namespace Microsoft.Xna.Framework.Audio
         {
             SourceId = 0;
             HasSourceId = false;
-            SourceId = controller.ReserveSource();
-            HasSourceId = true;
+
+            try
+            {
+                SourceId = controller.ReserveSource();
+                HasSourceId = true;
+            }
+            catch (InstancePlayLimitException ex)
+            {
+                return;
+            }
 
             int bufferId = _effect.SoundBuffer.OpenALDataBuffer;
             AL.Source(SourceId, ALSourcei.Buffer, bufferId);

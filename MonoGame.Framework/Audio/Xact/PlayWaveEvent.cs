@@ -82,19 +82,22 @@ namespace Microsoft.Xna.Framework.Audio
             _newWaveOnLoop = newWaveOnLoop;
         }
 
-        public override void Play() 
+        private void CleanupWav()
         {
             if (_wav != null)
             {
-                if (_wav.State != SoundState.Stopped)
-                    _wav.Stop();
+                _wav.Stop();
                 if (_streaming)
                     _wav.Dispose();
-				else					
-					_wav._isXAct = false;					
+                else
+                    _wav._isXAct = false;
                 _wav = null;
             }
+        }
 
+        public override void Play() 
+        {
+            CleanupWav();
             Play(true);
         }
 
@@ -164,6 +167,8 @@ namespace Microsoft.Xna.Framework.Audio
                 };
             }
 
+            CleanupWav();
+
             _wav = _soundBank.GetSoundEffectInstance(_waveBanks[_wavIndex], _tracks[_wavIndex], out _streaming);
             if (_wav == null)
             {
@@ -202,15 +207,7 @@ namespace Microsoft.Xna.Framework.Audio
 
         public override void Stop()
         {
-            if (_wav != null)
-            {
-                _wav.Stop();
-                if (_streaming)
-                    _wav.Dispose();
-				else
-                	_wav._isXAct = false;				
-                _wav = null;
-            }
+            CleanupWav();
             _loopIndex = 0;
         }
 
@@ -279,11 +276,7 @@ namespace Microsoft.Xna.Framework.Audio
                 // limit then we can stop.
                 if (_loopCount == 0 || _loopIndex >= _loopCount)
                 {
-                    if (_streaming)
-                        _wav.Dispose();
-					else
-	                    _wav._isXAct = false;						
-                    _wav = null;
+                    CleanupWav();
                     _loopIndex = 0;
                 }
                 else

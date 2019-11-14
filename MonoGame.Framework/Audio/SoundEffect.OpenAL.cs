@@ -17,7 +17,10 @@ namespace Microsoft.Xna.Framework.Audio
 {
     public sealed partial class SoundEffect : IDisposable
     {
-        internal const int MAX_PLAYING_INSTANCES = OpenALSoundController.MAX_NUMBER_OF_SOURCES;
+        // No need to limit this as OpenALSoundController will take
+        // care of virtualizing the real sound sources.
+        internal const int MAX_PLAYING_INSTANCES = int.MaxValue;
+
         internal static uint ReverbSlot = 0;
         internal static uint ReverbEffect = 0;
 
