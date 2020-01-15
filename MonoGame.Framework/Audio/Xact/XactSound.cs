@@ -338,13 +338,16 @@ namespace Microsoft.Xna.Framework.Audio
                 if (_complexSound)
                 {
                     foreach (var clip in _soundClips)
-                        if (clip.State == SoundState.Playing)
+                        if (clip.State == SoundState.Playing || 
+                            clip.State == SoundState.Paused)
                             return true;
 
                     return false;
                 } 
 
-                return _wave != null && _wave.State == SoundState.Playing;
+                return _wave != null && 
+                    (   _wave.State == SoundState.Playing ||
+                        _wave.State == SoundState.Paused);
             }
         }
 
