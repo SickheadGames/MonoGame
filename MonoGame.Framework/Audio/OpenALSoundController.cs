@@ -66,7 +66,7 @@ namespace Microsoft.Xna.Framework.Audio
 
     internal sealed class OpenALSoundController : IDisposable
     {
-        private static Lazy<OpenALSoundController> _instance = new Lazy<OpenALSoundController>(() => new OpenALSoundController());
+        private static OpenALSoundController _instance;
         private static EffectsExtension _efx = null;
         private IntPtr _device;
         private IntPtr _context;
@@ -96,7 +96,7 @@ namespace Microsoft.Xna.Framework.Audio
         private static OggStreamer _oggstreamer;
 #endif
         private List<int> availableSourcesCollection;
-        private List<int> inUseSourcesCollection;
+        private HashSet<int> inUseSourcesCollection;
         bool _isDisposed;
         public bool SupportsIma4 { get; private set; }
         public bool SupportsAdpcm { get; private set; }
@@ -124,7 +124,7 @@ namespace Microsoft.Xna.Framework.Audio
                 Filter = Efx.GenFilter();
             }
             availableSourcesCollection = new List<int>(allSourcesArray);
-			inUseSourcesCollection = new List<int>();
+			inUseSourcesCollection = new HashSet<int>();
 		}
 
         ~OpenALSoundController()
@@ -293,12 +293,37 @@ namespace Microsoft.Xna.Framework.Audio
             }
         }
 
-		public static OpenALSoundController GetInstance
+        internal static void EnsureInitialized()
+        {
+            if (_instance == null)
+            {
+                try
+                {
+                    _instance = new OpenALSoundController();
+                }
+                catch (DllNotFoundException ex)
+                {
+                    throw new NoAudioHardwareException("OpenAL DLL not found", ex);
+                }
+                catch (NoAudioHardwareException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    throw (new NoAudioHardwareException("Failed to init OpenALSoundController", ex));
+                }
+            }
+        }
+
+        public static OpenALSoundController GetInstance
         {
 			get
             {
-				return _instance.Value;
-			}
+                if (_instance == null)
+                    throw new NoAudioHardwareException("OpenAL context has failed to initialize. Call SoundEffect.Initialize() before sound operation to get more specific errors.");
+                return _instance;
+            }
 		}
 
         public static EffectsExtension Efx
@@ -318,10 +343,10 @@ namespace Microsoft.Xna.Framework.Audio
 
         public static void DestroyInstance()
         {
-            if (_instance.IsValueCreated)
+            if (_instance != null)
             {
-                _instance.Value.Dispose();
-                _instance = new Lazy<OpenALSoundController>();
+                _instance.Dispose();
+                _instance = null;
             }
         }
 
@@ -413,8 +438,11 @@ namespace Microsoft.Xna.Framework.Audio
 		{
             lock (availableSourcesCollection)
             {
-                inUseSourcesCollection.Remove(sourceId);
-                availableSourcesCollection.Add(sourceId);
+                if (inUseSourcesCollection.Contains(sourceId))
+                {
+                    inUseSourcesCollection.Remove(sourceId);
+                    availableSourcesCollection.Add(sourceId);
+                }
             }
 		}
 
