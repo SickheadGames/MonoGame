@@ -210,7 +210,38 @@ namespace MonoGame.Tools.Pipeline
 
         public void UpdateProperties()
         {
-            propertyGridControl.SetObjects(PipelineController.Instance.SelectedItems);
+            // Convert selected DirectoryItems into ContentItems
+
+            var stack = new List<IProjectItem>();
+            var results = new List<IProjectItem>();
+
+            stack.AddRange(PipelineController.Instance.SelectedItems);
+
+            while (stack.Count > 0)
+            {
+                var walk = stack[stack.Count - 1];
+                stack.RemoveAt(stack.Count - 1);
+
+                if (walk is ContentItem || walk is PipelineProject)
+                {
+                    if (!results.Contains(walk))
+                        results.Add(walk);
+
+                    continue;
+                }
+
+                if (walk is DirectoryItem)
+                {
+                    var children = PipelineController.Instance.GetItems(walk);
+                    foreach (var child in children)
+                    {
+                        if (!stack.Contains(child))
+                            stack.Add(child);
+                    }
+                }
+            }
+            
+            propertyGridControl.SetObjects(results);
         }
 
         public void OutputAppend(string text)
