@@ -17,6 +17,9 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
             ColorKeyColor = new Color(255, 0, 255, 255);
             ColorKeyEnabled = true;
             PremultiplyAlpha = true;
+            GenerateMipmaps = false;
+            ResizeToPowerOfTwo = false;
+            MakeSquare = false;
         }
 
         [DefaultValueAttribute(typeof(Color), "255,0,255,255")]
@@ -25,13 +28,16 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
         [DefaultValueAttribute(true)]
         public virtual bool ColorKeyEnabled { get; set; }
 
+        [DefaultValueAttribute(false)]
         public virtual bool GenerateMipmaps { get; set; }
 
         [DefaultValueAttribute(true)]
         public virtual bool PremultiplyAlpha { get; set; }
 
+        [DefaultValueAttribute(false)]
         public virtual bool ResizeToPowerOfTwo { get; set; }
 
+        [DefaultValueAttribute(false)]
         public virtual bool MakeSquare { get; set; }
 
         public virtual TextureProcessorOutputFormat TextureFormat { get; set; }
