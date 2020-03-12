@@ -111,8 +111,9 @@ Note all defined processor parameters are cleared when the `/processor` is set.
 ### Build Content File
 ```
 /build:<content_filepath>
+/build:<content_filepath>;<destination_filepath>
 ```
-Instructs the content builder to build the specified content file using the previously set switches and options.
+Instructs the content builder to build the specified content file using the previously set switches and options. Optional destination path may be specified if you want to change the output filepath.
 
 ### Response File
 ```
@@ -167,5 +168,27 @@ $if BuildEffects=Yes
    /build:Effects\custom.fx
    # all other effects here....
 $endif
+```
+
+### Customizing your Build Process
+
+When building content from your project via `msbuild` there are a few ways to can hook into the build process. The `MonoGame.Content.Builder.targets` runs a target called
+`BuildContent` just before your project builds. If you want to do any processing before or after this process you can use the `BeforeTargets` and `AfterTargets` mechanism provided
+by `msbuild` to run your own targest.
+
+```
+<Target Name="MyBeforeTarget" BeforeTargets="BuildContent">
+   <Message Text="MyBeforeTarget Ran"/>
+</Target>
+<Target Name="MyAfterTarget" AfterTargets="BuildContent">
+   <Message Text="MyAfterTarget Ran"/>
+</Target>
+``` 
+
+If you want to customise the arguements sent to the `MGCB.exe` as part of the build process you can use the `<MonoGameMGCBAdditionalArguments>` property to define those. 
+For example if you wanted to pass in the current project configuration you could define
+
+```
+<MonoGameMGCBAdditionalArguments>-config:$(Configuration)</MonoGameMGCBAdditionalArguments>
 ```
 

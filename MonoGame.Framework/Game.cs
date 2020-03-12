@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-#if WINRT
+#if WINDOWS_UAP
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Activation;
 #endif
@@ -136,9 +136,7 @@ namespace Microsoft.Xna.Framework
                         Platform.Activated -= OnActivated;
                         Platform.Deactivated -= OnDeactivated;
                         _services.RemoveService(typeof(GamePlatform));
-#if WINDOWS_STOREAPP && !WINDOWS_PHONE81
-                        Platform.ViewStateChanged -= Platform_ApplicationViewChanged;
-#endif
+
                         Platform.Dispose();
                         Platform = null;
                     }
@@ -312,12 +310,7 @@ namespace Microsoft.Xna.Framework
         public event EventHandler<EventArgs> Disposed;
         public event EventHandler<EventArgs> Exiting;
 
-#if WINDOWS_STOREAPP && !WINDOWS_PHONE81
-        [CLSCompliant(false)]
-        public event EventHandler<ViewStateChangedEventArgs> ApplicationViewChanged;
-#endif
-
-#if WINRT
+#if WINDOWS_UAP
         [CLSCompliant(false)]
         public ApplicationExecutionState PreviousExecutionState { get; internal set; }
 #endif
@@ -326,7 +319,7 @@ namespace Microsoft.Xna.Framework
 
         #region Public Methods
 
-#if IOS || WINDOWS_STOREAPP && !WINDOWS_PHONE81
+#if IOS
         [Obsolete("This platform's policy does not allow programmatically closing.", true)]
 #endif
         public void Exit()
@@ -446,7 +439,7 @@ namespace Microsoft.Xna.Framework
                 // NOTE: While sleep can be inaccurate in general it is 
                 // accurate enough for frame limiting purposes if some
                 // fluctuation is an acceptable result.
-#if WINRT
+#if WINDOWS_UAP
                 Task.Delay(sleepTime).Wait();
 #else
                 System.Threading.Thread.Sleep(sleepTime);
@@ -537,7 +530,9 @@ namespace Microsoft.Xna.Framework
         protected virtual void Initialize()
         {
             // TODO: This should be removed once all platforms use the new GraphicsDeviceManager
+#if !(WINDOWS && DIRECTX)
             applyChanges(graphicsDeviceManager);
+#endif
 
             // According to the information given on MSDN (see link below), all
             // GameComponents in Components at the time Initialize() is called
@@ -619,14 +614,6 @@ namespace Microsoft.Xna.Framework
 			DoExiting();
         }
 
-#if WINDOWS_STOREAPP && !WINDOWS_PHONE81
-        private void Platform_ApplicationViewChanged(object sender, ViewStateChangedEventArgs e)
-        {
-            AssertNotDisposed();
-            EventHelpers.Raise(this, ApplicationViewChanged, e);
-        }
-#endif
-
         #endregion Event Handlers
 
         #region Internal Methods
@@ -635,17 +622,15 @@ namespace Microsoft.Xna.Framework
         //        break entirely the possibility that additional platforms could
         //        be added by third parties without changing MonoGame itself.
 
+#if !(WINDOWS && DIRECTX)
         internal void applyChanges(GraphicsDeviceManager manager)
         {
 			Platform.BeginScreenDeviceChange(GraphicsDevice.PresentationParameters.IsFullScreen);
-
-#if !(WINDOWS && DIRECTX)
 
             if (GraphicsDevice.PresentationParameters.IsFullScreen)
                 Platform.EnterFullScreen();
             else
                 Platform.ExitFullScreen();
-#endif
             var viewport = new Viewport(0, 0,
 			                            GraphicsDevice.PresentationParameters.BackBufferWidth,
 			                            GraphicsDevice.PresentationParameters.BackBufferHeight);
@@ -653,6 +638,7 @@ namespace Microsoft.Xna.Framework
             GraphicsDevice.Viewport = viewport;
 			Platform.EndScreenDeviceChange(string.Empty, viewport.Width, viewport.Height);
         }
+#endif
 
         internal void DoUpdate(GameTime gameTime)
         {

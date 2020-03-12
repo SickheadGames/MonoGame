@@ -18,6 +18,8 @@ namespace TwoMGFX
 
 		public string OutputFilePath { get; private set; }
 
+        public string IntermediateDir { get; private set; }
+
 		public bool Debug { get; private set; }
 
 		public List<TechniqueInfo> Techniques = new List<TechniqueInfo>();
@@ -31,10 +33,10 @@ namespace TwoMGFX
         static public ShaderInfo FromFile(string path, Options options, IEffectCompilerOutput output)
 		{
 			var effectSource = File.ReadAllText(path);
-			return FromString(effectSource, path, options, output);
+            return FromString(effectSource, path, options, output);
 		}
 
-		static public ShaderInfo FromString(string effectSource, string filePath, Options options, IEffectCompilerOutput output)
+        static public ShaderInfo FromString(string effectSource, string filePath, Options options, IEffectCompilerOutput output)
 		{
 			var macros = new Dictionary<string, string>();
 			macros.Add("MGFX", "1");
@@ -98,6 +100,7 @@ namespace TwoMGFX
             result.Dependencies = dependencies;
             result.FilePath = fullPath;
             result.FileContent = cleanFile;
+            result.IntermediateDir = options.IntermediateDir;
             if (!string.IsNullOrEmpty(options.OutputFile))
                 result.OutputFilePath = Path.GetFullPath(options.OutputFile);
             result.AdditionalOutputFiles = new List<string>();

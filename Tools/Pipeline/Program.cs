@@ -19,27 +19,61 @@ namespace MonoGame.Tools.Pipeline
             Styles.Load();
 
             var app = new Application(Platform.Detect);
-#if WINDOWS
-            Xwt.Application.InitializeAsGuest(Xwt.ToolkitType.Wpf);
-#elif LINUX
-            Xwt.Application.InitializeAsGuest(Xwt.ToolkitType.Gtk3);
-#endif
             app.Style = "PipelineTool";
 
-            var win = new MainWindow();
-            var controller = PipelineController.Create(win);
+            PipelineSettings.Default.Load();
 
-            string project = null;
+            if (!string.IsNullOrEmpty(PipelineSettings.Default.ErrorMessage))
+            {
+                var logwin = new LogWindow();
+                logwin.LogText = PipelineSettings.Default.ErrorMessage;
+                app.Run(logwin);
+                return;
+            }
 
-            if (Global.Unix && !Global.Linux)
-                project = Environment.GetEnvironmentVariable("MONOGAME_PIPELINE_PROJECT");
-            else if (args != null && args.Length > 0)
-                project = string.Join(" ", args);
+#if !DEBUG
+            try
+#endif
+            {
+                var win = new MainWindow();
+                var controller = PipelineController.Create(win);
 
-            if (!string.IsNullOrEmpty(project))
-                controller.OpenProject(project);
+#if LINUX
+                Global.Application.AddWindow(win.ToNative() as Gtk.Window);
+#endif
 
-            app.Run(win);
+#if LINUX && !DEBUG
+
+                GLib.ExceptionManager.UnhandledException += (e) =>
+                {
+                    var logwin = new LogWindow();
+                    logwin.LogText = e.ExceptionObject.ToString();
+
+                    logwin.Show();
+                    win.Close();
+                };
+#endif
+
+                string project = null;
+
+                if (Global.Unix && !Global.Linux)
+                    project = Environment.GetEnvironmentVariable("MONOGAME_PIPELINE_PROJECT");
+                else if (args != null && args.Length > 0)
+                    project = string.Join(" ", args);
+
+                if (!string.IsNullOrEmpty(project))
+                    controller.OpenProject(project);
+                
+                app.Run(win);
+            }
+#if !DEBUG
+            catch (Exception ex)
+            {
+                PipelineSettings.Default.ErrorMessage = ex.ToString();
+                PipelineSettings.Default.Save();
+                app.Restart();
+            }
+# endif
         }
     }
 }

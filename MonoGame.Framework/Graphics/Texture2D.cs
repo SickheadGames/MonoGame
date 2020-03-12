@@ -35,6 +35,7 @@ namespace Microsoft.Xna.Framework.Graphics
 				return new Rectangle(0, 0, this.width, this.height);
             }
         }
+
         /// <summary>
         /// Creates a new texture of the given size
         /// </summary>
@@ -45,6 +46,7 @@ namespace Microsoft.Xna.Framework.Graphics
             : this(graphicsDevice, width, height, false, SurfaceFormat.Color, SurfaceType.Texture, false, 1)
         {
         }
+
         /// <summary>
         /// Creates a new texture of a given size with a surface format and optional mipmaps 
         /// </summary>
@@ -57,6 +59,7 @@ namespace Microsoft.Xna.Framework.Graphics
             : this(graphicsDevice, width, height, mipmap, format, SurfaceType.Texture, false, 1)
         {
         }
+
         /// <summary>
         /// Creates a new texture array of a given size with a surface format and optional mipmaps.
         /// Throws ArgumentException if the current GraphicsDevice can't work with texture arrays
@@ -115,6 +118,9 @@ namespace Microsoft.Xna.Framework.Graphics
             PlatformConstruct(width, height, mipmap, format, type, shared);
         }
 
+        /// <summary>
+        /// Gets the width of the texture in pixels.
+        /// </summary>
         public int Width
         {
             get
@@ -123,6 +129,9 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
+        /// <summary>
+        /// Gets the height of the texture in pixels.
+        /// </summary>
         public int Height
         {
             get
@@ -130,6 +139,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 return height;
             }
         }
+
         /// <summary>
         /// Changes the pixels of the texture
         /// Throws ArgumentNullException if data is null
@@ -148,6 +158,7 @@ namespace Microsoft.Xna.Framework.Graphics
             ValidateParams(level, arraySlice, rect, data, startIndex, elementCount, out checkedRect);
             PlatformSetData(level, arraySlice, checkedRect, data, startIndex, elementCount);
         }
+
         /// <summary>
         /// Changes the pixels of the texture
         /// </summary>
@@ -161,8 +172,12 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Rectangle checkedRect;
             ValidateParams(level, 0, rect, data, startIndex, elementCount, out checkedRect);
-            PlatformSetData(level, 0, checkedRect, data, startIndex, elementCount);
+            if (rect.HasValue)
+                PlatformSetData(level, 0, checkedRect, data, startIndex, elementCount);
+            else
+                PlatformSetData(level, data, startIndex, elementCount);
         }
+
         /// <summary>
         /// Changes the texture's pixels
         /// </summary>
@@ -174,8 +189,9 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Rectangle checkedRect;
             ValidateParams(0, 0, null, data, startIndex, elementCount, out checkedRect);
-            PlatformSetData(0, data, startIndex, elementCount);
+            PlatformSetData(0, 0, checkedRect, data, startIndex, elementCount);
         }
+
 		/// <summary>
         /// Changes the texture's pixels
         /// </summary>
@@ -185,7 +201,8 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
             Rectangle checkedRect;
             ValidateParams(0, 0, null, data, 0, data.Length, out checkedRect);
-            PlatformSetData(0, data, 0, data.Length);
+
+            PlatformSetData(0, 0, checkedRect, data, 0, data.Length);
         }
         /// <summary>
         /// Retrieves the contents of the texture
@@ -203,8 +220,10 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Rectangle checkedRect;
             ValidateParams(level, arraySlice, rect, data, startIndex, elementCount, out checkedRect);
+
             PlatformGetData(level, arraySlice, checkedRect, data, startIndex, elementCount);
         }
+
         /// <summary>
         /// Retrieves the contents of the texture
         /// Throws ArgumentException if data is null, data.length is too short or
@@ -220,6 +239,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             this.GetData(level, 0, rect, data, startIndex, elementCount);
         }
+
         /// <summary>
         /// Retrieves the contents of the texture
         /// Throws ArgumentException if data is null, data.length is too short or
@@ -233,6 +253,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
 			this.GetData(0, null, data, startIndex, elementCount);
 		}
+
         /// <summary>
         /// Retrieves the contents of the texture
         /// Throws ArgumentException if data is null, data.length is too short or
@@ -273,6 +294,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 throw new InvalidOperationException("This image format is not supported", e);
             }
         }
+
         /// <summary>
         /// Converts the texture to a JPG image
         /// </summary>
@@ -283,6 +305,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             PlatformSaveAsJpeg(stream, width, height);
         }
+
         /// <summary>
         /// Converts the texture to a PNG image
         /// </summary>
@@ -317,6 +340,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             var textureBounds = new Rectangle(0, 0, Math.Max(width >> level, 1), Math.Max(height >> level, 1));
             checkedRect = rect ?? textureBounds;
+            /*
             if (level < 0 || level >= LevelCount)
                 throw new ArgumentException("level must be smaller than the number of levels in this texture.");
             if (arraySlice > 0 && !GraphicsDevice.GraphicsCapabilities.SupportsTextureArrays)
@@ -362,6 +386,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 throw new ArgumentException(string.Format("elementCount is not the right size, " +
                                             "elementCount * sizeof(T) is {0}, but data size is {1}.",
                                             elementCount * tSize, dataByteSize), "elementCount");
+            */
         }
 	}
 }

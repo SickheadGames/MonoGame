@@ -61,12 +61,15 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
             options.Debug = DebugMode == EffectProcessorDebugMode.Debug;
             options.Defines = Defines;
             options.OutputFile = context.OutputFilename;
+            options.IntermediateDir = context.IntermediateDirectory;
 
             // Parse the MGFX file expanding includes, macros, and returning the techniques.
             ShaderInfo shaderInfo;
             try
             {
-                shaderInfo = ShaderInfo.FromFile(options.SourceFile, options, 
+                shaderInfo = ShaderInfo.FromFile(
+                    options.SourceFile,
+                    options, 
                     new ContentPipelineEffectCompilerOutput(context));
 
                 // Add the include dependencies so that if they change

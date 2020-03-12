@@ -100,7 +100,7 @@ namespace Microsoft.Xna.Framework
 
             _width = GraphicsDeviceManager.DefaultBackBufferWidth;
             _height = GraphicsDeviceManager.DefaultBackBufferHeight;
-            
+
             Sdl.SetHint("SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS", "0");
             Sdl.SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 
@@ -218,6 +218,11 @@ namespace Microsoft.Xna.Framework
                 Sdl.Window.SetFullscreen(Handle, (_willBeFullScreen) ? fullscreenFlag : 0);
                 _hardwareSwitch = _game.graphicsDeviceManager.HardwareModeSwitch;
             }
+            // If going to exclusive full-screen mode, force the window to minimize on focus loss (Windows only)
+            if (CurrentPlatform.OS == OS.Windows)
+            {
+                Sdl.SetHint("SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS", _willBeFullScreen && _hardwareSwitch ? "1" : "0");
+            }
 
             if (!_willBeFullScreen || _game.graphicsDeviceManager.HardwareModeSwitch)
             {
@@ -231,8 +236,11 @@ namespace Microsoft.Xna.Framework
                 _height = displayRect.Height;
             }
 
-            var centerX = Math.Max(prevBounds.X + ((prevBounds.Width - clientWidth) / 2), 0);
-            var centerY = Math.Max(prevBounds.Y + ((prevBounds.Height - clientHeight) / 2), 0);
+            int ignore, minx = 0, miny = 0;
+            Sdl.Window.GetBorderSize(_handle, out miny, out minx, out ignore, out ignore);
+
+            var centerX = Math.Max(prevBounds.X + ((prevBounds.Width - clientWidth) / 2), minx);
+            var centerY = Math.Max(prevBounds.Y + ((prevBounds.Height - clientHeight) / 2), miny);
 
             if (IsFullScreen && !_willBeFullScreen)
             {
