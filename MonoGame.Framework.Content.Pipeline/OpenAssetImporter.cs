@@ -11,7 +11,6 @@ using System.Reflection;
 using Assimp;
 using Assimp.Unmanaged;
 using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
-using MonoGame.Utilities;
 
 namespace Microsoft.Xna.Framework.Content.Pipeline
 {
@@ -220,56 +219,24 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
         private NodeContent _rootNode;
         private List<MaterialContent> _materials;
 
-        // This is used to enable backwards compatibility with
-        // XNA providing a model as expected from the original
-        // FbxImporter and XImporter.
-        private readonly bool _xnaCompatible;
-
-        private readonly string _importerName;
-
-        /// <summary>
-        /// Default constructor.
-        /// </summary>
-        public OpenAssetImporter()
-            : this("OpenAssetImporter", false)
-        {
-        }
-
-        internal OpenAssetImporter(string importerName, bool xnaCompatible)
-        {            
-            _importerName = importerName;
-            _xnaCompatible = xnaCompatible;
-        }
-
-        /// <summary>
-        /// This disables some Assimp model loading features so that
-        /// the resulting content is the same as what the XNA FbxImporter 
-        /// </summary>
-        public bool XnaComptatible { get; set; }
+        public string ImporterName { get; set; }
 
         public override NodeContent Import(string filename, ContentImporterContext context)
         {
-            if (filename == null)
-                throw new ArgumentNullException("filename");
-            if (context == null)
-                throw new ArgumentNullException("context");
-
             _context = context;
+#if LINUX
+			var targetDir = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.FullName;
 
-            if (CurrentPlatform.OS == OS.Linux)
-            {
-                var targetDir = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.FullName;
+			try
+			{
+				AssimpLibrary.Instance.LoadLibrary(
+					Path.Combine(targetDir, "libassimp.so"), 
+					Path.Combine(targetDir, "libassimp.so"));
+			}
+			catch { }
+#endif
 
-                try
-                {
-                    AssimpLibrary.Instance.LoadLibrary(
-                        Path.Combine(targetDir, "libassimp.so"),
-                        Path.Combine(targetDir, "libassimp.so"));
-                }
-                catch { }
-            }
-
-            _identity = new ContentIdentity(filename, _importerName);
+            _identity = new ContentIdentity(filename, string.IsNullOrEmpty(ImporterName) ? GetType().Name : ImporterName);
 
             using (var importer = new AssimpContext())
             {
@@ -305,7 +272,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
                     //PostProcessSteps.FixInFacingNormals |
                     //PostProcessSteps.GenerateNormals |
                     //PostProcessSteps.GenerateSmoothNormals |
-                    //PostProcessSteps.GenerateUVCoords | // Might be needed... find test case
+                    //PostProcessSteps.GenerateUVCoords |
                     //PostProcessSteps.LimitBoneWeights |
                     //PostProcessSteps.MakeLeftHanded |     // Not necessary, XNA is right-handed.
                     //PostProcessSteps.OptimizeGraph |      // Will eliminate helper nodes
@@ -320,13 +287,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
                     );
 
                 FindSkeleton();     // Find _rootBone, _bones, _deformationBones.
-
-                // Create _materials.
-                if (_xnaCompatible)
-                    ImportXnaMaterials();
-                else
-                    ImportMaterials();  
-
+                ImportMaterials();  // Create _materials.
                 ImportNodes();      // Create _pivots and _rootNode (incl. children).
                 ImportSkeleton();   // Create skeleton (incl. animations) and add to _rootNode.
 
@@ -347,16 +308,13 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
         }
 
         /// <summary>
-        /// Converts all Assimp <see cref="Material"/>s to standard XNA compatible <see cref="MaterialContent"/>s.
+        /// Converts all Assimp <see cref="Material"/>s to XNA <see cref="MaterialContent"/>s.
         /// </summary>
-        private void ImportXnaMaterials()
+        private void ImportMaterials()
         {
             _materials = new List<MaterialContent>();
             foreach (var aiMaterial in _scene.Materials)
             {
-                // TODO: What about AlphaTestMaterialContent, DualTextureMaterialContent, 
-                // EffectMaterialContent, EnvironmentMapMaterialContent, and SkinnedMaterialContent?
-
                 var material = new BasicMaterialContent
                 {
                     Name = aiMaterial.Name,
@@ -364,16 +322,32 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
                 };
 
                 if (aiMaterial.HasTextureDiffuse)
-                    material.Texture = ImportTextureContentRef(aiMaterial.TextureDiffuse);
+                {
+                    var texture = new ExternalReference<TextureContent>(aiMaterial.TextureDiffuse.FilePath, _identity);
+                    texture.OpaqueData.Add("TextureCoordinate", string.Format("TextureCoordinate{0}", aiMaterial.TextureDiffuse.UVIndex));
+                    material.Texture = texture;
+                }
 
                 if (aiMaterial.HasTextureOpacity)
-                    material.Textures.Add("Transparency", ImportTextureContentRef(aiMaterial.TextureOpacity));
+                {
+                    var texture = new ExternalReference<TextureContent>(aiMaterial.TextureOpacity.FilePath, _identity);
+                    texture.OpaqueData.Add("TextureCoordinate", string.Format("TextureCoordinate{0}", aiMaterial.TextureOpacity.UVIndex));
+                    material.Textures.Add("Transparency", texture);
+                }
 
                 if (aiMaterial.HasTextureSpecular)
-                    material.Textures.Add("Specular", ImportTextureContentRef(aiMaterial.TextureSpecular));
+                {
+                    var texture = new ExternalReference<TextureContent>(aiMaterial.TextureSpecular.FilePath, _identity);
+                    texture.OpaqueData.Add("TextureCoordinate", string.Format("TextureCoordinate{0}", aiMaterial.TextureSpecular.UVIndex));
+                    material.Textures.Add("Specular", texture);
+                }
 
                 if (aiMaterial.HasTextureHeight)
-                    material.Textures.Add("Bump", ImportTextureContentRef(aiMaterial.TextureHeight));
+                {
+                    var texture = new ExternalReference<TextureContent>(aiMaterial.TextureHeight.FilePath, _identity);
+                    texture.OpaqueData.Add("TextureCoordinate", string.Format("TextureCoordinate{0}", aiMaterial.TextureHeight.UVIndex));
+                    material.Textures.Add("Bump", texture);
+                }
 
                 if (aiMaterial.HasColorDiffuse)
                     material.DiffuseColor = ToXna(aiMaterial.ColorDiffuse);
@@ -388,95 +362,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
                     material.SpecularColor = ToXna(aiMaterial.ColorSpecular);
 
                 if (aiMaterial.HasShininessStrength)
-                    material.SpecularPower = aiMaterial.Shininess;
-                
-                _materials.Add(material);
-            }
-        }
-
-        private ExternalReference<TextureContent> ImportTextureContentRef(TextureSlot textureSlot)
-        {
-            var texture = new ExternalReference<TextureContent>(textureSlot.FilePath, _identity);
-            texture.OpaqueData.Add("TextureCoordinate", string.Format("TextureCoordinate{0}", textureSlot.UVIndex));
-
-            if (!_xnaCompatible)
-            {
-                texture.OpaqueData.Add("Operation", textureSlot.Operation.ToString());
-                texture.OpaqueData.Add("AddressU", textureSlot.WrapModeU.ToString());
-                texture.OpaqueData.Add("AddressV", textureSlot.WrapModeU.ToString());
-                texture.OpaqueData.Add("Mapping", textureSlot.Mapping.ToString());
-            }
-
-            return texture;
-        }            
-
-        /// <summary>
-        /// Returns all the Assimp <see cref="Material"/> features as a <see cref="MaterialContent"/>.
-        /// </summary>
-        private void ImportMaterials()
-        {
-            _materials = new List<MaterialContent>();
-            foreach (var aiMaterial in _scene.Materials)
-            {
-                // TODO: Should we create a special AssImpMaterial?
-
-                var material = new MaterialContent
-                {
-                    Name = aiMaterial.Name,
-                    Identity = _identity,
-                };
-
-                var slots = aiMaterial.GetAllMaterialTextures();
-                foreach (var tex in slots)
-                {
-                    string name;
-
-                    // Force the XNA naming standard for diffuse textures
-                    // which allows the material to work with the stock
-                    // model processor.
-                    if (tex.TextureType == TextureType.Diffuse)
-                        name = BasicMaterialContent.TextureKey;
-                    else
-                        name = tex.TextureType.ToString();
-
-                    // We might have multiple textures of the same type so number
-                    // them starting with 2 like in DualTextureMaterialContent.
-                    if (tex.TextureIndex > 0)
-                        name += (tex.TextureIndex + 1);
-
-                    material.Textures.Add(name, ImportTextureContentRef(tex));
-                }
-
-                if (aiMaterial.HasBlendMode)
-                    material.OpaqueData.Add("BlendMode", aiMaterial.BlendMode.ToString());
-                if (aiMaterial.HasBumpScaling)
-                    material.OpaqueData.Add("BumpScaling", aiMaterial.BumpScaling);
-                if (aiMaterial.HasColorAmbient)
-                    material.OpaqueData.Add("AmbientColor", ToXna(aiMaterial.ColorAmbient));
-                if (aiMaterial.HasColorDiffuse)
-                    material.OpaqueData.Add("DiffuseColor", ToXna(aiMaterial.ColorDiffuse));
-                if (aiMaterial.HasColorEmissive)
-                    material.OpaqueData.Add("EmissiveColor", ToXna(aiMaterial.ColorEmissive));
-                if (aiMaterial.HasColorReflective)
-                    material.OpaqueData.Add("ReflectiveColor", ToXna(aiMaterial.ColorReflective));
-                if (aiMaterial.HasColorSpecular)
-                    material.OpaqueData.Add("SpecularColor", ToXna(aiMaterial.ColorSpecular));
-                if (aiMaterial.HasColorTransparent)
-                    material.OpaqueData.Add("TransparentColor", ToXna(aiMaterial.ColorTransparent));
-                if (aiMaterial.HasOpacity)
-                    material.OpaqueData.Add("Opacity", aiMaterial.Opacity);
-                if (aiMaterial.HasReflectivity)
-                    material.OpaqueData.Add("Reflectivity", aiMaterial.Reflectivity);
-                if (aiMaterial.HasShadingMode)
-                    material.OpaqueData.Add("ShadingMode", aiMaterial.ShadingMode.ToString());
-                if (aiMaterial.HasShininess)
-                    material.OpaqueData.Add("Shininess", aiMaterial.Shininess);
-                if (aiMaterial.HasShininessStrength)
-                    material.OpaqueData.Add("ShininessStrength", aiMaterial.ShininessStrength);
-                if (aiMaterial.HasTwoSided)
-                    material.OpaqueData.Add("TwoSided", aiMaterial.IsTwoSided);
-                if (aiMaterial.HasWireFrame)
-                    material.OpaqueData.Add("WireFrame", aiMaterial.IsWireFrameEnabled);
+                    material.SpecularPower = aiMaterial.ShininessStrength;
 
                 _materials.Add(material);
             }

@@ -529,7 +529,8 @@ namespace Microsoft.Xna.Framework
         /// <returns>The length of this <see cref="Vector4"/>.</returns>
         public float Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
+            float result = DistanceSquared(this, zero);
+            return (float)Math.Sqrt(result);
         }
 
         /// <summary>
@@ -538,7 +539,7 @@ namespace Microsoft.Xna.Framework
         /// <returns>The squared length of this <see cref="Vector4"/>.</returns>
         public float LengthSquared()
         {
-            return (X * X) + (Y * Y) + (Z * Z) + (W * W);
+            return DistanceSquared(this, zero);
         }
 
         /// <summary>
@@ -754,12 +755,7 @@ namespace Microsoft.Xna.Framework
         /// </summary>
         public void Normalize()
         {
-            float factor = (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
-            factor = 1f / factor;
-            X *= factor;
-            Y *= factor;
-            Z *= factor;
-            W *= factor;
+            Normalize(ref this, out this);
         }
 
         /// <summary>
@@ -769,8 +765,9 @@ namespace Microsoft.Xna.Framework
         /// <returns>Unit vector.</returns>
         public static Vector4 Normalize(Vector4 value)
         {
-            float factor = (float)Math.Sqrt((value.X * value.X) + (value.Y * value.Y) + (value.Z * value.Z) + (value.W * value.W));
-            factor = 1f / factor;
+            float factor = DistanceSquared(value, zero);
+            factor = 1f / (float)Math.Sqrt(factor);
+
             return new Vector4(value.X*factor,value.Y*factor,value.Z*factor,value.W*factor);
         }
 
@@ -781,8 +778,9 @@ namespace Microsoft.Xna.Framework
         /// <param name="result">Unit vector as an output parameter.</param>
         public static void Normalize(ref Vector4 value, out Vector4 result)
         {
-            float factor = (float)Math.Sqrt((value.X * value.X) + (value.Y * value.Y) + (value.Z * value.Z) + (value.W * value.W));
-            factor = 1f / factor;
+            float factor = DistanceSquared(value, zero);
+            factor = 1f / (float)Math.Sqrt(factor);
+
             result.W = value.W * factor;
             result.X = value.X * factor;
             result.Y = value.Y * factor;
@@ -1130,21 +1128,6 @@ namespace Microsoft.Xna.Framework
         public override string ToString()
         {
             return "{X:" + X + " Y:" + Y + " Z:" + Z + " W:" + W + "}";
-        }
-
-        /// <summary>
-        /// Deconstruction method for <see cref="Vector4"/>.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <param name="w"></param>
-        public void Deconstruct(out float x, out float y, out float z, out float w)
-        {
-            x = X;
-            y = Y;
-            z = Z;
-            w = W;
         }
 
         #endregion

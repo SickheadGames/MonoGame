@@ -19,16 +19,9 @@ namespace MonoGame.Utilities
             if (assembly != null)
             {
                 // Use the Title attribute of the Assembly if possible.
-                try
-                {
-                    var assemblyTitleAtt = ((AssemblyTitleAttribute)Attribute.GetCustomAttribute(assembly, typeof(AssemblyTitleAttribute)));
-                    if (assemblyTitleAtt != null)
-                        windowTitle = assemblyTitleAtt.Title;
-                }
-                catch
-                {
-                    // Nope, wasn't possible :/
-                }
+                var assemblyTitleAtt = ((AssemblyTitleAttribute)Attribute.GetCustomAttribute(assembly, typeof(AssemblyTitleAttribute)));
+                if (assemblyTitleAtt != null)
+                    windowTitle = assemblyTitleAtt.Title;
 
                 // Otherwise, fallback to the Name of the assembly.
                 if (string.IsNullOrEmpty(windowTitle))

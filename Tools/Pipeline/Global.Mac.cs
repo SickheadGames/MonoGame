@@ -15,12 +15,17 @@ namespace MonoGame.Tools.Pipeline
             
         }
 
-        private static Bitmap PlatformGetFileIcon(string path)
+        private static Image PlatformGetFileIcon(string path)
         {
-            return null;
+            throw new NotImplementedException();
         }
 
         private static Bitmap ToEtoImage(Image image)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void PlatformShowOpenWithDialog(string filePath)
         {
             throw new NotImplementedException();
         }

@@ -202,15 +202,5 @@ namespace MonoGame.Tests.Graphics
             t.Dispose();
         }
 
-        [Test]
-        public void NullDeviceShouldThrowArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => 
-            {                
-                var texture = new TextureCube(null, 16, false, SurfaceFormat.Color);
-                texture.Dispose();
-            });
-            GC.GetTotalMemory(true); // collect uninitialized Texture
-        }
     }
 }

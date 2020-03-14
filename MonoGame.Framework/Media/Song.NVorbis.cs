@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 using Microsoft.Xna.Framework.Audio;
-using MonoGame.OpenAL;
+using OpenAL;
 
 namespace Microsoft.Xna.Framework.Media
 {

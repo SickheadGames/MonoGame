@@ -30,7 +30,11 @@
 using System;
 using System.Linq;
 using System.Collections;
+#if PLATFORM_MACOS_LEGACY
+using MonoMac.AppKit;
+#else
 using AppKit;
+#endif
 
 using Microsoft.Xna.Framework.Input;
 

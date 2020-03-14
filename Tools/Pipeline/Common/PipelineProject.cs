@@ -17,13 +17,7 @@ namespace MonoGame.Tools.Pipeline
         public string OriginalPath { get; set; }
 
         [Browsable(false)]
-        public string DestinationPath { get; set; }
-
-        [Browsable(false)]
-        public List<ContentItem> ContentItems { get; private set; }
-
-        [Browsable(false)]
-        public bool LaunchDebugger { get; set; }         
+        public List<ContentItem> ContentItems { get; private set; }                
 
         public string OutputDir { get; set; }
 

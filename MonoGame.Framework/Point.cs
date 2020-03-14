@@ -216,17 +216,6 @@ namespace Microsoft.Xna.Framework
             return new Vector2(X, Y);
         }
 
-        /// <summary>
-        /// Deconstruction method for <see cref="Point"/>.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        public void Deconstruct(out int x, out int y)
-        {
-            x = X;
-            y = Y;
-        }
-
         #endregion
     }
 }

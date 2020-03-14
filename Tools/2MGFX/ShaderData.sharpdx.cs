@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using SharpDX.Direct3D;
-using TwoMGFX.TPGParser;
 
 namespace TwoMGFX
 {

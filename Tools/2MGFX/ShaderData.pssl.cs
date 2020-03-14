@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using TwoMGFX.TPGParser;
 
 namespace TwoMGFX
 {

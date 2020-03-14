@@ -20,8 +20,15 @@ namespace Microsoft.Xna.Framework.Input
         /// </summary> 
         public static IntPtr WindowHandle
         {
-            get { return PlatformGetWindowHandle(); }
-            set { PlatformSetWindowHandle(value); }
+            get
+            {
+                return PlatformGetHandle();
+            }
+            set
+            {
+                // only for XNA compatibility, yet
+                IntPtr temp = value;
+            }
         }
 
         /// <summary>

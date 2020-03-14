@@ -24,20 +24,19 @@ namespace MonoGame.Tools.Pipeline
 
             var checkbox = new CheckBox();
             checkbox.Tag = this;
-            checkbox.Checked = (bool?)Value;
-            checkbox.ThreeState = (Value == null);
-            checkbox.Text = (checkbox.Checked == null) ? "Not Set" : checkbox.Checked.ToString();
+            checkbox.Checked = (bool)Value;
+            checkbox.Text = DisplayValue;
             checkbox.Width = _lastRec.Width - 10;
             checkbox.Height = _lastRec.Height;
             control.Add(checkbox, _lastRec.X + 10, _lastRec.Y);
 
-            checkbox.CheckedChanged += (sender, e) => checkbox.Text = (checkbox.Checked == null) ? "Not Set" : checkbox.Checked.ToString();
+            checkbox.CheckedChanged += (sender, e) => checkbox.Text = checkbox.Checked.ToString();
 
             OnKill += delegate
             {
                 OnKill = null;
 
-                if (_eventHandler == null || checkbox.Checked == null)
+                if (_eventHandler == null)
                     return;
                 
                 _draw = true;

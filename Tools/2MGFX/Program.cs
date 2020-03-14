@@ -37,10 +37,10 @@ namespace TwoMGFX
             // For now we assume we're going right to a compiled MGFXO file.
 
             // Parse the MGFX file expanding includes, macros, and returning the techniques.
-            ShaderResult shaderResult;
+            ShaderInfo shaderInfo;
             try
             {
-                shaderResult = ShaderResult.FromFile(options.SourceFile, options, new ConsoleEffectCompilerOutput());
+                shaderInfo = ShaderInfo.FromFile(options.SourceFile, options, new ConsoleEffectCompilerOutput());
             }
             catch (Exception ex)
             {
@@ -54,7 +54,7 @@ namespace TwoMGFX
             var shaderErrorsAndWarnings = string.Empty;
             try
             {
-                effect = EffectObject.CompileEffect(shaderResult, out shaderErrorsAndWarnings);
+                effect = EffectObject.CompileEffect(shaderInfo, out shaderErrorsAndWarnings);
 
                 if (!string.IsNullOrEmpty(shaderErrorsAndWarnings))
                     Console.Error.WriteLine(shaderErrorsAndWarnings);

@@ -99,11 +99,6 @@ namespace Microsoft.Xna.Framework.Graphics
         {
         }
 
-        private void PlatformGetBackBufferData<T>(Rectangle? rect, T[] data, int startIndex, int count) where T : struct
-        {
-            throw new NotImplementedException();
-        }
-
         private static Rectangle PlatformGetTitleSafeArea(int x, int y, int width, int height)
         {
             return new Rectangle(x, y, width, height);

@@ -54,13 +54,6 @@ namespace MonoGame.Tools.Pipeline
         [Browsable(false)]
         public bool SelectThis { get; set; }
 
-        [Browsable(false)]
-        public string DestinationPath
-        {
-            get { return OriginalPath; }
-            set { OriginalPath = value; }
-        }
-
         #endregion
     }
 }

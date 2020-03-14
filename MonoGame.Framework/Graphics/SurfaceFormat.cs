@@ -42,7 +42,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         NormalizedByte2,
         /// <summary>
-        /// Signed 32-bit bump-map format for store 8 bits per channel.
+        /// Signed 16-bit bump-map format for store 8 bits per channel.
         /// </summary>
         NormalizedByte4,
         /// <summary>

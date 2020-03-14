@@ -13,9 +13,14 @@ using SharpDX.DXGI;
 using SharpDX.WIC;
 using MapFlags = SharpDX.Direct3D11.MapFlags;
 using Resource = SharpDX.Direct3D11.Resource;
-using MonoGame.Utilities;
 
-#if WINDOWS_UAP
+#if WINDOWS_PHONE
+using System.Threading;
+using System.Windows;
+using System.Windows.Media.Imaging;
+#endif
+
+#if WINDOWS_STOREAPP || WINDOWS_UAP
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
 using System.Threading.Tasks;
@@ -45,15 +50,6 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             int w, h;
             GetSizeForLevel(Width, Height, level, out w, out h);
-
-            // For DXT compressed formats the width and height must be
-            // a multiple of 4 for the complete mip level to be set.
-            if (_format.IsCompressedFormat())
-            {
-                w = (w + 3) & ~3;
-                h = (h + 3) & ~3;
-            }
-
             var elementSizeInByte = ReflectionHelpers.SizeOf<T>.Get();
             var dataHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
             // Use try..finally to make sure dataHandle is freed in case of an error
@@ -215,43 +211,76 @@ namespace Microsoft.Xna.Framework.Graphics
             return arraySlice * _levelCount + level;
         }
 
-        private unsafe static Texture2D PlatformFromStream(GraphicsDevice graphicsDevice, Stream stream)
+        private static Texture2D PlatformFromStream(GraphicsDevice graphicsDevice, Stream stream)
         {
-            var reader = new ImageReader();
-            int width, height, channels;
-
-            // The data returned is always four channel BGRA
-            var data = reader.Read(stream, out width, out height, out channels, Imaging.STBI_rgb_alpha);
-
-            // XNA blacks out any pixels with an alpha of zero.
-            if (channels == 4)
+#if WINDOWS_PHONE
+            WriteableBitmap bitmap = null;
+            Threading.BlockOnUIThread(() =>
             {
-                fixed (byte* b = &data[0])
+                try
                 {
-                    for (var i = 0; i < data.Length; i += 4)
-                    {
-                        if (b[i + 3] == 0)
-                        {
-                            b[i + 0] = 0;
-                            b[i + 1] = 0;
-                            b[i + 2] = 0;
-                        }
-                    }
+                    BitmapImage bitmapImage = new BitmapImage();
+                    bitmapImage.SetSource(stream);
+                    bitmap = new WriteableBitmap(bitmapImage);
                 }
-            }
+                catch { }
+            });
 
-            Texture2D texture = null;
-            texture = new Texture2D(graphicsDevice, width, height);
-            texture.SetData(data);
+            // Convert from ARGB to ABGR 
+            ConvertToABGR(bitmap.PixelHeight, bitmap.PixelWidth, bitmap.Pixels);
 
+            Texture2D texture = new Texture2D(graphicsDevice, bitmap.PixelWidth, bitmap.PixelHeight);
+            texture.SetData<int>(bitmap.Pixels);
             return texture;
+#endif
+#if !WINDOWS_PHONE
+
+            if (!stream.CanSeek)
+                throw new NotSupportedException("stream must support seek operations");
+
+            // For reference this implementation was ultimately found through this post:
+            // http://stackoverflow.com/questions/9602102/loading-textures-with-sharpdx-in-metro 
+            Texture2D toReturn = null;
+            SharpDX.WIC.BitmapDecoder decoder;
+
+            using (var bitmap = LoadBitmap(stream, out decoder))
+            using (decoder)
+            {
+                SharpDX.Direct3D11.Texture2D sharpDxTexture = CreateTex2DFromBitmap(bitmap, graphicsDevice);
+
+                toReturn = new Texture2D(graphicsDevice, bitmap.Size.Width, bitmap.Size.Height);
+
+                toReturn._texture = sharpDxTexture;
+            }
+            return toReturn;
+#endif
         }
 
         private void PlatformSaveAsJpeg(Stream stream, int width, int height)
         {
-#if WINDOWS_UAP
+#if WINDOWS_STOREAPP || WINDOWS_UAP
             SaveAsImage(Windows.Graphics.Imaging.BitmapEncoder.JpegEncoderId, stream, width, height);
-#else
+#endif
+#if WINDOWS_PHONE
+
+            var pixelData = new byte[Width * Height * GraphicsExtensions.GetSize(Format)];
+            GetData(pixelData);
+
+            //We Must convert from BGRA to RGBA
+            ConvertToRGBA(Height, Width, pixelData);
+
+            var waitEvent = new ManualResetEventSlim(false);
+            Deployment.Current.Dispatcher.BeginInvoke(() =>
+            {
+                var bitmap = new WriteableBitmap(Width, Height);
+                System.Buffer.BlockCopy(pixelData, 0, bitmap.Pixels, 0, pixelData.Length);
+                bitmap.SaveJpeg(stream, width, height, 0, 100);
+                waitEvent.Set();
+            });
+
+            waitEvent.Wait();
+#endif
+#if !WINDOWS_STOREAPP && !WINDOWS_PHONE && !WINDOWS_UAP
             throw new NotImplementedException();
 #endif
         }
@@ -282,7 +311,7 @@ namespace Microsoft.Xna.Framework.Graphics
             pngWriter.Write(this, stream);
         }
 
-#if WINDOWS_UAP
+#if WINDOWS_STOREAPP || WINDOWS_UAP
         private void SaveAsImage(Guid encoderId, Stream stream, int width, int height)
         {
             var pixelData = new byte[Width * Height * GraphicsExtensions.GetSize(Format)];
@@ -308,6 +337,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }).Wait();
         }
 #endif
+#if !WINDOWS_PHONE
 
         static unsafe SharpDX.Direct3D11.Texture2D CreateTex2DFromBitmap(BitmapSource bsource, GraphicsDevice device)
         {
@@ -362,18 +392,16 @@ namespace Microsoft.Xna.Framework.Graphics
 
             var fconv = new FormatConverter(imgfactory);
 
-            using (var frame = decoder.GetFrame(0))
-            {
-                fconv.Initialize(
-                    frame,
-                    PixelFormat.Format32bppRGBA,
-                    BitmapDitherType.None,
-                    null,
-                    0.0,
-                    BitmapPaletteType.Custom);
-            }
+            fconv.Initialize(
+                decoder.GetFrame(0),
+                PixelFormat.Format32bppRGBA,
+                BitmapDitherType.None, null,
+                0.0, BitmapPaletteType.Custom);
+
             return fconv;
         }
+
+#endif
 
         protected internal virtual Texture2DDescription GetTexture2DDescription()
         {
@@ -417,6 +445,25 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private void PlatformReload(Stream textureStream)
         {
+#if WINDOWS_PHONE
+            Deployment.Current.Dispatcher.BeginInvoke(() =>
+            {
+                try
+                {
+                    BitmapImage bitmapImage = new BitmapImage();
+                    bitmapImage.SetSource(textureStream);
+                    WriteableBitmap bitmap = new WriteableBitmap(bitmapImage);
+
+                    // Convert from ARGB to ABGR 
+                    ConvertToABGR(bitmap.PixelHeight, bitmap.PixelWidth, bitmap.Pixels);
+
+                    this.SetData<int>(bitmap.Pixels);
+
+                    textureStream.Dispose();
+                }
+                catch { }
+            });
+#endif
         }
     }
 }

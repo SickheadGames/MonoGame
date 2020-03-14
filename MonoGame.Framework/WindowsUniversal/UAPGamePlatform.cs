@@ -37,7 +37,6 @@ namespace Microsoft.Xna.Framework
             // Setup the game window.
             Window = UAPGameWindow.Instance;
 			UAPGameWindow.Instance.Game = game;
-            UAPGameWindow.Instance.RegisterCoreWindowService();
 
             // Setup the launch parameters.
             // - Parameters can optionally start with a forward slash.
@@ -98,6 +97,8 @@ namespace Microsoft.Xna.Framework
                 }
             }
 
+            SystemNavigationManager.GetForCurrentView().BackRequested += BackRequested;
+
             CoreApplication.Suspending += this.CoreApplication_Suspending;
 
             Game.PreviousExecutionState = PreviousExecutionState;
@@ -114,6 +115,17 @@ namespace Microsoft.Xna.Framework
             get { return GameRunBehavior.Synchronous; }
         }
 
+        private static void BackRequested(object sender, BackRequestedEventArgs e)
+        {
+            // We need to manually hide the keyboard input UI when the back button is pressed
+            if (KeyboardInput.IsVisible)
+                KeyboardInput.Cancel(null);
+            else
+                GamePad.Back = true;
+
+            e.Handled = true;
+        }
+
         public override void RunLoop()
         {
             UAPGameWindow.Instance.RunLoop();
@@ -126,6 +138,7 @@ namespace Microsoft.Xna.Framework
                 while (true)
                 {
                     UAPGameWindow.Instance.Tick();
+                    GamePad.Back = false;
                 }
             });
             var tickWorker = ThreadPool.RunAsync(workItemHandler, WorkItemPriority.High, WorkItemOptions.TimeSliced);
@@ -171,9 +184,11 @@ namespace Microsoft.Xna.Framework
             UAPGameWindow.Instance.AppView.ExitFullScreenMode();
         }
 
-        internal override void OnPresentationChanged(PresentationParameters pp)
+        internal override void OnPresentationChanged()
         {
-            if (pp.IsFullScreen)
+            var presentationParameters = Game.GraphicsDevice.PresentationParameters;
+
+            if (presentationParameters.IsFullScreen)
                 EnterFullScreen();
             else
                 ExitFullScreen();

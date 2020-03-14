@@ -10,12 +10,11 @@ namespace MonoGame.Tools.Pipeline
     partial class AddItemDialog : Dialog<bool>
     {
         public bool ApplyForAll { get; private set; }
-        public IncludeType Responce { get; private set; }
+        public CopyAction Responce { get; private set; }
 
         public AddItemDialog(string fileloc, bool exists, FileType filetype)
         {
             InitializeComponent();
-            Responce = IncludeType.Copy;
 
             Title = "Add " + filetype;
 
@@ -45,11 +44,11 @@ namespace MonoGame.Tools.Pipeline
         private void RadioButton_CheckedChanged(object sender, EventArgs e)
         {
             if (radioCopy.Checked)
-                Responce = IncludeType.Copy;
+                Responce = CopyAction.Copy;
             else if (radioLink.Checked)
-                Responce = IncludeType.Link;
+                Responce = CopyAction.Link;
             else
-                Responce = IncludeType.Skip;
+                Responce = CopyAction.Skip;
         }
 
         private void CheckBox1_CheckedChanged(object sender, EventArgs e)

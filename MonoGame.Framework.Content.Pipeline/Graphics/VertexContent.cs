@@ -200,9 +200,6 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
         /// <param name="index">Index of the vertex to be removed.</param>
         public void RemoveAt(int index)
         {
-            if (index < 0 || index >= VertexCount)
-                throw new ArgumentOutOfRangeException("index");
-
             positionIndices.Items.RemoveAt(index);
 
             foreach (var channel in channels)
@@ -216,15 +213,8 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Graphics
         /// <param name="count">Number of indices to remove.</param>
         public void RemoveRange(int index, int count)
         {
-            if (index < 0 || index >= VertexCount)
-                throw new ArgumentOutOfRangeException("index");
-            if (count < 0 || (index+count) > VertexCount)
-                throw new ArgumentOutOfRangeException("count");
-
-            positionIndices.RemoveRange(index, count);
-
-            foreach (var channel in channels)
-                channel.RemoveRange(index, count);
+            for (var i = index; i < index + count; i++)
+                RemoveAt(i);
         }
     }
 }

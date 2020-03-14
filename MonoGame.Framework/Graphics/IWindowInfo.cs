@@ -4,7 +4,7 @@
 
 using System;
 
-namespace MonoGame.OpenGL
+namespace OpenGL
 {
     public interface IWindowInfo
     {

@@ -25,9 +25,6 @@ namespace Microsoft.Xna.Framework.Graphics
             SupportsTextureArrays = device.GraphicsProfile == GraphicsProfile.HiDef;
             SupportsDepthClamp = device.GraphicsProfile == GraphicsProfile.HiDef;
             SupportsVertexTextures = device.GraphicsProfile == GraphicsProfile.HiDef;
-            SupportsFloatTextures = true;
-            SupportsHalfFloatTextures = true;
-            SupportsNormalized = true;
 
             SupportsInstancing = true;
 

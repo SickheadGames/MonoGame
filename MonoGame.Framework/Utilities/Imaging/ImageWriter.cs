@@ -38,6 +38,11 @@ namespace MonoGame.Utilities
             return size;
         }
 
+        private void WriteCallback2(void* context, void* data, int size)
+        {
+            WriteCallback(context, data, size);
+        }
+
         public void Write(byte[] bytes, int x, int y, int comp, ImageWriterFormat format, Stream dest)
         {
             try
@@ -54,7 +59,7 @@ namespace MonoGame.Utilities
                             Imaging.stbi_write_tga_to_func(WriteCallback, null, x, y, comp, b);
                             break;
                         case ImageWriterFormat.Jpg:
-                            Imaging.stbi_write_jpg_to_func(WriteCallback, null, x, y, comp, b, 90);
+                            Imaging.tje_encode_with_func(WriteCallback2, null, 2, x, y, comp, b);
                             break;
 
                         case ImageWriterFormat.Png:

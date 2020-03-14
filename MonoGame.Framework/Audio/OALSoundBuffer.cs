@@ -3,7 +3,22 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
-using MonoGame.OpenAL;
+
+#if MONOMAC && PLATFORM_MACOS_LEGACY
+using MonoMac.OpenAL;
+#endif
+#if MONOMAC && !PLATFORM_MACOS_LEGACY
+using OpenTK.Audio.OpenAL;
+#endif
+
+#if GLES 
+using OpenTK.Audio.OpenAL;
+#endif
+
+#if DESKTOPGL
+using OpenAL;
+#endif
+
 
 namespace Microsoft.Xna.Framework.Audio
 {
@@ -12,9 +27,10 @@ namespace Microsoft.Xna.Framework.Audio
 		int openALDataBuffer;
 		ALFormat openALFormat;
 		int dataSize;
+		int sampleRate;
         bool _isDisposed;
 
-		public OALSoundBuffer()
+		public OALSoundBuffer ()
 		{
             AL.GenBuffers(1, out openALDataBuffer);
             ALHelper.CheckError("Failed to generate OpenAL data buffer.");
@@ -25,49 +41,66 @@ namespace Microsoft.Xna.Framework.Audio
             Dispose(false);
         }
 
-		public int OpenALDataBuffer
-        {
-			get
-            {
+		public int OpenALDataBuffer {
+			get {
 				return openALDataBuffer;
 			}
 		}
 
-		public double Duration
-        {
+		public double Duration {
 			get;
 			set;
 		}
 
-        public void BindDataBuffer(byte[] dataBuffer, ALFormat format, int size, int sampleRate, int sampleAlignment = 0)
+        public void BindDataBuffer(byte[] dataBuffer, ALFormat format, int size, int sampleRate, int alignment = 0)
         {
-            if ((format == ALFormat.MonoMSAdpcm || format == ALFormat.StereoMSAdpcm) && !OpenALSoundController.GetInstance.SupportsAdpcm)
-                throw new InvalidOperationException("MS-ADPCM is not supported by this OpenAL driver");
-            if ((format == ALFormat.MonoIma4 || format == ALFormat.StereoIma4) && !OpenALSoundController.GetInstance.SupportsIma4)
-                throw new InvalidOperationException("IMA/ADPCM is not supported by this OpenAL driver");
-
             openALFormat = format;
             dataSize = size;
+            this.sampleRate = sampleRate;
             int unpackedSize = 0;
-
-            if (sampleAlignment > 0)
-            {
-                AL.Bufferi(openALDataBuffer, ALBufferi.UnpackBlockAlignmentSoft, sampleAlignment);
-                ALHelper.CheckError("Failed to fill buffer.");
+#if DESKTOPGL
+            if (alignment > 0) {
+                AL.Bufferi (openALDataBuffer, ALBufferi.UnpackBlockAlignmentSoft, alignment);
+                ALHelper.CheckError ("Failed to fill buffer.");
             }
+#endif
 
-            AL.BufferData(openALDataBuffer, openALFormat, dataBuffer, size, sampleRate);
+            AL.BufferData(openALDataBuffer, openALFormat, dataBuffer, size, this.sampleRate);
             ALHelper.CheckError("Failed to fill buffer.");
 
             int bits, channels;
-            Duration = -1;
+
             AL.GetBuffer(openALDataBuffer, ALGetBufferi.Bits, out bits);
-            ALHelper.CheckError("Failed to get buffer bits");
-            AL.GetBuffer(openALDataBuffer, ALGetBufferi.Channels, out channels);
-            ALHelper.CheckError("Failed to get buffer channels");
-            AL.GetBuffer(openALDataBuffer, ALGetBufferi.Size, out unpackedSize);
-            ALHelper.CheckError("Failed to get buffer size");
-            Duration = (float)(unpackedSize / ((bits / 8) * channels)) / (float)sampleRate;
+            ALError alError = AL.GetError();
+            if (alError != ALError.NoError)
+            {
+                Console.WriteLine("Failed to get buffer bits: {0}, format={1}, size={2}, sampleRate={3}", AL.GetErrorString(alError), format, size, sampleRate);
+                Duration = -1;
+            }
+            else
+            {
+                AL.GetBuffer(openALDataBuffer, ALGetBufferi.Channels, out channels);
+
+                alError = AL.GetError();
+                if (alError != ALError.NoError)
+                {
+                    Console.WriteLine("Failed to get buffer channels: {0}, format={1}, size={2}, sampleRate={3}", AL.GetErrorString(alError), format, size, sampleRate);
+                    Duration = -1;
+                }
+                else
+                {
+                    AL.GetBuffer (openALDataBuffer, ALGetBufferi.Size, out unpackedSize);
+                    alError = AL.GetError ();
+                    if (alError != ALError.NoError) {
+                        Console.WriteLine ("Failed to get buffer size: {0}, format={1}, size={2}, sampleRate={3}", AL.GetErrorString (alError), format, size, sampleRate);
+                        Duration = -1;
+                    } else {
+                        Duration = (float)(unpackedSize / ((bits / 8) * channels)) / (float)sampleRate;
+                    }
+                }
+            }
+            //Console.WriteLine("Duration: " + Duration + " / size: " + size + " bits: " + bits + " channels: " + channels + " rate: " + sampleRate);
+
         }
 
 		public void Dispose()
@@ -97,3 +130,4 @@ namespace Microsoft.Xna.Framework.Audio
         }
 	}
 }
+

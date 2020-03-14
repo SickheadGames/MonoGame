@@ -41,6 +41,11 @@ namespace MonoGame.Tools.Pipeline
         bool ProjectBuilding { get; }
 
         /// <summary>
+        /// Passes /launchdebugger option when launching MGCB.
+        /// </summary>
+        bool LaunchDebugger { get; set; }
+
+        /// <summary>
         /// The view this controller is attached to.
         /// </summary>
         IView View { get; }
@@ -104,6 +109,8 @@ namespace MonoGame.Tools.Pipeline
         void NewFolder();
 
         void Rename();
+
+        void Move(string[] paths, string[] newpaths, FileType[] types);
         
         void AddAction(IProjectAction action);
 

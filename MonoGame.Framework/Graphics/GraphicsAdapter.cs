@@ -82,6 +82,12 @@ namespace Microsoft.Xna.Framework.Graphics
         /// Used to request the graphics device should be created with debugging
         /// features enabled.
         /// </summary>
+        /// <remarks>
+        /// Debugging is enabled by default in Debug builds of MonoGame, while it
+        /// is disabled in Release builds. This option can only be used to enable
+        /// debugging in Release builds (i.e. setting it to false will not disable
+        /// debugging in Debug builds).
+        /// </remarks>
         public static bool UseDebugLayers { get; set; }
 
         public string Description { get; private set; }
@@ -126,17 +132,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-        /// <summary>
-        /// Queries for support of the requested render target format on the adaptor.
-        /// </summary>
-        /// <param name="graphicsProfile">The graphics profile.</param>
-        /// <param name="format">The requested surface format.</param>
-        /// <param name="depthFormat">The requested depth stencil format.</param>
-        /// <param name="multiSampleCount">The requested multisample count.</param>
-        /// <param name="selectedFormat">Set to the best format supported by the adaptor for the requested surface format.</param>
-        /// <param name="selectedDepthFormat">Set to the best format supported by the adaptor for the requested depth stencil format.</param>
-        /// <param name="selectedMultiSampleCount">Set to the best count supported by the adaptor for the requested multisample count.</param>
-        /// <returns>True if the requested format is supported by the adaptor. False if one or more of the values was changed.</returns>
+        /*
 		public bool QueryRenderTargetFormat(
 			GraphicsProfile graphicsProfile,
 			SurfaceFormat format,
@@ -146,25 +142,9 @@ namespace Microsoft.Xna.Framework.Graphics
 			out DepthFormat selectedDepthFormat,
 			out int selectedMultiSampleCount)
 		{
-            selectedFormat = format;
-            selectedDepthFormat = depthFormat;
-            selectedMultiSampleCount = multiSampleCount;
-			
-            // fallback for unsupported renderTarget surface formats.
-            if (selectedFormat == SurfaceFormat.Alpha8 ||
-                selectedFormat == SurfaceFormat.NormalizedByte2 ||
-                selectedFormat == SurfaceFormat.NormalizedByte4 ||
-                selectedFormat == SurfaceFormat.Dxt1 ||
-                selectedFormat == SurfaceFormat.Dxt3 ||
-                selectedFormat == SurfaceFormat.Dxt5 ||
-                selectedFormat == SurfaceFormat.Dxt1a ||
-                selectedFormat == SurfaceFormat.Dxt1SRgb ||
-                selectedFormat == SurfaceFormat.Dxt3SRgb ||
-                selectedFormat == SurfaceFormat.Dxt5SRgb)
-                selectedFormat = SurfaceFormat.Color;
-
-            return (format == selectedFormat) && (depthFormat == selectedDepthFormat) && (multiSampleCount == selectedMultiSampleCount);
+			throw new NotImplementedException();
 		}
+        */
 
         public bool IsProfileSupported(GraphicsProfile graphicsProfile)
         {

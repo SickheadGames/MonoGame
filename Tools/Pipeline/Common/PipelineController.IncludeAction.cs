@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System;
 
 namespace MonoGame.Tools.Pipeline
@@ -13,116 +14,72 @@ namespace MonoGame.Tools.Pipeline
         private class IncludeAction : IProjectAction
         {
             private readonly PipelineController _con;
-            private readonly List<IncludeItem> _includes;
-            private readonly List<IProjectItem> _items;
-            private bool _firsttime;
+            private readonly string[] _folder;
+            private readonly string[] _files;
 
-            public IncludeAction(List<IncludeItem> includes)
+            public IncludeAction(PipelineController controller, IEnumerable<string> files) : this(controller, files, null)
             {
-                _items = new List<IProjectItem>();
-                _con = Instance;
-                _includes = includes;
-                _firsttime = true;
+                
             }
 
-            public IncludeAction(IncludeItem item) : this(new List<IncludeItem> { item })
+            public IncludeAction(PipelineController controller, IEnumerable<string> files, IEnumerable<string> folders)
             {
+                _con = controller;
 
-            }
+                _files = files == null ? new string[0] : files.ToArray();
+                _folder = folders == null ? new string[0] : folders.ToArray();
 
-            /// <summary>
-            /// Prepares the item list and creates all the neccecary files.
-            /// </summary>
-            public void FirstDo()
-            {
-                var parser = new PipelineProjectParser(_con, _con._project);
-
-                for (int i = 0; i < _includes.Count; i++)
+                for (int i = 0; i < _folder.Length; i++)
                 {
-                    var item = _includes[i].IsDirectory ?
-                        (IProjectItem)new DirectoryItem("") : new ContentItem();
-
-                    if (_includes[i].IncludeType == IncludeType.Create ||
-                        _includes[i].IncludeType == IncludeType.Link)
+                    if (Path.IsPathRooted(_folder[i]))
                     {
-                        item.OriginalPath = Util.GetRelativePath(_includes[i].SourcePath, _con.ProjectLocation);
-                        item.DestinationPath = _includes[i].RelativeDestPath;
-
-                        if (_includes[i].IncludeType == IncludeType.Create)
-                        {
-                            if (_includes[i].IsDirectory)
-                                Directory.CreateDirectory(_includes[i].SourcePath);
-                            else
-                            {
-                                var conitem = item as ContentItem;
-                                var template = _includes[i].ItemTemplate;
-
-                                conitem.ImporterName = template.ImporterName;
-                                conitem.ProcessorName = template.ProcessorName;
-
-                                Directory.CreateDirectory(Path.GetDirectoryName(_includes[i].SourcePath));
-                                File.Copy(template.TemplateFile, _includes[i].SourcePath);
-                            }
-                        }
-                    }
-                    else if (!_includes[i].IsDirectory) // This is only a valid action for files
-                    {
-                        var sourcePath = _includes[i].SourcePath;
-                        var destPath = Path.Combine(_con.ProjectLocation, _includes[i].RelativeDestPath);
-
-                        Directory.CreateDirectory(Path.GetDirectoryName(destPath));
-                        File.Copy(sourcePath, destPath);
-
-                        item.OriginalPath = item.DestinationPath = _includes[i].RelativeDestPath;
+                        string projectloc = controller._project.Location;
+                        if (_folder[i].Length >= projectloc.Length + 1)
+                            _folder[i] = _folder[i].Substring(projectloc.Length + 1);
                     }
 
-                    var citem = item as ContentItem;
-                    if (citem != null)
-                    {
-                        citem.ProcessorParams = new Microsoft.Xna.Framework.Content.Pipeline.OpaqueDataDictionary();
-                        citem.Observer = _con;
-
-                        citem.ResolveTypes();
-                    }
-
-                    // Always keep Unix slashes in the .mgcb files for cross platform compatibility
-                    item.OriginalPath = item.OriginalPath.Replace('\\', '/');
-                    item.DestinationPath = item.DestinationPath.Replace('\\', '/');
-
-                    _items.Add(item);
+                    if(_folder[i].EndsWith(Path.DirectorySeparatorChar.ToString()))
+                        _folder[i] = _folder[i].Remove(_folder[i].Length - 1);
                 }
             }
 
             public bool Do()
             {
-                if (_firsttime)
-                {
-                    // Generate file list and populate item list
-                    _firsttime = false;
-
-                    try
-                    {
-                        FirstDo();
-                    }
-                    catch (Exception ex)
-                    {
-                        _con.View.ShowError(
-                            "Include Action Error",
-                            "The include action has failed for the following reason: " +
-                            Environment.NewLine + ex
-                        );
-                        return false;
-                    }
-                }
-
+                var parser = new PipelineProjectParser(_con, _con._project);
                 _con.View.BeginTreeUpdate();
 
-                foreach (var item in _items)
+                foreach(string f in _folder)
+                    if(f != "")
+                        _con.View.AddTreeItem(new DirectoryItem(f));
+
+                for (var i = 0; i < _files.Length; i++ )
                 {
-                    if (item is ContentItem)
-                        _con._project.ContentItems.Add(item as ContentItem);
+                    bool skipduplicate = false;
+
+                    switch (Environment.OSVersion.Platform) 
+                    {
+                        case PlatformID.Win32NT:
+                        case PlatformID.Win32S:
+                        case PlatformID.Win32Windows:
+                        case PlatformID.WinCE:
+                            skipduplicate = true;
+                            break;
+                    }
+
+                    var f = _files[i];
+                    if (!parser.AddContent(f, skipduplicate))
+                        continue;
+
+                    var item = _con._project.ContentItems.Last();
+                    item.Observer = _con;
+                    item.ResolveTypes();
+
+                    _files[i] = item.OriginalPath;
 
                     _con.View.AddTreeItem(item);
+
+                    item.ExpandToThis = true;
+                    _con.View.UpdateTreeItem(item);
                 }
 
                 _con.View.EndTreeUpdate();
@@ -135,13 +92,23 @@ namespace MonoGame.Tools.Pipeline
             {
                 _con.View.BeginTreeUpdate();
 
-                foreach (var item in _items)
+                foreach (var f in _files)
                 {
-                    if (item is ContentItem)
-                        _con._project.ContentItems.Remove(item as ContentItem);
-
-                    _con.View.RemoveTreeItem(item);
+                    for (var i = 0; i < _con._project.ContentItems.Count; i++)
+                    {
+                        var item = _con._project.ContentItems[i];
+                        if (item.OriginalPath == f)
+                        {
+                            _con.View.RemoveTreeItem(item);
+                            _con._project.ContentItems.Remove(item);
+                            break;
+                        }
+                    }
                 }
+
+                foreach(string f in _folder)
+                    if(f != "")
+                        _con.View.RemoveTreeItem(new DirectoryItem(f));
 
                 _con.View.EndTreeUpdate();
                 _con.ProjectDirty = true;

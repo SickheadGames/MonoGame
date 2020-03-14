@@ -2,6 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+#if WINDOWS_PHONE
+extern alias MicrosoftXnaFramework;
+using MsMediaQueue = MicrosoftXnaFramework::Microsoft.Xna.Framework.Media.MediaQueue;
+#endif
+
 using System;
 using System.Collections.Generic;
 
@@ -13,6 +18,20 @@ namespace Microsoft.Xna.Framework.Media
 		private int _activeSongIndex = -1;
 		private Random random = new Random();
 
+#if WINDOWS_PHONE
+        private MsMediaQueue mediaQueue;
+
+        public static implicit operator MediaQueue(MsMediaQueue mediaQueue)
+        {
+            return new MediaQueue(mediaQueue);
+        }
+
+        private MediaQueue(MsMediaQueue mediaQueue)
+        {
+            this.mediaQueue = mediaQueue;
+        }
+#endif
+
 		public MediaQueue()
 		{
 			
@@ -22,6 +41,10 @@ namespace Microsoft.Xna.Framework.Media
 		{
 			get
 			{
+#if WINDOWS_PHONE
+			    if (mediaQueue != null)
+			        return new Song(mediaQueue.ActiveSong);
+#endif
 				if (songs.Count == 0 || _activeSongIndex < 0)
 					return null;
 				
@@ -33,10 +56,18 @@ namespace Microsoft.Xna.Framework.Media
 		{
 		    get
 		    {
+#if WINDOWS_PHONE
+			    if (mediaQueue != null)
+			        return mediaQueue.ActiveSongIndex;
+#endif
 		        return _activeSongIndex;
 		    }
 		    set
 		    {
+#if WINDOWS_PHONE
+		        if (mediaQueue != null)
+		            mediaQueue.ActiveSongIndex = value;
+#endif
 		        _activeSongIndex = value;
 		    }
 		}
@@ -45,6 +76,10 @@ namespace Microsoft.Xna.Framework.Media
         {
             get
             {
+#if WINDOWS_PHONE
+                if (mediaQueue != null)
+                    return mediaQueue.Count;
+#endif
                 return songs.Count;
             }
         }
@@ -53,6 +88,10 @@ namespace Microsoft.Xna.Framework.Media
         {
             get
             {
+#if WINDOWS_PHONE
+                if (mediaQueue != null)
+                    return new Song(mediaQueue[index]);
+#endif
                 return songs[index];
             }
         }

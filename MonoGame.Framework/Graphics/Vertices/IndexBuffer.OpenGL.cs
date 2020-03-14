@@ -7,13 +7,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
-using MonoGame.OpenGL;
+
+#if MONOMAC && PLATFORM_MACOS_LEGACY
+using MonoMac.OpenGL;
+#endif
+#if MONOMAC && !PLATFORM_MACOS_LEGACY
+using OpenTK.Graphics.OpenGL;
+#endif
+#if GLES
+using OpenTK.Graphics.ES20;
+using BufferUsageHint = OpenTK.Graphics.ES20.BufferUsage;
+#endif
+#if DESKTOPGL
+using OpenGL;
+#endif
 
 namespace Microsoft.Xna.Framework.Graphics
 {
     public partial class IndexBuffer
     {
-		internal int ibo;	
+		internal uint ibo;	
 
         private void PlatformConstruct(IndexElementSize indexElementSize, int indexCount)
         {
@@ -139,9 +152,13 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             if (!IsDisposed)
             {
-                if (GraphicsDevice != null)
-                    GraphicsDevice.DisposeBuffer(ibo);
+                Threading.BlockOnUIThread(() =>
+                {
+                    GL.DeleteBuffers(1, ref ibo);
+                    GraphicsExtensions.CheckGLError();
+                });
             }
+
             base.Dispose(disposing);
         }
 	}

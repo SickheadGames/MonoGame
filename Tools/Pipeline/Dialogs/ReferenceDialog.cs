@@ -57,14 +57,15 @@ namespace MonoGame.Tools.Pipeline
                 _dataStore.Add(new RefItem(Path.GetFileName(rf), _controller.GetFullPath(rf)));
         }
 
-        public override void Close()
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             References = new List<string>();
 
             var items = _dataStore.GetEnumerator();
-            while (items.MoveNext())
+            while(items.MoveNext())
                 References.Add(_controller.GetRelativePath(items.Current.Location));
-            base.Close();
+            
+            base.OnClosing(e);
         }
 
         private void Grid1_SelectionChanged(object sender, EventArgs e)

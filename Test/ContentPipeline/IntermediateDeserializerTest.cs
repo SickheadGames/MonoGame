@@ -581,9 +581,6 @@ namespace MonoGame.Tests.ContentPipeline
         }
 
         [Test]
-#if DESKTOPGL
-        [Ignore("Fails on Mac build server some reason.")]
-#endif
         public void Colors()
         {
             DeserializeCompileAndLoad<Colors>("27_Colors.xml", colors =>

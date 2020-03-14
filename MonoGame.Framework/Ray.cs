@@ -255,18 +255,7 @@ namespace Microsoft.Xna.Framework
         {
             return "{{Position:" + Position.ToString() + " Direction:" + Direction.ToString() + "}}";
         }
-
-        /// <summary>
-        /// Deconstruction method for <see cref="Ray"/>.
-        /// </summary>
-        /// <param name="position">Receives the start position of the ray.</param>
-        /// <param name="direction">Receives the direction of the ray.</param>
-        public void Deconstruct(out Vector3 position, out Vector3 direction)
-        {
-            position = Position;
-            direction = Direction;
-        }
-
-        #endregion
+		
+		#endregion
     }
 }

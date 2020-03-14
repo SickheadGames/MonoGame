@@ -569,32 +569,14 @@ But the answer was still '42'.
             CheckFrames();
 		}
 
-        [TestCase("The rain in España stays mainly in the plain - now in français")]
-        [TestCase("\x1f")]
-        [TestCase("\x7f")]
-        public void Throws_when_drawing_unavailable_characters(string text)
+		[Test]
+		public void Throws_when_drawing_unavailable_characters ()
 		{
+			const string text = "The rain in España stays mainly in the plain - now in français";
             _spriteBatch.Begin ();
             Assert.Throws<ArgumentException> (() =>
                 _spriteBatch.DrawString (_defaultFont, text, Vector2.Zero, Color.Violet));
             _spriteBatch.End ();
 		}
-
-        [TestCase('ñ')]
-        [TestCase((char)127)]
-        [TestCase((char)31)]
-        public void Throws_when_setting_unavailable_DefaultCharacter(char character)
-		{
-            Assert.Throws<ArgumentException> (() =>
-                _defaultFont.DefaultCharacter = character);
-		}
-
-        [TestCase((char)32)]
-        [TestCase((char)63)]
-        [TestCase((char)126)]
-        public void Does_not_throw_when_setting_available_DefaultCharacter(char character)
-        {
-            Assert.DoesNotThrow(() => _defaultFont.DefaultCharacter = character);
-        }
 	}
 }

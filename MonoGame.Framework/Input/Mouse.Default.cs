@@ -8,13 +8,9 @@ namespace Microsoft.Xna.Framework.Input
 {
     public static partial class Mouse
     {
-        private static IntPtr PlatformGetWindowHandle()
+        private static IntPtr PlatformGetHandle()
         {
             return IntPtr.Zero;
-        }
-
-        private static void PlatformSetWindowHandle(IntPtr windowHandle)
-        {
         }
 
         private static MouseState PlatformGetState(GameWindow window)

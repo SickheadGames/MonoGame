@@ -3,11 +3,10 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
-using Microsoft.Xna.Framework.Graphics;
 
-namespace MonoGame.OpenGL
+namespace OpenGL
 {
-    internal class GraphicsContext : IGraphicsContext, IDisposable
+    public class GraphicsContext : IGraphicsContext, IDisposable
     {
         private IntPtr _context;
         private IntPtr _winHandle;
@@ -29,11 +28,6 @@ namespace MonoGame.OpenGL
         {
             get { return _disposed; }
         }
-
-		public bool IsCurrent
-		{
-			get { return true; }
-		}
 
         public GraphicsContext(IWindowInfo info)
         {
@@ -77,9 +71,8 @@ namespace MonoGame.OpenGL
         {
             if (_disposed)
                 return;
-
-            GraphicsDevice.DisposeContext(_context);
-            _context = IntPtr.Zero;
+            
+            Sdl.GL.DeleteContext(_context);
             _disposed = true;
         }
 

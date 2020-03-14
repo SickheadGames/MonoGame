@@ -22,7 +22,7 @@ namespace Microsoft.Xna.Framework.Content
         private ContentTypeReader _baseTypeReader;
 
 
-        public ReflectiveReader() 
+        internal ReflectiveReader() 
             : base(typeof(T))
         {
         }

@@ -22,19 +22,8 @@ namespace MonoGame.Tests.Graphics
         }
 
         [Test]
-        public void NullDeviceShouldThrowArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => 
-            {
-                var renderTarget = new RenderTarget2D(null, 16, 16);
-                renderTarget.Dispose();
-            });
-            GC.GetTotalMemory(true); // collect uninitialized renderTarget
-        }
-
-        [Test]
 #if XNA
-        [Ignore("XNA mipmaps fail our pixel comparison tests")]
+        [Ignore]
 #endif
         public void GenerateMips()
         {
@@ -114,27 +103,6 @@ namespace MonoGame.Tests.Graphics
             texture.Dispose();
             spriteBatch.Dispose();
             renderTarget.Dispose();
-        }
-        
-        [TestCase(SurfaceFormat.Color, SurfaceFormat.Color)]
-        // unsupported renderTarget formats
-        [TestCase(SurfaceFormat.Alpha8, SurfaceFormat.Color)]
-        [TestCase(SurfaceFormat.Dxt1, SurfaceFormat.Color)]
-        [TestCase(SurfaceFormat.Dxt3, SurfaceFormat.Color)]
-        [TestCase(SurfaceFormat.Dxt5, SurfaceFormat.Color)]
-#if !XNA        
-        [TestCase(SurfaceFormat.Dxt1a, SurfaceFormat.Color)]
-        [TestCase(SurfaceFormat.Dxt1SRgb, SurfaceFormat.Color)]
-        [TestCase(SurfaceFormat.Dxt3SRgb, SurfaceFormat.Color)]
-        [TestCase(SurfaceFormat.Dxt5SRgb, SurfaceFormat.Color)]
-#endif
-        [TestCase(SurfaceFormat.NormalizedByte2, SurfaceFormat.Color)]
-        [TestCase(SurfaceFormat.NormalizedByte4, SurfaceFormat.Color)]
-        public void PreferredSurfaceFormatTest(SurfaceFormat preferredSurfaceFormat, SurfaceFormat expectedSurfaceFormat)
-        {                    
-            var renderTarget = new RenderTarget2D(gd, 16, 16, false, preferredSurfaceFormat, DepthFormat.None);
-                    
-            Assert.AreEqual(renderTarget.Format, expectedSurfaceFormat);
         }
     }
 }

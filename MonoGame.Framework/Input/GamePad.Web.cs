@@ -40,7 +40,6 @@ namespace Microsoft.Xna.Framework.Input
             return new GamePadCapabilities 
             {
                 IsConnected = true,
-                GamePadType = GamePadType.GamePad,
                 HasAButton = (gpc.Read("a").index != -1),
                 HasBButton = (gpc.Read("b").index != -1),
                 HasXButton = (gpc.Read("x").index != -1),

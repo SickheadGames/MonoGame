@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
-using System;
 using NUnit.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -73,16 +72,6 @@ namespace MonoGame.Tests.Graphics
 
             indexBuffer.Dispose();
         }
-        
-        [Test]
-        public void NullDeviceShouldThrowArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => 
-            {
-                var indexBuffer = new IndexBuffer(null, IndexElementSize.SixteenBits, 3, BufferUsage.None);
-                indexBuffer.Dispose();
-            });
-            GC.GetTotalMemory(true); // collect uninitialized IndexBuffer
-        }
+
     }
 }

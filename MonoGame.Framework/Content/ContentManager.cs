@@ -9,9 +9,8 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Xna.Framework.Utilities;
 using Microsoft.Xna.Framework.Graphics;
-using System.Globalization;
 
-#if !WINDOWS_UAP
+#if !WINRT
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 #endif
@@ -36,9 +35,8 @@ namespace Microsoft.Xna.Framework.Content
 
         private static readonly List<char> targetPlatformIdentifiers = new List<char>()
         {
-            'w', // Windows (XNA & DirectX)
-            'x', // Xbox360 (XNA)
-            'm', // WindowsPhone7.0 (XNA)
+            'w', // Windows (DirectX)
+            'x', // Xbox360
             'i', // iOS
             'a', // Android
             'd', // DesktopGL
@@ -196,29 +194,6 @@ namespace Microsoft.Xna.Framework.Content
 			}
 		}
 
-        public virtual T LoadLocalized<T> (string assetName)
-        {
-            string [] cultureNames =
-            {
-                CultureInfo.CurrentCulture.Name,                        // eg. "en-US"
-                CultureInfo.CurrentCulture.TwoLetterISOLanguageName     // eg. "en"
-            };
-
-            // Look first for a specialized language-country version of the asset,
-            // then if that fails, loop back around to see if we can find one that
-            // specifies just the language without the country part.
-            foreach (string cultureName in cultureNames) {
-                string localizedAssetName = assetName + '.' + cultureName;
-
-                try {
-                    return Load<T> (localizedAssetName);
-                } catch (ContentLoadException) { }
-            }
-
-            // If we didn't find any localized asset, fall back to the default name.
-            return Load<T> (assetName);
-        }
-
 		public virtual T Load<T>(string assetName)
 		{
             if (string.IsNullOrEmpty(assetName))
@@ -267,7 +242,7 @@ namespace Microsoft.Xna.Framework.Content
                 // This is primarily for editor support. 
                 // Setting the RootDirectory to an absolute path is useful in editor
                 // situations, but TitleContainer can ONLY be passed relative paths.                
-#if DESKTOPGL || WINDOWS
+#if DESKTOPGL || MONOMAC || WINDOWS
                 if (Path.IsPathRooted(assetPath))                
                     stream = File.OpenRead(assetPath);                
                 else
@@ -287,7 +262,7 @@ namespace Microsoft.Xna.Framework.Content
 			{
 				throw new ContentLoadException("The content file was not found.", fileNotFound);
 			}
-#if !WINDOWS_UAP
+#if !WINRT
 			catch (DirectoryNotFoundException directoryNotFound)
 			{
 				throw new ContentLoadException("The directory was not found.", directoryNotFound);

@@ -93,6 +93,7 @@ namespace MonoGame.Tests
 					: base (g => g.Components)
 				{ }
 
+				[Ignore]
 				public override void Has_correct_default_value () { }
 
 				[Test]
@@ -118,6 +119,7 @@ namespace MonoGame.Tests
 					base.SetUp ();
 				}
 
+				[Ignore]
 				public override void Has_correct_default_value () { }
 
 				[Test]
@@ -139,6 +141,7 @@ namespace MonoGame.Tests
 					: base (g => g.GraphicsDevice)
 				{ }
 
+				[Ignore]
 				public override void Has_correct_default_value () { }
 
 				[Test]
@@ -218,6 +221,7 @@ namespace MonoGame.Tests
 					AddLegalValue (false);
 				}
 
+				[Ignore]
 				public override void Cannot_set_illegal_value (Tuple<bool, Type> valueAndException) { }
 			}
 
@@ -232,6 +236,7 @@ namespace MonoGame.Tests
 					AddLegalValue (false);
 				}
 
+				[Ignore]
 				public override void Cannot_set_illegal_value (Tuple<bool, Type> valueAndException) { }
 			}
 
@@ -241,6 +246,7 @@ namespace MonoGame.Tests
 					: base (g => g.LaunchParameters)
 				{ }
 
+				[Ignore]
 				public override void Has_correct_default_value () { }
 
 				[Test]
@@ -256,6 +262,7 @@ namespace MonoGame.Tests
 					: base (g => g.Services)
 				{ }
 
+				[Ignore]
 				public override void Has_correct_default_value () { }
 
 				[Test]
@@ -287,6 +294,7 @@ namespace MonoGame.Tests
 					: base (g => g.Window)
 				{ }
 
+				[Ignore]
 				public override void Has_correct_default_value () { }
 
 				[Test]
@@ -449,13 +457,13 @@ namespace MonoGame.Tests
 					get { return _illegalValues; }
 				}
 
-				[Test, TestCaseSource ("LegalValues"), Ignore("The sourceName specified on a TestCaseSourceAttribute must refer to a static field, property or method.")]
+				[Test, TestCaseSource ("LegalValues")]
 				public virtual void Can_set_legal_value (PropertyT value)
 				{
 					Assert.DoesNotThrow (() => ThisProperty = value);
 				}
 
-				[Test, TestCaseSource ("IllegalValues"), Ignore("The sourceName specified on a TestCaseSourceAttribute must refer to a static field, property or method.")]
+				[Test, TestCaseSource ("IllegalValues")]
 				public virtual void Cannot_set_illegal_value (Tuple<PropertyT, Type> valueAndException)
 				{
 					var value = valueAndException.Item1;

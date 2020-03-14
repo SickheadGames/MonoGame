@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Input;
 
 #endregion
 
-namespace $safeprojectname$
+namespace $safeprojectnme$
 {
     /// <summary>
     /// This is the main type for your game.

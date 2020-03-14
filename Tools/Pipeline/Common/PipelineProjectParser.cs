@@ -141,27 +141,8 @@ namespace MonoGame.Tools.Pipeline
             AddContent(sourceFile, false);
         }
 
-        [CommandLineParameter(
-            Name = "launchDebugger",
-            ValueName = "sourceFile")]
-        public void OnDebug()
-        {
-            _project.LaunchDebugger = true;
-        }
-
         public bool AddContent(string sourceFile, bool skipDuplicates)
         {
-            string link = null;
-
-            if (sourceFile.Contains(";"))
-            {
-                var split = sourceFile.Split(';');
-                sourceFile = split[0];
-
-                if (split.Length > 0)
-                    link = split[1];
-            }
-
             // Make sure the source file is relative to the project.
             var projectDir = ProjectDirectory + Path.DirectorySeparatorChar;
 
@@ -184,10 +165,10 @@ namespace MonoGame.Tools.Pipeline
                 Observer = _observer,
                 BuildAction = BuildAction.Build,
                 OriginalPath = sourceFile,
-                DestinationPath = string.IsNullOrEmpty(link) ? sourceFile : link,
                 ImporterName = Importer,
                 ProcessorName = Processor,
-                ProcessorParams = new OpaqueDataDictionary()
+                ProcessorParams = new OpaqueDataDictionary(),
+                Exists = File.Exists(projectDir + sourceFile)
             };
             _project.ContentItems.Add(item);
 
@@ -206,17 +187,6 @@ namespace MonoGame.Tools.Pipeline
             Description = "Copy the content source file verbatim to the output directory.")]
         public void OnCopy(string sourceFile)
         {
-            string link = null;
-
-            if (sourceFile.Contains(";"))
-            {
-                var split = sourceFile.Split(';');
-                sourceFile = split[0];
-
-                if (split.Length > 0)
-                    link = split[1];
-            }
-
             // Make sure the source file is relative to the project.
             var projectDir = ProjectDirectory + Path.DirectorySeparatorChar;
 
@@ -232,8 +202,8 @@ namespace MonoGame.Tools.Pipeline
             {
                 BuildAction = BuildAction.Copy,
                 OriginalPath = sourceFile,
-                DestinationPath = string.IsNullOrEmpty(link) ? sourceFile : link,
-                ProcessorParams = new OpaqueDataDictionary()
+                ProcessorParams = new OpaqueDataDictionary(),
+                Exists = File.Exists(projectDir + sourceFile)
             };
             _project.ContentItems.Add(item);
 
@@ -305,9 +275,6 @@ namespace MonoGame.Tools.Pipeline
             line = string.Format(lineFormat, "compress", _project.Compress);
             io.WriteLine(line);
 
-            if (_project.LaunchDebugger)
-                io.WriteLine("/launchdebugger");
-
             line = FormatDivider("References");
             io.WriteLine(line);
 
@@ -337,10 +304,7 @@ namespace MonoGame.Tools.Pipeline
 
                 if (i.BuildAction == BuildAction.Copy)
                 {
-                    string path = i.OriginalPath;
-                    if (i.OriginalPath != i.DestinationPath)
-                        path += ";" + i.DestinationPath;
-                    line = string.Format(lineFormat, "copy", path);
+                    line = string.Format(lineFormat, "copy", i.OriginalPath);
                     io.WriteLine(line);
                     io.WriteLine();
                 }
@@ -393,10 +357,7 @@ namespace MonoGame.Tools.Pipeline
                         }
                     }
 
-                    string buildValue = i.OriginalPath;
-                    if (i.OriginalPath != i.DestinationPath)
-                        buildValue += ";" + i.DestinationPath;
-                    line = string.Format(lineFormat, "build", buildValue);
+                    line = string.Format(lineFormat, "build", i.OriginalPath);
                     io.WriteLine(line);
                     io.WriteLine();
                 }

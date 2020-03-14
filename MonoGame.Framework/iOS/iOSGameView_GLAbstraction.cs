@@ -66,87 +66,143 @@ non-infringement.
 */
 #endregion License
 
-using MonoGame.OpenGL;
+using OpenTK.Graphics.ES20;
 using System;
+using All = OpenTK.Graphics.ES20.All;
+using All11 = OpenTK.Graphics.ES11.All;
+using GLES11 = OpenTK.Graphics.ES11.GL;
+using GLES20 = OpenTK.Graphics.ES20.GL;
 
 namespace Microsoft.Xna.Framework {
 	partial class iOSGameView {
-        private interface IOpenGLApi
-        {
-            FramebufferErrorCode CheckFramebufferStatus (FramebufferTarget target);
-            void BindFramebuffer (FramebufferTarget target, int framebuffer);
-            void BindRenderbuffer (RenderbufferTarget target, int renderbuffer);
-            void DeleteFramebuffers (int n, ref int framebuffers);
-            void DeleteRenderbuffers (int n, ref int renderbuffers);
-            void FramebufferRenderbuffer (FramebufferTarget target, FramebufferAttachment attachment, RenderbufferTarget renderbuffertarget, int renderbuffer);
-            void GenFramebuffers (int n, ref int framebuffers);
-            void GenRenderbuffers (int n, ref int renderbuffers);
-            void GetInteger (GetPName name, ref int value);
-            void Scissor (int x, int y, int width, int height);
+		private interface IOpenGLApi {
+			All CheckFramebufferStatus (All target);
+			void BindFramebuffer (All target, int framebuffer);
+			void BindRenderbuffer (All target, int renderbuffer);
+			void DeleteFramebuffers (int n, ref int framebuffers);
+			void DeleteRenderbuffers (int n, ref int renderbuffers);
+			void FramebufferRenderbuffer (All target, All attachment, All renderbuffertarget, int renderbuffer);
+			void GenFramebuffers (int n, ref int framebuffers);
+			void GenRenderbuffers (int n, ref int renderbuffers);
+			void GetInteger (All name, ref int value);
+			void Scissor (int x, int y, int width, int height);
 			void Viewport (int x, int y, int width, int height);
-        }
+		}
 
-		private class Gles20Api : IOpenGLApi {
-
-            public Gles20Api()
-            {
-                GL.LoadEntryPoints();
-            }
-
-            public FramebufferErrorCode CheckFramebufferStatus (FramebufferTarget target)
+		private class Gles11Api : IOpenGLApi {
+			public All CheckFramebufferStatus (All target)
 			{
-				return GL.CheckFramebufferStatus (target);
+				return (All) GLES11.Oes.CheckFramebufferStatus ((All11) target);
 			}
 
-			public void BindFramebuffer (FramebufferTarget target, int framebuffer)
+			public void BindFramebuffer (All target, int framebuffer)
 			{
-                GL.BindFramebuffer(target, framebuffer);
+				GLES11.Oes.BindFramebuffer ((All11) target, framebuffer);
 			}
 
-			public void BindRenderbuffer (RenderbufferTarget target, int renderbuffer)
+			public void BindRenderbuffer (All target, int renderbuffer)
 			{
-				GL.BindRenderbuffer (target, renderbuffer);
+				GLES11.Oes.BindRenderbuffer ((All11) target, renderbuffer);
 			}
 
 			public void DeleteFramebuffers (int n, ref int framebuffers)
 			{
-				GL.DeleteFramebuffers (n, ref framebuffers);
+				GLES11.Oes.DeleteFramebuffers (n, ref framebuffers);
 			}
 
 			public void DeleteRenderbuffers (int n, ref int renderbuffers)
 			{
-				GL.DeleteRenderbuffers (n, ref renderbuffers);
+				GLES11.Oes.DeleteRenderbuffers (n, ref renderbuffers);
 			}
 
 			public void FramebufferRenderbuffer (
-				FramebufferTarget target, FramebufferAttachment attachment, RenderbufferTarget renderbuffertarget, int renderbuffer)
+				All target, All attachment, All renderbuffertarget, int renderbuffer)
 			{
-                GL.FramebufferRenderbuffer (target, attachment, renderbuffertarget, renderbuffer);
+				GLES11.Oes.FramebufferRenderbuffer (
+					(All11) target, (All11) attachment, (All11) renderbuffertarget, renderbuffer);
 			}
 
 			public void GenFramebuffers (int n, ref int framebuffers)
 			{
-				GL.GenFramebuffers (n, out framebuffers);
+				GLES11.Oes.GenFramebuffers (n, out framebuffers);
 			}
 
 			public void GenRenderbuffers (int n, ref int renderbuffers)
 			{
-				GL.GenRenderbuffers (n, out renderbuffers);
+				GLES11.Oes.GenRenderbuffers (n, out renderbuffers);
 			}
 
-			public void GetInteger (GetPName name, ref int value)
+			public void GetInteger (All name, ref int value)
 			{
-				GL.GetInteger (name, out value);
+				GLES11.GetInteger ((All11) name, out value);
 			}
 
 			public void Scissor (int x, int y, int width, int height)
 			{
-				GL.Scissor (x, y, width, height);
+				GLES11.Scissor (x, y, width, height);
 			}
 
 			public void Viewport (int x, int y, int width, int height)
 			{
-				GL.Viewport (x, y, width, height);
+				GLES11.Viewport (x, y, width, height);
+			}
+		}
+
+		private class Gles20Api : IOpenGLApi {
+			public All CheckFramebufferStatus (All target)
+			{
+				return (All)GLES20.CheckFramebufferStatus ((FramebufferTarget)target);
+			}
+
+			public void BindFramebuffer (All target, int framebuffer)
+			{
+                GLES20.BindFramebuffer((FramebufferTarget)target, framebuffer);
+			}
+
+			public void BindRenderbuffer (All target, int renderbuffer)
+			{
+				GLES20.BindRenderbuffer ((RenderbufferTarget)target, renderbuffer);
+			}
+
+			public void DeleteFramebuffers (int n, ref int framebuffers)
+			{
+				GLES20.DeleteFramebuffers (n, ref framebuffers);
+			}
+
+			public void DeleteRenderbuffers (int n, ref int renderbuffers)
+			{
+				GLES20.DeleteRenderbuffers (n, ref renderbuffers);
+			}
+
+			public void FramebufferRenderbuffer (
+				All target, All attachment, All renderbuffertarget, int renderbuffer)
+			{
+				GLES20.FramebufferRenderbuffer ((FramebufferTarget)target, (FramebufferSlot)attachment, (RenderbufferTarget)renderbuffertarget, renderbuffer);
+			}
+
+			public void GenFramebuffers (int n, ref int framebuffers)
+			{
+				GLES20.GenFramebuffers (n, out framebuffers);
+			}
+
+			public void GenRenderbuffers (int n, ref int renderbuffers)
+			{
+				GLES20.GenRenderbuffers (n, out renderbuffers);
+			}
+
+			public void GetInteger (All name, ref int value)
+			{
+				GLES20.GetInteger ((GetPName)name, out value);
+			}
+
+			public void Scissor (int x, int y, int width, int height)
+			{
+				GLES20.Scissor (x, y, width, height);
+			}
+
+			public void Viewport (int x, int y, int width, int height)
+			{
+				GLES20.Viewport (x, y, width, height);
 			}
 		}
 	}

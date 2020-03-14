@@ -3,7 +3,18 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
-using MonoGame.OpenGL;
+
+#if MONOMAC
+#if PLATFORM_MACOS_LEGACY
+using MonoMac.OpenGL;
+#else
+using OpenTK.Graphics.OpenGL;
+#endif
+#elif DESKTOPGL
+using OpenGL;
+#elif GLES
+using OpenTK.Graphics.ES20;
+#endif
 
 namespace Microsoft.Xna.Framework.Graphics
 {
@@ -50,7 +61,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
             }
 
-#if WINDOWS || DESKTOPGL
+#if MONOMAC || WINDOWS || DESKTOPGL
 			if (FillMode == FillMode.Solid) 
 				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             else

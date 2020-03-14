@@ -11,16 +11,18 @@ using System.Diagnostics;
 using System.Reflection;
 using System.ComponentModel;
 
+
 namespace MGCB
-{
+{    
+    
+    
+
     /// <summary>
     /// Adapted from this generic command line argument parser:
     /// http://blogs.msdn.com/b/shawnhar/archive/2012/04/20/a-reusable-reflection-based-command-line-parser.aspx     
     /// </summary>
     public class MGBuildParser
     {
-        public static MGBuildParser Instance;
-
         #region Supporting Types
 
         public class PreprocessorProperty
@@ -83,7 +85,6 @@ namespace MGCB
         private readonly object _optionsObject;
         private readonly Queue<MemberInfo> _requiredOptions;
         private readonly Dictionary<string, MemberInfo> _optionalOptions;
-        private readonly Dictionary<string, string> _flags;
         private readonly List<string> _requiredUsageHelp;
 
         public readonly PreprocessorPropertyCollection _properties;
@@ -93,8 +94,6 @@ namespace MGCB
 
         public MGBuildParser(object optionsObject)
         {
-            Instance = this;
-
             _optionsObject = optionsObject;
             _requiredOptions = new Queue<MemberInfo>();
             _optionalOptions = new Dictionary<string, MemberInfo>();
@@ -176,14 +175,6 @@ namespace MGCB
                     _optionalOptions.Add(param.Name.ToLowerInvariant(), method);
                 }
             }
-
-            _flags = new Dictionary<string, string>();
-            foreach(var pair in _optionalOptions)
-            {
-                var fi = GetAttribute<CommandLineParameterAttribute>(pair.Value);
-                if(!string.IsNullOrEmpty(fi.Flag))
-                    _flags.Add(fi.Flag, fi.Name);
-            }
         }        
 
         public bool Parse(IEnumerable<string> args)
@@ -191,12 +182,12 @@ namespace MGCB
             args = Preprocess(args);
 
             var showUsage = true;
-            var success = true;
+            var success = true;            
             foreach (var arg in args)
             {
                 showUsage = false;
 
-                if (!ParseFlags(arg))
+                if (!ParseArgument(arg))
                 {
                     success = false;
                     break;
@@ -290,7 +281,7 @@ namespace MGCB
                     continue;
                 }
 
-                if (arg.StartsWith("/define:") || arg.StartsWith("--define:"))
+                if (arg.StartsWith("/define:") || arg.StartsWith("-define:"))
                 {
                     var words = arg.Substring(8).Split('=');
                     var name = words[0];
@@ -302,13 +293,9 @@ namespace MGCB
 
                 }
 
-                if (arg.StartsWith("/@") || arg.StartsWith("--@") || arg.StartsWith("-@")
-                    || (arg.EndsWith(".mgcb") && File.Exists(arg)))
+                if (arg.StartsWith("/@:") || arg.StartsWith("-@:"))
                 {
-                    var file = arg;
-                    if (!File.Exists(arg))
-                        file = arg.Substring(arg.StartsWith("--@") ? 4 : 3);
-
+                    var file = arg.Substring(3);
                     var commands = File.ReadAllLines(file);
                     var offset = 0;
                     lines.Insert(0, string.Format("# Begin:{0} ", file));
@@ -337,56 +324,9 @@ namespace MGCB
             return output.ToArray();
         }
 
-        private bool ParseFlags(string arg)
-        {
-            // Filename detected, redo with a build command
-            if (File.Exists(arg))
-                return ParseFlags("/build=" + arg);
-
-            // Only one flag
-            if (arg.Length >= 3 &&
-                (arg[0] == '-' || arg[0] == '/') &&
-                (arg[2] == '=' || arg[2] == ':'))
-            {
-                string name;
-                if (!_flags.TryGetValue(arg[1].ToString(), out name))
-                {
-                    ShowError("Unknown option '{0}'", arg[1].ToString());
-                    return false;
-                }
-
-                ParseArgument("/" + name + arg.Substring(2));
-                return true;
-            }
-
-            // Multiple flags
-            if (arg.Length >= 2 &&
-               ((arg[0] == '-' && arg[1] != '-') || arg[0] == '/') &&
-               !arg.Contains(":") && !arg.Contains("=") &&
-               !_optionalOptions.ContainsKey(arg.Substring(1)))
-            {
-                for (int i = 1; i < arg.Length; i++)
-                {
-                    string name;
-                    if (!_flags.TryGetValue(arg[i].ToString(), out name))
-                    {
-                        ShowError("Unknown option '{0}'", arg[i].ToString());
-                        break;
-                    }
-
-                    ParseArgument("/" + name);
-                }
-
-                return true;
-            }
-
-            // Not a flag, parse argument
-            return ParseArgument(arg);
-        }
-
         private bool ParseArgument(string arg)
         {
-            if (arg.StartsWith("/") || arg.StartsWith("--"))
+            if (arg.StartsWith("/") || arg.StartsWith("-"))
             {
                 // After the first escaped argument we can no
                 // longer read non-escaped arguments.
@@ -394,9 +334,9 @@ namespace MGCB
                     return false;
 
                 // Parse an optional argument.
-                char[] separators = { ':', '=' };
+                char[] separators = {':'};
 
-                var split = arg.Substring(arg.StartsWith("/") ? 1 : 2).Split(separators, 2, StringSplitOptions.None);
+                var split = arg.Substring(1).Split(separators, 2, StringSplitOptions.None);
 
                 var name = split[0];
                 var value = (split.Length > 1) ? split[1] : "true";
@@ -475,8 +415,7 @@ namespace MGCB
                 "$",
                 "/",                
                 "#",
-                "--",
-                "-"
+                "-",
             };
 
         static void CheckReservedPrefixes(string str)
@@ -547,9 +486,9 @@ namespace MGCB
 
         public string Title { get; set; }
 
-        bool IsWindows()
+        bool IsWindows(PlatformID platform)
         {
-            switch (Environment.OSVersion.Platform)
+            switch (platform)
             {
                 case PlatformID.Win32NT:
                 case PlatformID.Win32S:
@@ -582,31 +521,24 @@ namespace MGCB
                 Console.Error.WriteLine();
             }
 
-            var defaultParamPrefix = IsWindows() ? "/" : "--";
+            var defaultParamPrefix = IsWindows(Environment.OSVersion.Platform) ? "  /" : "  -";
             Console.Error.WriteLine("Usage: {0} {1}{2}", 
                 name, 
-                _requiredUsageHelp.Count > 0 ? string.Join(" ", _requiredUsageHelp) + " " : string.Empty, 
-                _optionalOptions.Count > 0 ? "<Options>" : string.Empty);
+                string.Join(" ", _requiredUsageHelp), 
+                _optionalOptions.Count > 0 ? " <Options>" : string.Empty);
 
             if (_optionalOptions.Count > 0)
             {
                 Console.Error.WriteLine();
-                Console.Error.WriteLine("Options:");
+                Console.Error.WriteLine("Options:\n");
 
-                var data = _optionalOptions.Values.ToList();
-                data.Sort((x, y) => {
-                    var px = GetAttribute<CommandLineParameterAttribute>(x);
-                    var py = GetAttribute<CommandLineParameterAttribute>(y);
-
-                    return px.Name.CompareTo(py.Name);
-                });
-
-                foreach(var d in data)
+                foreach (var pair in _optionalOptions)
                 {
-                    var attr = GetAttribute<CommandLineParameterAttribute>(d);
-                    var field = d as FieldInfo;
-                    var prop = d as PropertyInfo;
-                    var method = d as MethodInfo;
+                    var field = pair.Value as FieldInfo;
+                    var prop = pair.Value as PropertyInfo;
+                    var method = pair.Value as MethodInfo;
+                    var param = GetAttribute<CommandLineParameterAttribute>(pair.Value);
+
                     var hasValue = false;
 
                     if (field != null && field.FieldType != typeof (bool))
@@ -615,38 +547,11 @@ namespace MGCB
                         hasValue = true;
                     if (method != null && method.GetParameters().Length != 0)
                         hasValue = true;
-                    
-                    var s = "  ";
-
-                    s += (!string.IsNullOrEmpty(attr.Flag)) ? (IsWindows() ? "/" : "-") + attr.Flag + "," : "   ";
-                    s += " " + defaultParamPrefix + attr.Name;
 
                     if (hasValue)
-                    {
-                        if (IsWindows())
-                            s += ":<" + attr.ValueName + ">";
-                        else
-                            s += "=" + attr.ValueName.Replace("=", ":").ToUpper();
-                    }
-
-                    s = s.PadRight(35, ' ');
-
-                    // Wrap text description
-                    var bw = Math.Max(60, Console.BufferWidth);
-                    var desc = attr.Description.Split(' ');
-
-                    foreach(var dw in desc)
-                    {
-                        if (s.Length + dw.Length >= bw)
-                        {
-                            Console.WriteLine(s);
-                            s = string.Empty.PadRight(37, ' ');
-                        }
-
-                        s += " " + dw;
-                    }
-
-                    Console.WriteLine(s);
+                        Console.Error.WriteLine(defaultParamPrefix + "{0}:<{1}>\n    {2}\n", param.Name, param.ValueName, param.Description);
+                    else
+                        Console.Error.WriteLine(defaultParamPrefix + "{0}\n    {1}\n", param.Name, param.Description);
                 }
             }
         }
@@ -669,12 +574,10 @@ namespace MGCB
 
         public string Name { get; set; }
 
-        public string Flag { get; set; }
-
         public bool Required { get; set; }
 
         public string ValueName { get; set; }
 
-        public string Description { get; set; }
+        public string Description { get; set; }        
     }
 }

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
-using NUnit.Framework;
 
 namespace MonoGame.Tests {
 
@@ -311,8 +310,7 @@ namespace MonoGame.Tests {
 	static class Paths
     {
 		private const string AssetFolder = "Assets";
-        private static readonly string AudioFolder = Path.Combine(AssetFolder, "Audio");
-        private static readonly string FontFolder = Path.Combine(AssetFolder, "Fonts");
+		private static readonly string FontFolder = Path.Combine (AssetFolder, "Fonts");
 		private static readonly string ReferenceImageFolder = Path.Combine (AssetFolder, "ReferenceImages");
 		private static readonly string TextureFolder = Path.Combine (AssetFolder, "Textures");
 		private static readonly string EffectFolder = Path.Combine (AssetFolder, "Effects");
@@ -326,12 +324,7 @@ namespace MonoGame.Tests {
 			return Combine (AssetFolder, pathParts);
 		}
 
-        public static string Audio(params string[] pathParts)
-        {
-            return Combine(AudioFolder, pathParts);
-        }
-
-        public static string Font(params string[] pathParts)
+		public static string Font (params string [] pathParts)
 		{
 			return Combine (FontFolder, pathParts);
 		}
@@ -399,13 +392,5 @@ namespace MonoGame.Tests {
             var directory = AppDomain.CurrentDomain.BaseDirectory;
 			Directory.SetCurrentDirectory(directory);
 		}
-
-        public static void AreEqual(string expected, string actual)
-        {
-            expected = Path.GetFullPath(expected);
-            actual = Path.GetFullPath(actual);            
-            Assert.AreEqual(expected, actual, "Paths not equal!");
-        }
-
 	}
 }

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using NUnit.Framework;
@@ -48,7 +48,7 @@ namespace MonoGame.Tests {
 			[TestCase ("Services")]
 			[TestCase ("TargetElapsedTime")]
 			[TestCase ("Window")]
-			[Apartment(ApartmentState.STA)]
+			[RequiresSTA]
 			public void Property_does_not_throws_after_Dispose (string propertyName)
 			{
 				var propertyInfo = Game.GetType ().GetProperty (propertyName);
@@ -67,8 +67,8 @@ namespace MonoGame.Tests {
 			[TestCase ("RunOneFrame")]
 			[TestCase ("SuppressDraw")]
 			[TestCase ("Tick")]
-			[Apartment(ApartmentState.STA)]
-            public void Method_does_not_throw_after_Dispose (string methodName)
+			[RequiresSTA]
+			public void Method_does_not_throw_after_Dispose (string methodName)
 			{
 				var methodInfo = Game.GetType ().GetMethod (methodName, new Type [0]);
 				if (methodInfo == null)
@@ -133,7 +133,7 @@ namespace MonoGame.Tests {
 
 		[TestFixture]
 		public class Behaviors : FixtureBase {
-			[Test, Ignore("Fix me!"), Apartment(ApartmentState.STA)]
+			[Test, RequiresSTA, Ignore]
 			public void Nongraphical_run_succeeds ()
 			{
 				Game.Run ();
@@ -142,7 +142,7 @@ namespace MonoGame.Tests {
 				Assert.That (Game, Has.Property ("DrawCount").EqualTo (0));
 			}
 
-			[Test, Ignore("Fix me!"), Apartment(ApartmentState.STA)]
+			[Test, Ignore, RequiresSTA]
 			public void Fixed_time_step_skips_draw_when_update_is_slow ()
 			{
 				Game.MakeGraphical ();
@@ -172,7 +172,8 @@ namespace MonoGame.Tests {
         public class Misc
         {
             [Test]
-            [Ignore("MG crashes when no graphicsDeviceManager is set and Run is called")]
+            // TODO MG crashes when no graphicsDeviceManager is set and Run is called
+            [Ignore]
             public void LoadContentNotCalledWithoutGdm()
             {
                 var g = new CountCallsGame();
@@ -184,7 +185,8 @@ namespace MonoGame.Tests {
             }
 
             [Test]
-            [Ignore("MG crashes when no GraphicsDevice is set and Run is called")]
+            // TODO MG crashes when no GraphicsDevice is set and Run is called
+            [Ignore]
             public void LoadContentNotCalledWithoutGd()
             {
                 var g = new CountCallsGame();
@@ -198,9 +200,6 @@ namespace MonoGame.Tests {
             }
 
             [Test]
-#if DESKTOPGL
-            [Ignore("This crashes inside SDL on Mac!")]
-#endif
             public void ExitHappensAtEndOfTick()
             {
                 // Exit called in Run

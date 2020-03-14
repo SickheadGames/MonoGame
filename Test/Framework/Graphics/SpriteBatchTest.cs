@@ -63,17 +63,6 @@ namespace MonoGame.Tests.Graphics {
             Assert.Throws<InvalidOperationException>(() => _spriteBatch.End());
         }
         
-        [Test]
-        public void NullDeviceShouldThrowArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => 
-            {                
-                var spriteBatch = new SpriteBatch(null);
-                spriteBatch.Dispose();
-            });
-            GC.GetTotalMemory(true); // collect uninitialized spriteBatch
-        }
-        
 		[Test]
 		public void Draw_without_blend ()
 		{
@@ -415,7 +404,7 @@ namespace MonoGame.Tests.Graphics {
         // I think this is due to differences in how downsampling is done by default
         // (it makes a big difference here because the textures are so small).
         // There are possibly also some differences because of how rasterization is handled.
-        [Ignore("OpenGL produces a slightly different result")]
+        [Ignore]
 #endif
         public void Draw_many()
         {

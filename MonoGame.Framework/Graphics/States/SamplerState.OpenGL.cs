@@ -4,17 +4,32 @@
 
 using System;
 using System.Diagnostics;
-using MonoGame.OpenGL;
-using ExtTextureFilterAnisotropic = MonoGame.OpenGL.TextureParameterName;
+
+#if MONOMAC
+#if PLATFORM_MACOS_LEGACY
+using MonoMac.OpenGL;
+#else
+using OpenTK.Graphics.OpenGL;
+#endif
+#elif DESKTOPGL
+using OpenGL;
+#elif GLES
+using OpenTK.Graphics.ES20;
+#endif
 
 namespace Microsoft.Xna.Framework.Graphics
 {
   public partial class SamplerState
   {
-      private readonly float[] _openGLBorderColor = new float[4];
-
-        internal const TextureParameterName TextureParameterNameTextureMaxAnisotropy = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
+#if !DESKTOPGL
+        internal const TextureParameterName TextureParameterNameTextureMaxAnisotropy = (TextureParameterName)All.TextureMaxAnisotropyExt;
+        internal const TextureParameterName TextureParameterNameTextureMaxLevel = (TextureParameterName)0x813D;
+#else
+        internal const TextureParameterName TextureParameterNameTextureMaxAnisotropy = TextureParameterName.TextureMaxAnisotropyExt;
         internal const TextureParameterName TextureParameterNameTextureMaxLevel = TextureParameterName.TextureMaxLevel;
+#endif
+
+        private readonly float[] _openGLBorderColor = new float[4];
 
         internal void Activate(GraphicsDevice device, TextureTarget target, bool useMipmaps = false)
         {

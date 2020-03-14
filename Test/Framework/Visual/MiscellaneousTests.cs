@@ -18,8 +18,6 @@ namespace MonoGame.Tests.Visual {
         // I can consistently reproduce this by running the ShaderTests and this in
         // succession using ReSharpers test runner
         [Ignore("Shader cleanup causes a crash, we should investigate this")]
-#else
-        [Ignore ("Microsoft.Xna.Framework.Graphics.MonoGameGLException : GL.GetError() returned 1286. Invesigate")]
 #endif
 		public void DrawOrder_falls_back_to_order_of_addition_to_Game ()
 		{
@@ -33,14 +31,14 @@ namespace MonoGame.Tests.Visual {
 		
 		[TestCase(true)]
 		[TestCase(false)]
-        [Ignore("Fix me!")]
+        [Ignore]
 		public void TexturedQuad_lighting (bool enableLighting)
 		{
 			Game.Components.Add (new TexturedQuadComponent (Game, enableLighting));
 			RunSingleFrameTest ();
 		}
 
-		[Test, Ignore("Fix me!")]
+		[Test, Ignore]
 		public void SpaceshipModel ()
 		{
 			Game.Components.Add (new SpaceshipModelDrawComponent(Game));

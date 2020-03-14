@@ -301,8 +301,6 @@ namespace Microsoft.Xna.Framework
             if (!_shouldApplyChanges)
                 return;
 
-            _shouldApplyChanges = false;
-
             _game.Window.SetSupportedOrientations(_supportedOrientations);
 
             // Allow for optional platform specific behavior.
@@ -321,6 +319,8 @@ namespace Microsoft.Xna.Framework
             }
 
             GraphicsDevice.Reset(gdi.PresentationParameters);
+
+            _shouldApplyChanges = false;
         }
 
         private void DisposeGraphicsDevice()
@@ -364,9 +364,9 @@ namespace Microsoft.Xna.Framework
             ApplyChanges();
         }
 
-        private void OnPresentationChanged(object sender, PresentationEventArgs args)
+        private void OnPresentationChanged(object sender, EventArgs args)
         {
-            _game.Platform.OnPresentationChanged(args.PresentationParameters);
+            _game.Platform.OnPresentationChanged();
         }
 
         /// <summary>

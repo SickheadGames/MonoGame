@@ -404,7 +404,8 @@ namespace MonoGame.Tests.Graphics
 
         [Test]
 #if DESKTOPGL
-        [Ignore("we should figure out if there's a way to check this in OpenGL")]
+        // TODO we should figure out if there's a way to check this in OpenGL
+        [Ignore]
 #endif
         public void ShouldThrowHelpfulExceptionWhenVertexFormatDoesNotMatchShader()
         {
@@ -427,17 +428,6 @@ namespace MonoGame.Tests.Graphics
 #endif
 
             vertexBuffer.Dispose();
-        }
-
-        [Test]
-        public void NullDeviceShouldThrowArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => 
-            {
-                var vertexBuffer = new VertexBuffer(null, typeof(VertexPositionTexture), 3, BufferUsage.None);
-                vertexBuffer.Dispose();
-            });
-            GC.GetTotalMemory(true); // collect uninitialized vertexBuffer
         }
     }
 }

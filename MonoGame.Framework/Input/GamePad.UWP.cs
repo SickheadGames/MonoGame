@@ -31,7 +31,6 @@ namespace Microsoft.Xna.Framework.Input
             return new GamePadCapabilities
             {
                 IsConnected = true,
-                GamePadType = GamePadType.GamePad,
                 HasAButton = true,
                 HasBButton = true,
                 HasXButton = true,

@@ -78,7 +78,9 @@ using OpenGLES;
 using UIKit;
 using CoreGraphics;
 
-using MonoGame.OpenGL;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
+using OpenTK.Platform.iPhoneOS;
 
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input.Touch;
@@ -151,7 +153,7 @@ namespace Microsoft.Xna.Framework {
 		//        GraphicsContext into an iOS-specific GraphicsDevice.
 		//        Some level of cooperation with the UIView/Layer will
 		//        probably always be necessary, unfortunately.
-		private IGraphicsContext __renderbuffergraphicsContext;
+		private GraphicsContext __renderbuffergraphicsContext;
 		private IOpenGLApi _glapi;
 		private void CreateContext ()
 		{
@@ -177,14 +179,14 @@ namespace Microsoft.Xna.Framework {
 			//var version = Version.Parse (strVersion);
 
 			try {
-                __renderbuffergraphicsContext = GL.CreateContext (null);
-                //new GraphicsContext (null, null, 2, 0, GraphicsContextFlags.Embedded)
-            } catch (Exception ex) {
-                throw new Exception ("Device not Supported. GLES 2.0 or above is required!");
+				__renderbuffergraphicsContext = new GraphicsContext (null, null, 2, 0, GraphicsContextFlags.Embedded);
+				_glapi = new Gles20Api ();
+			} catch {
+				__renderbuffergraphicsContext = new GraphicsContext (null, null, 1, 1, GraphicsContextFlags.Embedded);
+				_glapi = new Gles11Api ();
 			}
 
 			this.MakeCurrent();
-            _glapi = new Gles20Api();
 		}
 
 		private void DestroyContext ()
@@ -216,7 +218,7 @@ namespace Microsoft.Xna.Framework {
             int viewportWidth = (int)Math.Round(Layer.Bounds.Size.Width * Layer.ContentsScale);
 
 			_glapi.GenFramebuffers (1, ref _framebuffer);
-            _glapi.BindFramebuffer (FramebufferTarget.Framebuffer, _framebuffer);
+			_glapi.BindFramebuffer (All.Framebuffer, _framebuffer);
 
 			// Create our Depth buffer. Color buffer must be the last one bound
             var gdm = _platform.Game.Services.GetService(
@@ -228,30 +230,30 @@ namespace Microsoft.Xna.Framework {
                 {
                     GL.GenRenderbuffers(1, out _depthbuffer);
                     GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthbuffer);
-                    var internalFormat = RenderbufferStorage.DepthComponent16;
+                    var internalFormat = All.DepthComponent16;
                     if (preferredDepthFormat == DepthFormat.Depth24)
-                        internalFormat = RenderbufferStorage.DepthComponent24Oes;
+                        internalFormat = All.DepthComponent24Oes;
                     else if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
-                        internalFormat = RenderbufferStorage.Depth24Stencil8Oes;
-                    GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, viewportWidth, viewportHeight);
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
+                        internalFormat = All.Depth24Stencil8Oes;
+                    GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, (RenderbufferInternalFormat)internalFormat, viewportWidth, viewportHeight);
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
                     if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.StencilAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
                 }
             }
 
 			_glapi.GenRenderbuffers(1, ref _colorbuffer);
-            _glapi.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _colorbuffer);
+			_glapi.BindRenderbuffer(All.Renderbuffer, _colorbuffer);
 
-			var ctx = __renderbuffergraphicsContext as GraphicsContext;
+			var ctx = ((IGraphicsContextInternal) __renderbuffergraphicsContext).Implementation as iPhoneOSGraphicsContext;
 
 			// TODO: EAGLContext.RenderBufferStorage returns false
 			//       on all but the first call.  Nevertheless, it
 			//       works.  Still, it would be nice to know why it
 			//       claims to have failed.
-            ctx.Context.RenderBufferStorage ((uint) RenderbufferTarget.Renderbuffer, Layer);
+			ctx.EAGLContext.RenderBufferStorage ((uint) All.Renderbuffer, Layer);
 			
-            _glapi.FramebufferRenderbuffer (FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, _colorbuffer);
+			_glapi.FramebufferRenderbuffer (All.Framebuffer, All.ColorAttachment0, All.Renderbuffer, _colorbuffer);
 			
 			var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 			if (status != FramebufferErrorCode.FramebufferComplete)
@@ -299,7 +301,7 @@ namespace Microsoft.Xna.Framework {
 			}
 
             if (Threading.BackgroundContext == null)
-                Threading.BackgroundContext = new OpenGLES.EAGLContext(ctx.Context.API, ctx.Context.ShareGroup);
+                Threading.BackgroundContext = new OpenGLES.EAGLContext(ctx.EAGLContext.API, ctx.EAGLContext.ShareGroup);
 		}
 
 		private void DestroyFramebuffer ()
@@ -322,7 +324,7 @@ namespace Microsoft.Xna.Framework {
             }
 		}
 
-        private static readonly FramebufferAttachment[] attachements = new FramebufferAttachment[] { FramebufferAttachment.DepthAttachment, FramebufferAttachment.StencilAttachment };
+        private static readonly All[] attachements = new All[] { All.DepthAttachment, All.StencilAttachment };
 
 		// FIXME: This logic belongs in GraphicsDevice.Present, not
 		//        here.  If it can someday be moved there, then the
@@ -336,7 +338,7 @@ namespace Microsoft.Xna.Framework {
 
             this.MakeCurrent();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, this._colorbuffer);
-            GL.InvalidateFramebuffer(FramebufferTarget.Framebuffer, 2, attachements);
+            GraphicsDevice.FramebufferHelper.GLDiscardFramebufferExt(All.Framebuffer, 2, attachements);
             __renderbuffergraphicsContext.SwapBuffers();
 		}
 

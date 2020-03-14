@@ -4,8 +4,21 @@
 
 using System;
 using System.IO;
-using System.Diagnostics;
-using MonoGame.OpenGL;
+
+#if MONOMAC
+#if PLATFORM_MACOS_LEGACY
+using MonoMac.OpenGL;
+using Bool = MonoMac.OpenGL.Boolean;
+#else
+using OpenTK.Graphics.OpenGL;
+using Bool = OpenTK.Graphics.OpenGL.Boolean;
+#endif
+#elif DESKTOPGL
+using OpenGL;
+#elif GLES
+using OpenTK.Graphics.ES20;
+using Bool = OpenTK.Graphics.ES20.All;
+#endif
 
 namespace Microsoft.Xna.Framework.Graphics
 {
@@ -48,9 +61,13 @@ namespace Microsoft.Xna.Framework.Graphics
             if (compiled != (int)Bool.True)
             {
                 var log = GL.GetShaderInfoLog(_shaderHandle);
-                Debug.WriteLine(log);
+                Console.WriteLine(log);
 
-                GraphicsDevice.DisposeShader(_shaderHandle);
+                if (GL.IsShader(_shaderHandle))
+                {
+                    GL.DeleteShader(_shaderHandle);
+                    GraphicsExtensions.CheckGLError();
+                }
                 _shaderHandle = -1;
 
                 throw new InvalidOperationException("Shader Compilation Failed");
@@ -97,7 +114,11 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             if (_shaderHandle != -1)
             {
-                GraphicsDevice.DisposeShader(_shaderHandle);
+                if (GL.IsShader(_shaderHandle))
+                {
+                    GL.DeleteShader(_shaderHandle);
+                    GraphicsExtensions.CheckGLError();
+                }
                 _shaderHandle = -1;
             }
         }
@@ -106,7 +127,15 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             if (!IsDisposed && _shaderHandle != -1)
             {
-                GraphicsDevice.DisposeShader(_shaderHandle);
+                // Take a copy of the handle for use in the anonymous function and clear the class handle.
+                // This prevents any other disposal of the resource between now and the time the anonymous
+                // function is executed.
+                int handle = _shaderHandle;
+                Threading.BlockOnUIThread(() =>
+                {
+                    GL.DeleteShader(handle);
+                    GraphicsExtensions.CheckGLError();
+                });
                 _shaderHandle = -1;
             }
 

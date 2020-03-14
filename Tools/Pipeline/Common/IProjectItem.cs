@@ -6,9 +6,12 @@ namespace MonoGame.Tools.Pipeline
 {
     public interface IProjectItem
     {
-        string OriginalPath { get; set; }
+        string OriginalPath { get; }
         string Name { get; }
         string Location { get; }
-        string DestinationPath { get; set; }
+
+        bool Exists { get; set; }
+        bool ExpandToThis { get; set; }
+        bool SelectThis { get; set; }
     }
 }
