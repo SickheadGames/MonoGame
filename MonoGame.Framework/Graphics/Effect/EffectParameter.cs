@@ -98,7 +98,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <summary>
         /// Property referenced by the DebuggerDisplayAttribute.
         /// </summary>
-        private string DebugDisplayString
+        public string DebugDisplayString
         {
             get
             {
@@ -792,7 +792,14 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
             if (ParameterType != EffectParameterType.Single)
                 throw new InvalidCastException();
-			((float[])Data)[0] = value;
+#if PS4
+            if(Data == null) {
+            // jcf: is this needed?
+            Console.WriteLine("Guess so. Remove this writeline.");
+                return;
+            }
+#endif
+            ((float[])Data)[0] = value;
             StateKey = unchecked(NextStateKey++);
 		}
 
@@ -882,5 +889,5 @@ namespace Microsoft.Xna.Framework.Graphics
 				Elements[i].SetValue (value[i]);
             StateKey = unchecked(NextStateKey++);
 		}
-	}    
+	}
 }

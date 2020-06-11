@@ -22,7 +22,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 var renderTargetViewDescription = new RenderTargetViewDescription
                 {
                     Dimension = RenderTargetViewDimension.Texture2DArray,
-                    Format = SharpDXHelper.ToFormat(preferredFormat),
+                    Format = SharpDXHelper.ToFormat(preferredSurfaceFormat),
                     Texture2DArray =
                     {
                         ArraySize = 1,

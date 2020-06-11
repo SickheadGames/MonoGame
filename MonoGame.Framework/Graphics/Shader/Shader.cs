@@ -73,29 +73,31 @@ namespace Microsoft.Xna.Framework.Graphics
             Samplers = new SamplerInfo[samplerCount];
             for (var s = 0; s < samplerCount; s++)
             {
-                Samplers[s].type = (SamplerType)reader.ReadByte();
-                Samplers[s].textureSlot = reader.ReadByte();
-                Samplers[s].samplerSlot = reader.ReadByte();
+                ref SamplerInfo samp = ref Samplers[s];
+
+                samp.type = (SamplerType)reader.ReadByte();
+                samp.textureSlot = reader.ReadByte();
+                samp.samplerSlot = reader.ReadByte();
 
 				if (reader.ReadBoolean())
 				{
-					Samplers[s].state = new SamplerState();
-					Samplers[s].state.AddressU = (TextureAddressMode)reader.ReadByte();
-					Samplers[s].state.AddressV = (TextureAddressMode)reader.ReadByte();
-					Samplers[s].state.AddressW = (TextureAddressMode)reader.ReadByte();
-                    Samplers[s].state.BorderColor = new Color(
+                    samp.state = new SamplerState();
+					samp.state.AddressU = (TextureAddressMode)reader.ReadByte();
+					samp.state.AddressV = (TextureAddressMode)reader.ReadByte();
+					samp.state.AddressW = (TextureAddressMode)reader.ReadByte();
+                    samp.state.BorderColor = new Color(
                         reader.ReadByte(), 
                         reader.ReadByte(), 
                         reader.ReadByte(), 
                         reader.ReadByte());
-					Samplers[s].state.Filter = (TextureFilter)reader.ReadByte();
-					Samplers[s].state.MaxAnisotropy = reader.ReadInt32();
-					Samplers[s].state.MaxMipLevel = reader.ReadInt32();
-					Samplers[s].state.MipMapLevelOfDetailBias = reader.ReadSingle();
+					samp.state.Filter = (TextureFilter)reader.ReadByte();
+					samp.state.MaxAnisotropy = reader.ReadInt32();
+					samp.state.MaxMipLevel = reader.ReadInt32();
+					samp.state.MipMapLevelOfDetailBias = reader.ReadSingle();
 				}
 
-                Samplers[s].name = reader.ReadString();
-                Samplers[s].parameter = reader.ReadByte();
+                samp.name = reader.ReadString();
+                samp.parameter = reader.ReadByte();
             }
 
             var cbufferCount = (int)reader.ReadByte();
@@ -107,10 +109,11 @@ namespace Microsoft.Xna.Framework.Graphics
             Attributes = new VertexAttribute[attributeCount];
             for (var a = 0; a < attributeCount; a++)
             {
-                Attributes[a].name = reader.ReadString();
-                Attributes[a].usage = (VertexElementUsage)reader.ReadByte();
-                Attributes[a].index = reader.ReadByte();
-                Attributes[a].location = reader.ReadInt16();
+                ref VertexAttribute attr = ref Attributes[a];
+                attr.name = reader.ReadString();
+                attr.usage = (VertexElementUsage)reader.ReadByte();
+                attr.index = reader.ReadByte();
+                attr.location = reader.ReadInt16();
             }
 
             PlatformConstruct(isVertexShader, shaderBytecode);

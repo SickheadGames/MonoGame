@@ -7,10 +7,14 @@ namespace Microsoft.Xna.Framework.Graphics
         internal static readonly EffectParameterCollection Empty = new EffectParameterCollection(new EffectParameter[0]);
 
         private readonly EffectParameter[] _parameters;
+        private readonly Dictionary<string, EffectParameter> _byName;
 
         internal EffectParameterCollection(EffectParameter[] parameters)
         {
             _parameters = parameters;
+            _byName = new Dictionary<string, EffectParameter>(_parameters.Length, System.StringComparer.Ordinal);
+            foreach (var p in parameters)
+                _byName[p.Name] = p;
         }
 
         internal EffectParameterCollection Clone()
@@ -39,14 +43,10 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             get 
             {
-                // TODO: Add a name to parameter lookup table.
-				foreach (var parameter in _parameters) 
-                {
-					if (parameter.Name == name) 
-						return parameter;
-				}
-
-				return null;
+                EffectParameter p;
+                if (!_byName.TryGetValue(name, out p))
+                    return null;
+                return p;
 			}
         }
 

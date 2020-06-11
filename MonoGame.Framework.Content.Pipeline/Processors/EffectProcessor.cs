@@ -61,7 +61,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
             options.Debug = DebugMode == EffectProcessorDebugMode.Debug;
             options.Defines = Defines;
             options.OutputFile = context.OutputFilename;
-            options.IntermediateDir = context.IntermediateDirectory;
+            options.IntermediateDir = Path.GetDirectoryName(options.OutputFile.Replace(context.OutputDirectory, context.IntermediateDirectory));
 
             // Parse the MGFX file expanding includes, macros, and returning the techniques.
             ShaderInfo shaderInfo;
@@ -92,6 +92,10 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
             var shaderErrorsAndWarnings = string.Empty;
             try
             {
+                // todo: pass the context in, so we can log informational messages?
+                //       note that compiling an effect is actually compiling two shaders
+                //       for each technique...so having a block of error/warning text
+                //       at the end isnt that great
                 effect = EffectObject.CompileEffect(shaderInfo, out shaderErrorsAndWarnings);
 
                 // If there were any additional output files we register
@@ -99,7 +103,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
                 foreach (var outfile in shaderInfo.AdditionalOutputFiles)
                     context.AddOutputFile(outfile);
             }
-            catch (ShaderCompilerException)
+            catch (ShaderCompilerException ex)
             {
                 // This will log any warnings and errors and throw.
                 ProcessErrorsAndWarnings(true, shaderErrorsAndWarnings, input, context);
@@ -203,7 +207,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
                     if (identity == null)
                     {
                         identity = new ContentIdentity(fileName, input.Identity.SourceTool, lineAndColumn);
-                        allErrorsAndWarnings = errorsAndWarningArray[i] + Environment.NewLine;
+                        allErrorsAndWarnings = message + Environment.NewLine;
                     }
                     else
                         allErrorsAndWarnings += errorsAndWarningArray[i] + Environment.NewLine;

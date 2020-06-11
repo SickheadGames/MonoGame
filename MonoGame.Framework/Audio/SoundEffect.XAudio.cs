@@ -167,7 +167,7 @@ namespace Microsoft.Xna.Framework.Audio
             return DataStream.Create(data, true, false);
         }
 
-        private void PlatformInitializePcm(byte[] buffer, int offset, int count, int sampleRate, AudioChannels channels, int loopStart, int loopLength)
+        private void PlatformInitializePcm(byte[] buffer, int offset, int count, int bps, int sampleRate, AudioChannels channels, int loopStart, int loopLength)
         {
             CreateBuffers(  new WaveFormat(sampleRate, (int)channels),
                             ToDataStream(offset, buffer, count),
