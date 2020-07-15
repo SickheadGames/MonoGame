@@ -993,7 +993,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 throw new InvalidOperationException("Index buffer must be set before calling DrawIndexedPrimitives.");
 
             if (primitiveCount <= 0)
+            {
+                // jcf: hack
+                return;
                 throw new ArgumentOutOfRangeException("primitiveCount");
+            }
 
             PlatformDrawIndexedPrimitives(primitiveType, baseVertex, startIndex, primitiveCount);
 
