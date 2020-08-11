@@ -187,13 +187,10 @@ namespace Microsoft.Xna.Framework.Audio
 
                     // Reset the SendFilter to 0 if we are NOT using reverb since
                     // sources are recycled
-                    if (OpenALSoundController.Instance.SupportsEfx)
-                    {
-                        OpenALSoundController.Efx.BindSourceToAuxiliarySlot(SourceId, 0, 0, 0);
-                        ALHelper.CheckError("Failed to unset reverb.");
-                        AL.Source(SourceId, ALSourcei.EfxDirectFilter, 0);
-                        ALHelper.CheckError("Failed to unset filter.");
-                    }
+                    OpenALSoundController.Efx.BindSourceToAuxiliarySlot(SourceId, 0, 0, 0);
+                    ALHelper.CheckError("Failed to unset reverb.");
+                    AL.Source(SourceId, ALSourcei.EfxDirectFilter, 0);
+                    ALHelper.CheckError("Failed to unset filter.");
 
                     controller.FreeSource(this);
                 }
