@@ -20,9 +20,22 @@ namespace TwoMGFX
             var options = new Options();
             var parser = new CommandLineParser(options);
             parser.Title = "2MGFX - The MonoGame Effect compiler.";
-
+            
             if (!parser.ParseCommandLine(args))
                 return 1;
+
+            // Launch debugger if requested.
+            if (options.LaunchDebugger)
+            {
+                try
+                {
+                    System.Diagnostics.Debugger.Launch();
+                }
+                catch (NotImplementedException)
+                {
+                    // not implemented under Mono
+                }
+            }
 
             // Validate the input file exits.
             if (!File.Exists(options.SourceFile))

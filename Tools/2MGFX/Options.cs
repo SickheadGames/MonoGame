@@ -6,6 +6,9 @@ namespace TwoMGFX
 {
     public class Options
     {
+        [CommandLineParser.Name("launchdebugger", "\t\t - Wait for debugger to attach before building effects.")]
+        public bool LaunchDebugger = false;
+
         [CommandLineParser.Required]
         public string SourceFile;
 
