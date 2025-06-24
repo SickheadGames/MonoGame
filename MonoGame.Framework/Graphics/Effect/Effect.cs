@@ -498,3 +498,4 @@ namespace Microsoft.Xna.Framework.Graphics
                 shader.Name = $"{name}.{shader.Entrypoint}";
         }
     }
+}
