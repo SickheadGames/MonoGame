@@ -345,6 +345,7 @@ namespace Microsoft.Xna.Framework.Graphics
         public BasicEffect(GraphicsDevice device)
             : base(device, EffectResource.BasicEffect.Bytecode)
         {
+            Name = "BasicEffect";
             CacheEffectParameters(null);
 
             DirectionalLight0.Enabled = true;

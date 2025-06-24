@@ -491,5 +491,10 @@ namespace Microsoft.Xna.Framework.Graphics
 		}
 
         #endregion // Effect File Reader
+
+        protected override void OnNameSet()
+        {
+            foreach (var shader in _shaders)
+                shader.Name = $"{name}.{shader.Entrypoint}";
+        }
     }
-}

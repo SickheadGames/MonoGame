@@ -237,6 +237,7 @@ namespace Microsoft.Xna.Framework.Graphics
         public DualTextureEffect(GraphicsDevice device)
             : base(device, EffectResource.DualTextureEffect.Bytecode)
         {
+            Name = "DualTextureEffect";
             CacheEffectParameters();
         }
 

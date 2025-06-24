@@ -118,7 +118,7 @@ namespace Microsoft.Xna.Framework.Graphics
             else
             {
                 SourceFile = "<unknown>";
-                Entrypoint = "<unknown>";
+                Entrypoint = isVertexShader ? "<unknown_vs>"  : $"<unknown_ps>";
             }
 
             var shaderLength = reader.ReadInt32();

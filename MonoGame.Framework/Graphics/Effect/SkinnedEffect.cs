@@ -384,6 +384,7 @@ namespace Microsoft.Xna.Framework.Graphics
         public SkinnedEffect(GraphicsDevice device)
             : base(device, EffectResource.SkinnedEffect.Bytecode)
         {
+            Name = "SkinnedEffect";
             CacheEffectParameters(null);
 
             DirectionalLight0.Enabled = true;

@@ -12,6 +12,11 @@ namespace Microsoft.Xna.Framework.Graphics
     /// </summary>
     public abstract class GraphicsResource : IDisposable
     {
+        /// <summary>
+        /// The name of the graphics resource.
+        /// </summary>
+        protected string name;
+
         bool disposed;
 
         // The GraphicsDevice property should only be accessed in Dispose(bool) if the disposing
@@ -137,7 +142,15 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <summary>
         /// Gets the name of the resource.
         /// </summary>
-		public string Name { get; set; }
+		public string Name
+        {
+            get => name;
+            set
+            {
+                name = value;
+                OnNameSet();
+            }
+        }
 
         /// <summary>
         /// Gets the resource tags for this resource.
@@ -151,6 +164,11 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             return string.IsNullOrEmpty(Name) ? base.ToString() : Name;
         }
+
+        /// <summary>
+        /// Called when the name of a resource is changed.
+        /// </summary>
+        protected virtual void OnNameSet() { }
 	}
 }
 

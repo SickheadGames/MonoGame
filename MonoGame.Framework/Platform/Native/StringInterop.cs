@@ -19,7 +19,7 @@ internal unsafe static class StringInterop
     /// </summary>
     static public int GetMaxSize(string str)
     {
-        return (str.Length * 4) + 1;
+        return (str == null ? 0 : (str.Length * 4)) + 1;
     }
 
     /// <summary>
@@ -27,6 +27,9 @@ internal unsafe static class StringInterop
     /// </summary>
     static public int GetMaxSize(IEnumerable<string> strs)
     {
+        if (strs == null)
+            return 1;
+
         int size = 0;
         foreach (var s in strs)
             size += (s.Length * 4) + 1;
@@ -39,6 +42,12 @@ internal unsafe static class StringInterop
     /// <returns>The count of bytes copied to the destination UTF8 native string.</returns>
     static public int CopyString(byte* dest, string source)
     {
+        if (source == null)
+        {
+            dest[0] = 0;
+            return 0;
+        }
+
         int count;
         fixed (char* s = source)
         {
@@ -55,6 +64,9 @@ internal unsafe static class StringInterop
     /// <returns>The total count of bytes copied to the destination UTF8 native string.</returns>
     static public int CopyStrings(byte* dest, IEnumerable<string> source)
     {
+        if (source == null)
+            return 0;
+
         int count = 0;
 
         foreach (var str in source)

@@ -261,6 +261,7 @@ namespace Microsoft.Xna.Framework.Graphics
         public AlphaTestEffect(GraphicsDevice device)
             : base(device, EffectResource.AlphaTestEffect.Bytecode)
         {
+            Name = "AlphaTestEffect";
             CacheEffectParameters();
         }
 

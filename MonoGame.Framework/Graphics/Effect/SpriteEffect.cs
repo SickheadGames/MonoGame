@@ -22,6 +22,7 @@ namespace Microsoft.Xna.Framework.Graphics
         public SpriteEffect(GraphicsDevice device)
             : base(device, EffectResource.SpriteEffect.Bytecode)
         {
+            Name = "SpriteEffect";
             CacheEffectParameters();
         }
 

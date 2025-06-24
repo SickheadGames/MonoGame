@@ -73,4 +73,11 @@ partial class Shader
 
         base.Dispose(disposing);
     }
+
+    protected override unsafe void OnNameSet()
+    {
+        byte* _name = stackalloc byte[StringInterop.GetMaxSize(name)];
+        StringInterop.CopyString(_name, name);
+        MGG.GraphicsDevice_SetDebugName(GraphicsDevice.Handle, Handle, _name);
+    }
 }

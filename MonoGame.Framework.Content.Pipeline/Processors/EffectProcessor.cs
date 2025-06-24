@@ -55,7 +55,8 @@ namespace Microsoft.Xna.Framework.Content.Pipeline.Processors
                 throw new FileNotFoundException("The shader compiler mgfxc.dll was not found!", mgfxc);
 
             var sourceFile = input.Identity.SourceFilename;
-            var destFile = Path.GetTempFileName();
+            var relativeOutputPath = context.OutputFilename.Substring(context.OutputDirectory.Length);
+            var destFile = Path.Combine(context.IntermediateDirectory, relativeOutputPath + ".tmp");
             var arguments = "\"" + mgfxc + "\" \"" + sourceFile + "\" \"" + destFile + "\" /Profile:" + GetProfileForPlatform(context.TargetPlatform);
 
             if (debugMode == EffectProcessorDebugMode.Debug)
