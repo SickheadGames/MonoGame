@@ -83,6 +83,11 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
         Switch,
 
         /// <summary>
+        /// Nintendo Switch 2
+        /// </summary>
+        Switch2,
+
+        /// <summary>
         /// WebAssembly and Bridge.NET
         /// </summary>
         Web,
@@ -100,7 +105,7 @@ namespace Microsoft.Xna.Framework.Content.Pipeline
         /// <summary>
         /// Xbox Series
         /// </summary>
-        XboxSeries
+        XboxSeries,
     }
 
 
