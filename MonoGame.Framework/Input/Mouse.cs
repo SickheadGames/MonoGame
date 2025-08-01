@@ -37,9 +37,9 @@ namespace Microsoft.Xna.Framework.Input
         /// presses for the provided window
         /// </summary>
         /// <returns>Current state of the mouse.</returns>
-        public static MouseState GetState(GameWindow window)
+        public static MouseState GetState(GameWindow window, int index = 0)
         {
-            return PlatformGetState(window);
+            return PlatformGetState(window, index);
         }
 
         /// <summary>
@@ -47,10 +47,10 @@ namespace Microsoft.Xna.Framework.Input
         /// for the primary window
         /// </summary>
         /// <returns>Current state of the mouse.</returns>
-        public static MouseState GetState()
+        public static MouseState GetState(int index = 0)
         {
             if (PrimaryWindow != null)
-                return GetState(PrimaryWindow);
+                return GetState(PrimaryWindow, index);
 
             return _defaultState;
         }
@@ -60,9 +60,9 @@ namespace Microsoft.Xna.Framework.Input
         /// </summary>
         /// <param name="x">Relative horizontal position of the cursor.</param>
         /// <param name="y">Relative vertical position of the cursor.</param>
-        public static void SetPosition(int x, int y)
+        public static void SetPosition(int x, int y, int index = 0)
         {
-            PlatformSetPosition(x, y);
+            PlatformSetPosition(index, x, y);
         }
 
         /// <summary>

@@ -13,12 +13,12 @@ namespace Microsoft.Xna.Framework.Input
             return IntPtr.Zero;
         }
 
-        private static MouseState PlatformGetState(GameWindow window)
+        private static MouseState PlatformGetState(GameWindow window, int index)
         {
             return window.MouseState;
         }
 
-        private static void PlatformSetPosition(int x, int y)
+        private static void PlatformSetPosition(int index, int x, int y)
         {
             PrimaryWindow.MouseState.X = x;
             PrimaryWindow.MouseState.Y = y;
