@@ -312,7 +312,7 @@ public class ContentBuilderParams
 
     private static string MakeRelative(string workingDir, string path)
     {
-        if (!Path.IsPathRooted(path))
+        if (Path.IsPathRooted(path))
             return FileHelper.NormalizeSeparators(path, true);
 
         // Note this may still return an absolute path in the case

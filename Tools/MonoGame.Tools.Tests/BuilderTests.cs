@@ -164,9 +164,9 @@ namespace MonoGame.Tests.ContentPipeline
                 "-o", MakePath(Directory.GetCurrentDirectory(), "Other/Folder"),
                 "-i", MakePath(Directory.GetCurrentDirectory(), "Folder")
             );
-            Assert.AreEqual(MakePath("../Some/Folder"), args.SourceDirectory);
-            Assert.AreEqual(MakePath("Other/Folder"), args.OutputDirectory);
-            Assert.AreEqual(MakePath("Folder"), args.IntermediateDirectory);
+            Assert.AreEqual(MakePath(Directory.GetCurrentDirectory(), "../Some/Folder"), args.SourceDirectory);
+            Assert.AreEqual(MakePath(Directory.GetCurrentDirectory(), "Other/Folder"), args.OutputDirectory);
+            Assert.AreEqual(MakePath(Directory.GetCurrentDirectory(), "Folder"), args.IntermediateDirectory);
 
             args = ContentBuilderParams.Parse("server");
             Assert.AreEqual(ContentBuilderMode.Server, args.Mode);
