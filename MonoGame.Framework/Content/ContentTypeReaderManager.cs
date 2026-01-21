@@ -43,7 +43,8 @@ namespace Microsoft.Xna.Framework.Content
         private Dictionary<Type, ContentTypeReader> _contentReaders;
 
 		private static readonly string _assemblyName;
-		
+
+        private static readonly bool _isRunningOnNetCore = typeof(object).Assembly.GetName().Name == "System.Private.CoreLib";
 
 		static ContentTypeReaderManager()
 		{
@@ -54,6 +55,9 @@ namespace Microsoft.Xna.Framework.Content
 
         public ContentTypeReader GetTypeReader(Type targetType)
         {
+            if (targetType.IsArray && targetType.GetArrayRank() > 1)
+                targetType = typeof(Array);
+
             ContentTypeReader reader;
             if (_contentReaders.TryGetValue(targetType, out reader))
                 return reader;
@@ -113,6 +117,8 @@ namespace Microsoft.Xna.Framework.Content
                 var hSongReader = new SongReader();
                 var hModelReader = new ModelReader();
                 var hInt32Reader = new Int32Reader();
+                var hEffectReader = new EffectReader();
+                var hSingleReader = new SingleReader();
 
                 // At the moment the Video class doesn't exist
                 // on all platforms... Allow it to compile anyway.
@@ -190,7 +196,8 @@ namespace Microsoft.Xna.Framework.Content
 
                     var targetType = contentReaders[i].TargetType;
                     if (targetType != null)
-                      _contentReaders.Add(targetType, contentReaders[i]);
+                        if (!_contentReaders.ContainsKey(targetType))
+                            _contentReaders.Add(targetType, contentReaders[i]);
 
                     // I think the next 4 bytes refer to the "Version" of the type reader,
                     // although it always seems to be zero
@@ -241,7 +248,12 @@ namespace Microsoft.Xna.Framework.Content
 			preparedType = preparedType.Replace(", Microsoft.Xna.Framework.Graphics", string.Format(", {0}", _assemblyName));
             preparedType = preparedType.Replace(", Microsoft.Xna.Framework.Video", string.Format(", {0}", _assemblyName));
             preparedType = preparedType.Replace(", Microsoft.Xna.Framework", string.Format(", {0}", _assemblyName));
-			
+
+            if (_isRunningOnNetCore)
+                preparedType = preparedType.Replace("mscorlib", "System.Private.CoreLib");
+            else
+                preparedType = preparedType.Replace("System.Private.CoreLib", "mscorlib");
+
 			return preparedType;
 		}
 

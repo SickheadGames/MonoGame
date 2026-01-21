@@ -168,6 +168,18 @@ namespace MonoGame.Framework.Content.Pipeline.Builder
                     // we can do but ignore it.
                     continue;
                 }
+                catch (ReflectionTypeLoadException e)
+                {
+                    Logger.LogWarning(null, null, "Reflection type load failed '{0}': {1}", assemblyPath, e.Message);
+                    foreach (var x in e.LoaderExceptions)
+                        Logger.LogWarning(null, null, x.Message);
+                    continue;
+                }
+                catch (FileNotFoundException e)
+                {
+                    Logger.LogWarning(null, null, "File was not found '{0}'", e.FileName);
+                    continue;
+                }
                 catch (Exception e)
                 {
                     Logger.LogWarning(null, null, "Failed to load assembly '{0}': {1}", assemblyPath, e.Message);
