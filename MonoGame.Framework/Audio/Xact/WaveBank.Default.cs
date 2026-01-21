@@ -8,7 +8,7 @@ namespace Microsoft.Xna.Framework.Audio
 {
     partial class WaveBank
     {
-        private SoundEffectInstance PlatformCreateStream(StreamInfo stream)
+        private SoundEffectInstance PlatformCreateStream(int trackIndex, StreamInfo info, ref bool streaming)
         {
             throw new NotImplementedException("XACT streaming is not implemented on this platform.");
         }

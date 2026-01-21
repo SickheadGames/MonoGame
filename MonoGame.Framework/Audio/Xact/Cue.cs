@@ -311,7 +311,7 @@ namespace Microsoft.Xna.Framework.Audio
                             break;
 
                         case RpcParameter.Pitch:
-                            pitch += value / 1000.0f;
+                            pitch += value / 1200.0f;
                             break;
 
                         case RpcParameter.ReverbSend:
