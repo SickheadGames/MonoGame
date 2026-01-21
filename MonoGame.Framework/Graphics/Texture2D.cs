@@ -21,9 +21,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		internal int width;
 		internal int height;
         internal int ArraySize;
-                
-        internal float TexelWidth { get; private set; }
-        internal float TexelHeight { get; private set; }
+
+        internal float TexelWidth;
+        internal float TexelHeight;
 
         /// <summary>
         /// Gets the dimensions of the texture

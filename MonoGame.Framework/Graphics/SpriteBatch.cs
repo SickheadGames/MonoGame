@@ -3,7 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 // jcf: gross, but, i don't see an alternative
-#if PSVITA
+#if PSVITA || PLAYSTATION4 || SWITCH || XBOXONE
 #define DISABLE_CHECK_VALID
 #endif
 
@@ -275,26 +275,27 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
             CheckValid(texture);
 
-            var item = _batcher.CreateBatchItem();
-            item.Texture = texture;
-
             // set SortKey based on SpriteSortMode.
+            float sortKey = 0;
             switch ( _sortMode )
             {
                 // Comparison of Texture objects.
                 case SpriteSortMode.Texture:
-                    item.SortKey = texture.SortingKey;
+                    sortKey = texture.SortingKey;
                     break;
                 // Comparison of Depth
                 case SpriteSortMode.FrontToBack:
-                    item.SortKey = layerDepth;
+                    sortKey = layerDepth;
                     break;
                 // Comparison of Depth in reverse
                 case SpriteSortMode.BackToFront:
-                    item.SortKey = -layerDepth;
+                    sortKey = -layerDepth;
                     break;
             }
-                        
+
+            var item = _batcher.CreateBatchItem(sortKey);
+            item.Texture = texture;
+
             origin = origin * scale;
             
             float w, h;
@@ -406,26 +407,27 @@ namespace Microsoft.Xna.Framework.Graphics
             float layerDepth)
 		{
             CheckValid(texture);
-            
-            var item = _batcher.CreateBatchItem();
-            item.Texture = texture;
 
             // set SortKey based on SpriteSortMode.
-            switch ( _sortMode )
+            float sortKey = 0;
+            switch (_sortMode)
             {
                 // Comparison of Texture objects.
                 case SpriteSortMode.Texture:
-                    item.SortKey = texture.SortingKey;
+                    sortKey = texture.SortingKey;
                     break;
                 // Comparison of Depth
                 case SpriteSortMode.FrontToBack:
-                    item.SortKey = layerDepth;
+                    sortKey = layerDepth;
                     break;
                 // Comparison of Depth in reverse
                 case SpriteSortMode.BackToFront:
-                    item.SortKey = -layerDepth;
+                    sortKey = -layerDepth;
                     break;
             }
+
+            var item = _batcher.CreateBatchItem(sortKey);
+            item.Texture = texture;           
 
             if (sourceRectangle.HasValue)
             {
@@ -516,11 +518,11 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
 			CheckValid(texture);
             
-			var item = _batcher.CreateBatchItem();
-			item.Texture = texture;
-            
             // set SortKey based on SpriteSortMode.
-            item.SortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
+            float sortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
+
+            var item = _batcher.CreateBatchItem(sortKey);
+            item.Texture = texture;            
 
             Vector2 size;
 
@@ -562,12 +564,11 @@ namespace Microsoft.Xna.Framework.Graphics
 		public void Draw (Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
 		{
             CheckValid(texture);
-            
-			var item = _batcher.CreateBatchItem();
-			item.Texture = texture;
-            
-            // set SortKey based on SpriteSortMode.
-            item.SortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
+
+            float sortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
+
+            var item = _batcher.CreateBatchItem(sortKey);
+            item.Texture = texture;
             
             if (sourceRectangle.HasValue)
             {
@@ -604,12 +605,11 @@ namespace Microsoft.Xna.Framework.Graphics
 		public void Draw (Texture2D texture, Vector2 position, Color color)
 		{
 			CheckValid(texture);
-            
-			var item = _batcher.CreateBatchItem();
-			item.Texture = texture;
-            
-            // set SortKey based on SpriteSortMode.
-            item.SortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
+
+            float sortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
+
+            var item = _batcher.CreateBatchItem(sortKey);
+            item.Texture = texture;
             
             item.Set(position.X,
                      position.Y,
@@ -632,13 +632,12 @@ namespace Microsoft.Xna.Framework.Graphics
         public void Draw(Texture2D texture, Rectangle destinationRectangle, Color color)
 		{
             CheckValid(texture);
-            
-            var item = _batcher.CreateBatchItem();
+
+            float sortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
+
+            var item = _batcher.CreateBatchItem(sortKey);
             item.Texture = texture;
-            
-            // set SortKey based on SpriteSortMode.
-            item.SortKey = _sortMode == SpriteSortMode.Texture ? texture.SortingKey : 0;
-            
+           
             item.Set(destinationRectangle.X,
                      destinationRectangle.Y,
                      destinationRectangle.Width,
@@ -714,9 +713,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 p.Y += currentGlyph.Cropping.Y;
                 p += position;
 
-                var item = _batcher.CreateBatchItem();
+                var item = _batcher.CreateBatchItem(sortKey);
                 item.Texture = spriteFont.Texture;
-                item.SortKey = sortKey;
             
                 _texCoordTL.X = currentGlyph.BoundsInTexture.X * spriteFont.Texture.TexelWidth;
                 _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
@@ -898,9 +896,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 Vector2.Transform(ref p, ref transformation, out p);
 
-                var item = _batcher.CreateBatchItem();               
+                var item = _batcher.CreateBatchItem(sortKey);               
                 item.Texture = spriteFont.Texture;
-                item.SortKey = sortKey;
                 
                 _texCoordTL.X = currentGlyph.BoundsInTexture.X * spriteFont.Texture.TexelWidth;
                 _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
@@ -1017,9 +1014,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 p.Y += currentGlyph.Cropping.Y;
                 p += position;
                 
-                var item = _batcher.CreateBatchItem();
+                var item = _batcher.CreateBatchItem(sortKey);
                 item.Texture = spriteFont.Texture;
-                item.SortKey = sortKey;
             
                 _texCoordTL.X = currentGlyph.BoundsInTexture.X * spriteFont.Texture.TexelWidth;
                 _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * spriteFont.Texture.TexelHeight;
@@ -1200,9 +1196,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 Vector2.Transform(ref p, ref transformation, out p);
                 
-                var item = _batcher.CreateBatchItem();               
+                var item = _batcher.CreateBatchItem(sortKey);               
                 item.Texture = spriteFont.Texture;
-                item.SortKey = sortKey;
                 
                 _texCoordTL.X = currentGlyph.BoundsInTexture.X * (float)spriteFont.Texture.TexelWidth;
                 _texCoordTL.Y = currentGlyph.BoundsInTexture.Y * (float)spriteFont.Texture.TexelHeight;

@@ -36,7 +36,8 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <summary>
         /// The list of batch items to process.
         /// </summary>
-	    private SpriteBatchItem[] _batchItemList;
+        private SpriteSortItem[] _sortItemList;
+        private SpriteBatchItem[] _batchItemList;
         /// <summary>
         /// Index pointer to the next available SpriteBatchItem in _batchItemList.
         /// </summary>
@@ -59,6 +60,7 @@ namespace Microsoft.Xna.Framework.Graphics
             _device = device;
 
 			_batchItemList = new SpriteBatchItem[InitialBatchSize];
+            _sortItemList = new SpriteSortItem[InitialBatchSize];
             _batchItemCount = 0;
 
             for (int i = 0; i < InitialBatchSize; i++)
@@ -72,20 +74,30 @@ namespace Microsoft.Xna.Framework.Graphics
         /// if there is none available grow the pool and initialize new items.
         /// </summary>
         /// <returns></returns>
-        public SpriteBatchItem CreateBatchItem()
+        public SpriteBatchItem CreateBatchItem(float sortKey)
         {
             if (_batchItemCount >= _batchItemList.Length)
             {
                 var oldSize = _batchItemList.Length;
-                var newSize = oldSize + oldSize/2; // grow by x1.5
+                var newSize = oldSize + oldSize / 2; // grow by x1.5
                 newSize = (newSize + 63) & (~63); // grow in chunks of 64.
                 Array.Resize(ref _batchItemList, newSize);
-                for(int i=oldSize; i<newSize; i++)
-                    _batchItemList[i]=new SpriteBatchItem();
+                for (int i = oldSize; i < newSize; i++)
+                    _batchItemList[i] = new SpriteBatchItem();
+
+                Array.Resize(ref _sortItemList, newSize);
 
                 EnsureArrayCapacity(Math.Min(newSize, MaxBatchSize));
             }
-            var item = _batchItemList[_batchItemCount++];
+
+            var item = _batchItemList[_batchItemCount];
+
+            SpriteSortItem sort;
+            sort.Index = _batchItemCount;
+            sort.SortKey = sortKey;
+            _sortItemList[_batchItemCount] = sort;
+
+            _batchItemCount++;
             return item;
         }
 
@@ -138,52 +150,118 @@ namespace Microsoft.Xna.Framework.Graphics
             _vertexArray = new VertexPositionColorTexture[4 * numBatchItems];
         }
 
-        private SpriteBatchItem[] _leftArray;
-        private SpriteBatchItem[] _rightArray;
+        private const int SORT_RUN = 32;
 
-        private void MergeSort(SpriteBatchItem[] input, int left, int right)
+        private unsafe static void InsertionSort(SpriteSortItem* arr, int left, int right)
         {
-            if (left >= right)
-                return;
-
-            var middle = (left + right) / 2;
-            MergeSort(input, left, middle);
-            MergeSort(input, middle + 1, right);
-
-            var leftCount = middle - left + 1;
-            if (_leftArray == null || _leftArray.Length < leftCount)
-                _leftArray = new SpriteBatchItem[leftCount];
-
-            var rightCount = right - middle;
-            if (_rightArray == null || _rightArray.Length < rightCount)
-                _rightArray = new SpriteBatchItem[rightCount];
-
-            Array.Copy(input, left, _leftArray, 0, leftCount);
-            Array.Copy(input, middle + 1, _rightArray, 0, rightCount);
-
-            var i = 0;
-            var j = 0;
-            for (var k = left; k < right + 1; k++)
+            for (int i = left + 1; i <= right; i++)
             {
-                if (i == leftCount)
+                var temp = arr[i];
+                int j = i - 1;
+                while (j >= left && arr[j].SortKey > temp.SortKey)
                 {
-                    input[k] = _rightArray[j];
-                    j++;
+                    arr[j + 1] = arr[j];
+                    j--;
                 }
-                else if (j == rightCount)
+                arr[j + 1] = temp;
+            }
+        }
+
+        private SpriteSortItem[] _leftArray;
+        private SpriteSortItem[] _rightArray;
+
+        private unsafe void MergeSort(SpriteSortItem* arr, int l, int m, int r)
+        {
+            // original array is broken in two parts  
+            // left and right array  
+            int len1 = m - l + 1, len2 = r - m;
+
+            if (_leftArray == null || _leftArray.Length < len1)
+                _leftArray = new SpriteSortItem[len1];
+            if (_rightArray == null || _rightArray.Length < len2)
+                _rightArray = new SpriteSortItem[len2];
+
+            fixed (SpriteSortItem* left = _leftArray)
+            fixed (SpriteSortItem* right = _rightArray)
+            {
+                for (var x = 0; x < len1; x++)
+                    left[x] = arr[l + x];
+                for (var x = 0; x < len2; x++)
+                    right[x] = arr[m + 1 + x];
+
+                int i = 0;
+                int j = 0;
+                int k = l;
+
+                // After comparing, we merge those two array  
+                // in larger sub array  
+                while (i < len1 && j < len2)
                 {
-                    input[k] = _leftArray[i];
+                    if (left[i].SortKey <= right[j].SortKey)
+                    {
+                        arr[k] = left[i];
+                        i++;
+                    }
+                    else
+                    {
+                        arr[k] = right[j];
+                        j++;
+                    }
+                    k++;
+                }
+
+                // Copy remaining elements  
+                // of left, if any  
+                while (i < len1)
+                {
+                    arr[k] = left[i];
+                    k++;
                     i++;
                 }
-                else if (_leftArray[i].SortKey > _rightArray[j].SortKey)
+
+                // Copy remaining element  
+                // of right, if any  
+                while (j < len2)
                 {
-                    input[k] = _rightArray[j];
+                    arr[k] = right[j];
+                    k++;
                     j++;
                 }
-                else
+            }
+        }
+
+        private unsafe void TimSort(SpriteSortItem* arr, int n)
+        {
+            //Console.WriteLine($"TimSort {n}");
+
+            // Sort individual subarrays of size RUN  
+            for (var i = 0; i < n; i += SORT_RUN)
+                InsertionSort(arr, i, Math.Min((i + (SORT_RUN-1)), (n - 1)));
+
+            // Start merging from size RUN (or 32).  
+            // It will merge  
+            // to form size 64, then  
+            // 128, 256 and so on ....  
+            for (var size = SORT_RUN; size < n; size = 2 * size)
+            {
+                // Pick starting point of  
+                // left sub array. We  
+                // are going to merge  
+                // arr[left..left+size-1]  
+                // and arr[left+size, left+2*size-1]  
+                // After every merge, we increase  
+                // left by 2*size  
+                for (var left = 0; left < n; left += 2 * size)
                 {
-                    input[k] = _leftArray[i];
-                    i++;
+                    // Find ending point of left sub array  
+                    // mid+1 is starting point of  
+                    // right sub array  
+                    var mid = Math.Min((left + size - 1), (n - 1));
+                    var right = Math.Min((left + 2 * size - 1), (n - 1));
+
+                    // Merge sub array arr[left.....mid] &  
+                    // arr[mid+1....right]  
+                    MergeSort(arr, left, mid, right);
                 }
             }
         }
@@ -196,8 +274,8 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <param name="effect">The custom effect to apply to the drawn geometry</param>
         public unsafe void DrawBatch(SpriteSortMode sortMode, Effect effect)
 		{
-            if (effect != null && effect.IsDisposed)
-                throw new ObjectDisposedException("effect");
+            //if (effect != null && effect.IsDisposed)
+                //throw new ObjectDisposedException("effect");
 
 			// nothing to do
             if (_batchItemCount == 0)
@@ -209,7 +287,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			case SpriteSortMode.Texture :                
 			case SpriteSortMode.FrontToBack :
 			case SpriteSortMode.BackToFront :
-                MergeSort(_batchItemList, 0, _batchItemCount-1);
+                    fixed (SpriteSortItem* sorted = _sortItemList)
+                        TimSort(sorted, _batchItemCount);
 				break;
 			}
 
@@ -236,15 +315,19 @@ namespace Microsoft.Xna.Framework.Graphics
                 {
                     numBatchesToProcess = MaxBatchSize;
                 }
+
                 // Avoid the array checking overhead by using pointer indexing!
                 fixed (VertexPositionColorTexture* vertexArrayFixedPtr = _vertexArray)
+                fixed (SpriteSortItem* sortItemList = _sortItemList)
                 {
                     var vertexArrayPtr = vertexArrayFixedPtr;
 
                     // Draw the batches
-                    for (int i = 0; i < numBatchesToProcess; i++, batchIndex++, index += 4, vertexArrayPtr += 4)
+                    for (int i = 0; i < numBatchesToProcess; i++, batchIndex++, index += 4)
                     {
-                        SpriteBatchItem item = _batchItemList[batchIndex];
+                        var sortIndex = sortItemList[batchIndex].Index;
+                        SpriteBatchItem item = _batchItemList[sortIndex];
+
                         // if the texture changed, we need to flush and bind the new texture
                         var shouldFlush = !ReferenceEquals(item.Texture, tex);
                         if (shouldFlush)
@@ -258,10 +341,32 @@ namespace Microsoft.Xna.Framework.Graphics
                         }
 
                         // store the SpriteBatchItem data in our vertexArray
-                        *(vertexArrayPtr+0) = item.vertexTL;
-                        *(vertexArrayPtr+1) = item.vertexTR;
-                        *(vertexArrayPtr+2) = item.vertexBL;
-                        *(vertexArrayPtr+3) = item.vertexBR;
+                        vertexArrayPtr->Position.X = item.vertexTL.X;
+                        vertexArrayPtr->Position.Y = item.vertexTL.Y;
+                        vertexArrayPtr->Position.Z = item.depth;
+                        vertexArrayPtr->Color = item.color;
+                        vertexArrayPtr->TextureCoordinate = item.texCoordTL;
+                        vertexArrayPtr++;
+                        vertexArrayPtr->Position.X = item.vertexTR.X;
+                        vertexArrayPtr->Position.Y = item.vertexTR.Y;
+                        vertexArrayPtr->Position.Z = item.depth;
+                        vertexArrayPtr->Color = item.color;
+                        vertexArrayPtr->TextureCoordinate.X = item.texCoordBR.X;
+                        vertexArrayPtr->TextureCoordinate.Y = item.texCoordTL.Y;
+                        vertexArrayPtr++;
+                        vertexArrayPtr->Position.X = item.vertexBL.X;
+                        vertexArrayPtr->Position.Y = item.vertexBL.Y;
+                        vertexArrayPtr->Position.Z = item.depth;
+                        vertexArrayPtr->Color = item.color;
+                        vertexArrayPtr->TextureCoordinate.X = item.texCoordTL.X;
+                        vertexArrayPtr->TextureCoordinate.Y = item.texCoordBR.Y;
+                        vertexArrayPtr++;
+                        vertexArrayPtr->Position.X = item.vertexBR.X;
+                        vertexArrayPtr->Position.Y = item.vertexBR.Y;
+                        vertexArrayPtr->Position.Z = item.depth;
+                        vertexArrayPtr->Color = item.color;
+                        vertexArrayPtr->TextureCoordinate = item.texCoordBR;
+                        vertexArrayPtr++;
 
                         // Release the texture.
                         item.Texture = null;
