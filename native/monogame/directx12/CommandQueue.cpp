@@ -99,14 +99,17 @@ void CommandQueue::WaitForIdle()
 
 #ifdef _GAMING_XBOX
 void CommandQueue::PresentX(UINT planeCount, const D3D12XBOX_PRESENT_PLANE_PARAMETERS* pPlaneParameters, const D3D12XBOX_PRESENT_PARAMETERS* pPresentParameters) {
+    std::lock_guard lock(m_fenceMutex);
     ThrowIfFailed(m_queue->PresentX(planeCount, pPlaneParameters, pPresentParameters));
 }
 
 void CommandQueue::SuspendX(UINT flags) {
+    std::lock_guard lock(m_fenceMutex);
     ThrowIfFailed(m_queue->SuspendX(flags));
 }
 
 void CommandQueue::ResumeX() {
+    std::lock_guard lock(m_fenceMutex);
     ThrowIfFailed(m_queue->ResumeX());
 }
 #endif
