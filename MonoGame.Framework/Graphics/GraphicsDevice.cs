@@ -1095,7 +1095,7 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </param>
         public void GetRenderTargets(RenderTargetBinding[] outTargets)
         {
-            Debug.Assert(outTargets.Length == _currentRenderTargetCount, "Invalid outTargets array length!");
+            Debug.Assert(outTargets.Length >= _currentRenderTargetCount, "Invalid outTargets array length!");
             Array.Copy(_currentRenderTargetBindings, outTargets, _currentRenderTargetCount);
         }
 
